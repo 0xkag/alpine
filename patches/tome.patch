@@ -1,0 +1,367 @@
+diff -rc alpine-2.20/pith/conf.c alpine-2.20.tome/pith/conf.c
+*** alpine-2.20/pith/conf.c	2015-01-07 22:53:20.676657373 -0700
+--- alpine-2.20.tome/pith/conf.c	2015-01-07 23:19:43.546610347 -0700
+***************
+*** 2925,2930 ****
+--- 2925,2932 ----
+  	 F_ENABLE_SPACE_AS_TAB, h_config_cruise_mode, PREF_INDX, 0},
+  	{"enable-cruise-mode-delete", "Enable Cruise Mode With Deleting",
+  	 F_ENABLE_TAB_DELETES, h_config_cruise_mode_delete, PREF_INDX, 0},
++ 	{"mark-for-me-in-group", "Mark for Group Message to Me",
++ 	 F_MARK_FOR_GROUP, h_config_mark_for_group, PREF_INDX, 1},
+  	{"mark-for-cc", "Mark for CC",
+  	 F_MARK_FOR_CC, h_config_mark_for_cc, PREF_INDX, 1},
+  	{"next-thread-without-confirm", "Read Next Thread Without Confirming",
+***************
+*** 7082,7087 ****
+--- 7084,7090 ----
+  	break;
+  
+        case F_MARK_FOR_CC :
++       case F_MARK_FOR_GROUP :
+  	clear_index_cache(ps->mail_stream, 0);
+  	if(THREADING() && sp_viewing_a_thread(ps->mail_stream))
+  	  unview_thread(ps, ps->mail_stream, ps->msgmap);
+diff -rc alpine-2.20/pith/conftype.h alpine-2.20.tome/pith/conftype.h
+*** alpine-2.20/pith/conftype.h	2015-01-07 22:53:20.677657376 -0700
+--- alpine-2.20.tome/pith/conftype.h	2015-01-07 23:19:43.546610347 -0700
+***************
+*** 410,415 ****
+--- 410,416 ----
+  	F_FIRST_SEND_FILTER_DFLT,
+  	F_ALWAYS_LAST_FLDR_DFLT,
+  	F_TAB_TO_NEW,
++ 	F_MARK_FOR_GROUP,
+  	F_MARK_FOR_CC,
+  	F_WARN_ABOUT_NO_SUBJECT,
+  	F_WARN_ABOUT_NO_FCC,
+diff -rc alpine-2.20/pith/mailindx.c alpine-2.20.tome/pith/mailindx.c
+*** alpine-2.20/pith/mailindx.c	2015-01-07 22:53:20.677657376 -0700
+--- alpine-2.20.tome/pith/mailindx.c	2015-01-07 23:19:43.547610349 -0700
+***************
+*** 2075,2084 ****
+  			      if(to_us == ' ')
+  				to_us = '+';
+  
+  			      break;
+  			  }
+  
+! 			if(to_us != '+' && resent_to_us(idata)){
+  			    ice->to_us = 1;
+  			    if(to_us == ' ')
+  			      to_us = '+';
+--- 2075,2089 ----
+  			      if(to_us == ' ')
+  				to_us = '+';
+  
++ 			      if(to_us == '+' 
++ 				   && F_ON(F_MARK_FOR_GROUP,ps_global) &&
++ 				 (addr->next || addr != fetch_to(idata)))
++ 				   to_us = '.';
++ 
+  			      break;
+  			  }
+  
+! 			if(to_us == ' ' && resent_to_us(idata)){
+  			    ice->to_us = 1;
+  			    if(to_us == ' ')
+  			      to_us = '+';
+***************
+*** 2132,2138 ****
+  			    ielem->color = new_color_pair(VAR_IND_IMP_FORE_COLOR, VAR_IND_IMP_BACK_COLOR);
+  			}
+  		    }
+! 		    else if(str[0] == '+' || str[0] == '-'){
+  			if(VAR_IND_PLUS_FORE_COLOR && VAR_IND_PLUS_BACK_COLOR){
+  			    ielem = ifield->ielem;
+  			    ielem->freecolor = 1;
+--- 2137,2143 ----
+  			    ielem->color = new_color_pair(VAR_IND_IMP_FORE_COLOR, VAR_IND_IMP_BACK_COLOR);
+  			}
+  		    }
+! 		    else if(str[0] == '+' || str[0] == '-' || str[0] == '.'){
+  			if(VAR_IND_PLUS_FORE_COLOR && VAR_IND_PLUS_BACK_COLOR){
+  			    ielem = ifield->ielem;
+  			    ielem->freecolor = 1;
+***************
+*** 2188,2193 ****
+--- 2193,2204 ----
+  			for(addr = fetch_to(idata); addr; addr = addr->next)
+  			  if(address_is_us(addr, ps_global)){
+  			      to_us = '+';
++ 
++ 			      if(to_us == '+' 
++ 				   && F_ON(F_MARK_FOR_GROUP,ps_global) &&
++ 				 (addr->next || addr != fetch_to(idata)))
++ 				   to_us = '.';
++ 
+  			      break;
+  			  }
+  		      
+***************
+*** 2283,2289 ****
+  
+  		  if(pico_usingcolor()){
+  
+! 		      if(str[0] == '+' || str[0] == '-'){
+  			  if(start == 0
+  			     && VAR_IND_PLUS_FORE_COLOR
+  			     && VAR_IND_PLUS_BACK_COLOR){
+--- 2294,2300 ----
+  
+  		  if(pico_usingcolor()){
+  
+! 		      if(str[0] == '+' || str[0] == '-' || str[0] == '.'){
+  			  if(start == 0
+  			     && VAR_IND_PLUS_FORE_COLOR
+  			     && VAR_IND_PLUS_BACK_COLOR){
+***************
+*** 3107,3113 ****
+  		  tice->linecolor = new_color_pair(VAR_IND_IMP_FORE_COLOR,
+  						   VAR_IND_IMP_BACK_COLOR);
+  	    }
+! 	    else if((to_us == '+' || to_us == '-')
+  		    && VAR_IND_PLUS_FORE_COLOR && VAR_IND_PLUS_BACK_COLOR){
+  		ielem = ifield->ielem;
+  		ielem->freecolor = 1;
+--- 3118,3124 ----
+  		  tice->linecolor = new_color_pair(VAR_IND_IMP_FORE_COLOR,
+  						   VAR_IND_IMP_BACK_COLOR);
+  	    }
+! 	    else if((to_us == '+' || to_us == '-' || to_us == '.')
+  		    && VAR_IND_PLUS_FORE_COLOR && VAR_IND_PLUS_BACK_COLOR){
+  		ielem = ifield->ielem;
+  		ielem->freecolor = 1;
+diff -rc alpine-2.20/pith/pine.hlp alpine-2.20.tome/pith/pine.hlp
+*** alpine-2.20/pith/pine.hlp	2015-01-07 22:53:20.683657394 -0700
+--- alpine-2.20.tome/pith/pine.hlp	2015-01-07 23:19:43.554610367 -0700
+***************
+*** 3578,3583 ****
+--- 3578,3584 ----
+  <li><a href="h_config_add_ldap">FEATURE: <!--#echo var="FEAT_ldap-result-to-addrbook-add"--></a>
+  <li><a href="h_config_maildrops_preserve_state">FEATURE: <!--#echo var="FEAT_maildrops-preserve-state"--></a>
+  <li><a href="h_config_mark_fcc_seen">FEATURE: <!--#echo var="FEAT_mark-fcc-seen"--></a>
++ <li><a href="h_config_mark_for_group">FEATURE: <!--#echo var="FEAT_mark-for-me-in-group"--></a>
+  <li><a href="h_config_mark_for_cc">FEATURE: <!--#echo var="FEAT_mark-for-cc"--></a>
+  <li><a href="h_config_mulnews_as_typed">FEATURE: <!--#echo var="FEAT_mult-newsrc-hostnames-as-typed"--></a>
+  <li><a href="h_config_news_uses_recent">FEATURE: <!--#echo var="FEAT_news-approximates-new-status"--></a>
+***************
+*** 4727,4732 ****
+--- 4728,4737 ----
+  	message in the thread was sent to you as a cc:. This symbol will only show up if
+  	the feature
+  	&quot;<A HREF="h_config_mark_for_cc"><!--#echo var="FEAT_mark-for-cc"--></A>&quot; is turned on (which is the default).
++   <LI> &quot;.&quot; for messages that were sent to you as part of a group message, regardless
++        of if all addresses in the To: field are yours or not. This symbol will only show up if
++ 	the feature
++ 	&quot;<A HREF="h_config_mark_for_group"><!--#echo var="FEAT_mark-for-me-in-group"--></A>&quot; is turned on (which is the default).
+    <LI> &quot;X&quot; for selected.  You have selected at least one message in the thread by using the
+  	&quot;select&quot; command.  (Some systems may optionally allow selected
+  	messages to be denoted by the index line being displayed in bold
+***************
+*** 4886,4891 ****
+--- 4891,4900 ----
+  	message was sent to you as a cc:. This symbol will only show up if
+  	the feature
+  	&quot;<A HREF="h_config_mark_for_cc"><!--#echo var="FEAT_mark-for-cc"--></A>&quot; is turned on (which is the default).
++   <LI> &quot;.&quot; for messages that were sent to you as part of a group message, regardless
++        of if all addresses in the To: field are yours or not. This symbol will only show up if
++ 	the feature
++ 	&quot;<A HREF="h_config_mark_for_group"><!--#echo var="FEAT_mark-for-me-in-group"--></A>&quot; is turned on (which is the default).
+    <LI> &quot;X&quot; for selected.  You have selected the message by using the
+  	&quot;select&quot; command.  (Some systems may optionally allow selected
+  	messages to be denoted by the index line being displayed in bold
+***************
+*** 19046,19052 ****
+  The first character is either blank,
+  a '*' for message marked Important, or a '+' indicating a message
+  addressed directly to you (as opposed to your having received it via a
+! mailing list, for example).
+  When the feature
+  &quot;<A HREF="h_config_mark_for_cc"><!--#echo var="FEAT_mark-for-cc"--></A>&quot;
+  is set, if the first character would have been
+--- 19055,19065 ----
+  The first character is either blank,
+  a '*' for message marked Important, or a '+' indicating a message
+  addressed directly to you (as opposed to your having received it via a
+! mailing list, for example). The symbol '.' will be used
+! for messages that were sent to you as part of a group message, regardless
+! of if all addresses in the To: field are yours or not. This symbol will only show up if
+! the feature
+! &quot;<A HREF="h_config_mark_for_group"><!--#echo var="FEAT_mark-for-me-in-group"--></A>&quot; is turned on (which is the default).
+  When the feature
+  &quot;<A HREF="h_config_mark_for_cc"><!--#echo var="FEAT_mark-for-cc"--></A>&quot;
+  is set, if the first character would have been
+***************
+*** 33443,33448 ****
+--- 33456,33483 ----
+  &lt;End of help on this topic&gt;
+  </BODY>
+  </HTML>
++ ====== h_config_mark_for_group =====
++ <HTML>
++ <HEAD>
++ <TITLE>FEATURE: <!--#echo var="FEAT_mark-for-me-in-group"--></TITLE>
++ </HEAD>
++ <BODY>
++ <H1>FEATURE: <!--#echo var="FEAT_mark-for-me-in-group"--></H1>
++ 
++ This feature affects Alpine's MESSAGE INDEX display.
++ By default, a '+' is displayed in the first column if the
++ message is addressed directly to you.
++ When this feature is set and the message is addressed to you as part of a group message
++ (that is, your address appears in the To: field, but there is more than one recipient), then a
++ '.' character is displayed instead.
++ 
++ <P>
++ <UL>   
++ <LI><A HREF="h_finding_help">Finding more information and requesting help</A>
++ </UL><P>
++ &lt;End of help on this topic&gt;
++ </BODY>
++ </HTML>
+  ====== h_config_mark_for_cc =====
+  <HTML>
+  <HEAD>
+***************
+*** 33452,33458 ****
+  <H1>FEATURE: <!--#echo var="FEAT_mark-for-cc"--></H1>
+  
+  This feature affects Alpine's MESSAGE INDEX display.
+! By default, a '+' is displayed in the first column if the
+  message is addressed directly to you.
+  When this feature is set and the message is not addressed to you, then a
+  '-' character is displayed if the message is instead Cc'd directly
+--- 33487,33493 ----
+  <H1>FEATURE: <!--#echo var="FEAT_mark-for-cc"--></H1>
+  
+  This feature affects Alpine's MESSAGE INDEX display.
+! By default, a '+' or a '.' is displayed in the first column if the
+  message is addressed directly to you.
+  When this feature is set and the message is not addressed to you, then a
+  '-' character is displayed if the message is instead Cc'd directly
+diff -rc alpine-2.20/pith/thread.c alpine-2.20.tome/pith/thread.c
+*** alpine-2.20/pith/thread.c	2015-01-07 22:53:20.679657382 -0700
+--- alpine-2.20.tome/pith/thread.c	2015-01-07 23:19:43.554610367 -0700
+***************
+*** 1210,1216 ****
+  /*
+   * Symbol is * if some message in thread is important,
+   * + if some message is to us,
+!  * - if mark-for-cc and some message is cc to us, else blank.
+   */
+  char
+  to_us_symbol_for_thread(MAILSTREAM *stream, PINETHRD_S *thrd, int consider_flagged)
+--- 1210,1217 ----
+  /*
+   * Symbol is * if some message in thread is important,
+   * + if some message is to us,
+!  * - if mark-for-cc and some message is cc to us, 
+!  * . if mark-for-group and some message is to us in a group, else blank.
+   */
+  char
+  to_us_symbol_for_thread(MAILSTREAM *stream, PINETHRD_S *thrd, int consider_flagged)
+***************
+*** 1229,1235 ****
+  	  to_us = to_us_symbol_for_thread(stream, nthrd, consider_flagged);
+      }
+  
+!     if(((consider_flagged && to_us != '*') || (!consider_flagged && to_us != '+'))
+         && thrd->branch){
+  	bthrd = fetch_thread(stream, thrd->branch);
+  	if(bthrd)
+--- 1230,1237 ----
+  	  to_us = to_us_symbol_for_thread(stream, nthrd, consider_flagged);
+      }
+  
+!     if(((consider_flagged && to_us != '*') 
+! 	|| (!consider_flagged && to_us != '+' && to_us != '.'))
+         && thrd->branch){
+  	bthrd = fetch_thread(stream, thrd->branch);
+  	if(bthrd)
+***************
+*** 1237,1262 ****
+  
+  	/* use branch to_us symbol if it has higher priority than what we have so far */
+  	if(to_us == ' '){
+! 	    if(branch_to_us == '-' || branch_to_us == '+' || branch_to_us == '*')
+  	      to_us = branch_to_us;
+  	}
+  	else if(to_us == '-'){
+! 	    if(branch_to_us == '+' || branch_to_us == '*')
+  	      to_us = branch_to_us;
+  	}
+! 	else if(to_us == '+'){
+  	    if(branch_to_us == '*')
+  	      to_us = branch_to_us;
+  	}
+      }
+  
+!     if((consider_flagged && to_us != '*') || (!consider_flagged && to_us != '+')){
+  	if(consider_flagged && thrd && thrd->rawno > 0L
+  	   && stream && thrd->rawno <= stream->nmsgs
+  	   && (mc = mail_elt(stream, thrd->rawno))
+  	   && FLAG_MATCH(F_FLAG, mc, stream))
+  	  to_us = '*';
+! 	else if(to_us != '+' && !IS_NEWS(stream)){
+  	    INDEXDATA_S   idata;
+  	    MESSAGECACHE *mc;
+  	    ADDRESS      *addr;
+--- 1239,1266 ----
+  
+  	/* use branch to_us symbol if it has higher priority than what we have so far */
+  	if(to_us == ' '){
+! 	    if(branch_to_us == '-' || branch_to_us == '+' 
+! 		|| branch_to_us == '.' || branch_to_us == '*')
+  	      to_us = branch_to_us;
+  	}
+  	else if(to_us == '-'){
+! 	    if(branch_to_us == '+' || branch_to_us == '.' || branch_to_us == '*')
+  	      to_us = branch_to_us;
+  	}
+! 	else if(to_us == '+' || to_us == '.'){
+  	    if(branch_to_us == '*')
+  	      to_us = branch_to_us;
+  	}
+      }
+  
+!     if((consider_flagged && to_us != '*') 
+! 		|| (!consider_flagged && to_us != '+' && to_us != '.')){
+  	if(consider_flagged && thrd && thrd->rawno > 0L
+  	   && stream && thrd->rawno <= stream->nmsgs
+  	   && (mc = mail_elt(stream, thrd->rawno))
+  	   && FLAG_MATCH(F_FLAG, mc, stream))
+  	  to_us = '*';
+! 	else if(to_us != '+' && to_us != '.' && !IS_NEWS(stream)){
+  	    INDEXDATA_S   idata;
+  	    MESSAGECACHE *mc;
+  	    ADDRESS      *addr;
+***************
+*** 1277,1286 ****
+  	    for(addr = fetch_to(&idata); addr; addr = addr->next)
+  	      if(address_is_us(addr, ps_global)){
+  		  to_us = '+';
+  		  break;
+  	      }
+  	    
+! 	    if(to_us != '+' && resent_to_us(&idata))
+  	      to_us = '+';
+  
+  	    if(to_us == ' ' && F_ON(F_MARK_FOR_CC,ps_global))
+--- 1281,1296 ----
+  	    for(addr = fetch_to(&idata); addr; addr = addr->next)
+  	      if(address_is_us(addr, ps_global)){
+  		  to_us = '+';
++ 
++ 		  if(to_us == '+'
++ 			&& F_ON(F_MARK_FOR_GROUP,ps_global) &&
++ 			(addr->next || addr != fetch_to(&idata)))
++ 		     to_us = '.';
++ 
+  		  break;
+  	      }
+  	    
+! 	    if(to_us == ' ' && resent_to_us(&idata))
+  	      to_us = '+';
+  
+  	    if(to_us == ' ' && F_ON(F_MARK_FOR_CC,ps_global))
