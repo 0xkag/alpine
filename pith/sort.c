@@ -91,7 +91,7 @@ Args: msgmap --
   ----*/
 void
 sort_folder(MAILSTREAM *stream, MSGNO_S *msgmap, SortOrder new_sort,
-	    int new_rev, unsigned int flags)
+	    int new_rev, unsigned int flags, int first)
 {
     long	   raw_current, i, j;
     unsigned long *sort = NULL;
@@ -100,6 +100,15 @@ sort_folder(MAILSTREAM *stream, MSGNO_S *msgmap, SortOrder new_sort,
     SortOrder      current_sort;
     int	           current_rev;
     MESSAGECACHE  *mc;
+
+    if (first){
+       if (new_sort == SortThread)
+        find_msgmap(stream, msgmap, flags,
+                 ps_global->thread_cur_sort, new_rev);
+       else
+        sort_folder(stream, msgmap, new_sort, new_rev, flags, 0);
+       return;
+    }
 
     dprint((2, "Sorting by %s%s\n",
 	       sort_name(new_sort), new_rev ? "/reverse" : ""));
@@ -530,20 +539,20 @@ percent_sorted(void)
  * argument also means arrival/reverse.
  */
 int
-decode_sort(char *sort_spec, SortOrder *def_sort, int *def_sort_rev)
+decode_sort(char *sort_spec, SortOrder *def_sort, int *def_sort_rev, int thread)
 {
     char *sep;
     char *fix_this = NULL;
-    int   x, reverse;
+    int   x = 0, reverse;
 
     if(!sort_spec || !*sort_spec){
-	*def_sort = SortArrival;
+	*def_sort = thread ? SortThread : SortArrival;
 	*def_sort_rev = 0;
         return(0);
     }
 
     if(struncmp(sort_spec, "reverse", strlen(sort_spec)) == 0){
-	*def_sort = SortArrival;
+	*def_sort = thread ? SortThread : SortArrival;
 	*def_sort_rev = 1;
         return(0);
     }
@@ -572,7 +581,7 @@ decode_sort(char *sort_spec, SortOrder *def_sort, int *def_sort_rev)
     if(ps_global->sort_types[x] == EndofList)
       return(-1);
 
-    *def_sort     = ps_global->sort_types[x];
+    *def_sort	  = ps_global->sort_types[x];
     *def_sort_rev = reverse;
     return(0);
 }
@@ -689,7 +698,9 @@ reset_sort_order(unsigned int flags)
 
     /* set default order */
     the_sort_order = ps_global->def_sort;
-    sort_is_rev    = ps_global->def_sort_rev;
+    sort_is_rev    = the_sort_order == SortThread
+			? (ps_global->thread_def_sort_rev + ps_global->def_sort_rev) % 2
+			: ps_global->def_sort_rev;
 
     if(ps_global->mail_stream && nonempty_patterns(rflags, &pstate)){
 	for(pat = first_pattern(&pstate); pat; pat = next_pattern(&pstate)){
@@ -702,9 +713,15 @@ reset_sort_order(unsigned int flags)
 	   && pat->action->sort_is_set){
 	    the_sort_order = pat->action->sortorder;
 	    sort_is_rev    = pat->action->revsort;
+	    sort_is_rev    = the_sort_order == SortThread
+				? (ps_global->thread_def_sort_rev + pat->action->revsort) % 2
+				: pat->action->revsort;
 	}
     }
 
+    if(the_sort_order == SortThread && !(flags & SRT_MAN))
+      ps_global->thread_cur_sort = ps_global->thread_def_sort;
+
     sort_folder(ps_global->mail_stream, ps_global->msgmap,
-		the_sort_order, sort_is_rev, flags);
+		the_sort_order, sort_is_rev, flags, 1);
 }

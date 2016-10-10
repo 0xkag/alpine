@@ -206,6 +206,8 @@ CONF_TXT_T cf_text_fcc_name_rule[] =	"Determines default name for Fcc...\n# Choi
 
 CONF_TXT_T cf_text_sort_key[] =		"Sets presentation order of messages in Index. Choices:\n# Subject, From, Arrival, Date, Size, To, Cc, OrderedSubj, Score, and Thread.\n# Order may be reversed by appending /Reverse. Default: \"Arrival\".";
 
+CONF_TXT_T cf_text_thread_sort_key[] =        "#Sets presentation order of threads in thread index. Choices:\n#arrival, and thread.";
+
 CONF_TXT_T cf_text_addrbook_sort_rule[] =	"Sets presentation order of address book entries. Choices: dont-sort,\n# fullname-with-lists-last, fullname, nickname-with-lists-last, nickname\n# Default: \"fullname-with-lists-last\".";
 
 CONF_TXT_T cf_text_folder_sort_rule[] =	"Sets presentation order of folder list entries. Choices: alphabetical,\n# alpha-with-dirs-last, alpha-with-dirs-first.\n# Default: \"alpha-with-directories-last\".";
@@ -528,6 +530,8 @@ static struct variable variables[] = {
 	NULL,			cf_text_fcc_name_rule},
 {"sort-key",				0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
 	NULL,			cf_text_sort_key},
+{"thread-sort-key",			0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
+	NULL,			cf_text_thread_sort_key},
 {"addrbook-sort-rule",			0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
 	"Address Book Sort Rule",	cf_text_addrbook_sort_rule},
 {"folder-sort-rule",			0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
@@ -1582,7 +1586,7 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
     register struct variable *vars = ps->vars;
     int		 obs_header_in_reply = 0,     /* the obs_ variables are to       */
 		 obs_old_style_reply = 0,     /* support backwards compatibility */
-		 obs_save_by_sender, i, def_sort_rev;
+		 obs_save_by_sender, i, def_sort_rev, thread_def_sort_rev;
     long         rvl;
     PINERC_S    *fixedprc = NULL;
     FeatureLevel obs_feature_level;
@@ -1607,6 +1611,7 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
     GLO_FEATURE_LEVEL		= cpystr("sappling");
     GLO_OLD_STYLE_REPLY		= cpystr(DF_OLD_STYLE_REPLY);
     GLO_SORT_KEY		= cpystr(DF_SORT_KEY);
+    GLO_THREAD_SORT_KEY		= cpystr(DF_THREAD_SORT_KEY);
     GLO_SAVED_MSG_NAME_RULE	= cpystr(DF_SAVED_MSG_NAME_RULE);
     GLO_FCC_RULE		= cpystr(DF_FCC_RULE);
     GLO_AB_SORT_RULE		= cpystr(DF_AB_SORT_RULE);
@@ -2540,7 +2545,7 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
     set_current_val(&vars[V_ARCHIVED_FOLDERS], TRUE, TRUE);
     set_current_val(&vars[V_INCOMING_FOLDERS], TRUE, TRUE);
     set_current_val(&vars[V_SORT_KEY], TRUE, TRUE);
-    if(decode_sort(VAR_SORT_KEY, &ps->def_sort, &def_sort_rev) == -1){
+    if(decode_sort(VAR_SORT_KEY, &ps->def_sort, &def_sort_rev,0) == -1){
 	snprintf(tmp_20k_buf, SIZEOF_20KBUF, "Sort type \"%.200s\" is invalid", VAR_SORT_KEY);
 	init_error(ps, SM_ORDER | SM_DING, 3, 5, tmp_20k_buf);
 	ps->def_sort = SortArrival;
@@ -2548,6 +2553,17 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
     }
     else
       ps->def_sort_rev = def_sort_rev;
+
+    set_current_val(&vars[V_THREAD_SORT_KEY], TRUE, TRUE);
+    if(decode_sort(VAR_THREAD_SORT_KEY, &ps->thread_def_sort, 
+                              &thread_def_sort_rev, 1) == -1){
+      sprintf(tmp_20k_buf, "Sort type \"%s\" is invalid", VAR_THREAD_SORT_KEY);
+      init_error(ps, SM_ORDER | SM_DING, 3, 5, tmp_20k_buf);
+      ps->thread_def_sort = SortThread;
+      ps->thread_def_sort_rev = 0;
+    }
+    else
+      ps->thread_def_sort_rev = thread_def_sort_rev;
 
     cur_rule_value(&vars[V_SAVED_MSG_NAME_RULE], TRUE, TRUE);
     {NAMEVAL_S *v; int i;
@@ -2974,6 +2990,8 @@ feature_list(int index)
 	 F_COLOR_LINE_IMPORTANT, h_config_color_thrd_import, PREF_INDX, 0},
 	{"thread-sorts-by-arrival", "Thread Sorts by Arrival",
 	 F_THREAD_SORTS_BY_ARRIVAL, h_config_thread_sorts_by_arrival, PREF_INDX, 0},
+	{"enhanced-fancy-thread-support", "Enhanced Fancy Thread Support",
+	 F_ENHANCED_THREAD, h_config_enhanced_thread, PREF_INDX, 0},
 
 /* Viewer prefs */
 	{"enable-msg-view-addresses", "Enable Message View Address Links",
@@ -7695,6 +7713,8 @@ config_help(int var, int feature)
 	return(h_config_fcc_rule);
       case V_SORT_KEY :
 	return(h_config_sort_key);
+      case V_THREAD_SORT_KEY :
+        return(h_config_thread_sort_key);
       case V_AB_SORT_RULE :
 	return(h_config_ab_sort_rule);
       case V_FLD_SORT_RULE :

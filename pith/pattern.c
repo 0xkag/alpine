@@ -1756,7 +1756,7 @@ parse_action_slash(char *str, ACTION_S *action)
 	    SortOrder def_sort;
 	    int       def_sort_rev;
 
-	    if(decode_sort(p, &def_sort, &def_sort_rev) != -1){
+	    if(decode_sort(p, &def_sort, &def_sort_rev, 0) != -1){
 		action->sort_is_set = 1;
 		action->sortorder = def_sort;
 		action->revsort   = (def_sort_rev ? 1 : 0);

@@ -144,6 +144,9 @@
 #define VAR_SORT_KEY		     vars[V_SORT_KEY].current_val.p
 #define GLO_SORT_KEY		     vars[V_SORT_KEY].global_val.p
 #define COM_SORT_KEY		     vars[V_SORT_KEY].cmdline_val.p
+#define VAR_THREAD_SORT_KEY	     vars[V_THREAD_SORT_KEY].current_val.p
+#define GLO_THREAD_SORT_KEY	     vars[V_THREAD_SORT_KEY].global_val.p
+#define COM_THREAD_SORT_KEY	     vars[V_THREAD_SORT_KEY].cmdline_val.p
 #define VAR_AB_SORT_RULE	     vars[V_AB_SORT_RULE].current_val.p
 #define GLO_AB_SORT_RULE	     vars[V_AB_SORT_RULE].global_val.p
 #define VAR_FLD_SORT_RULE	     vars[V_FLD_SORT_RULE].current_val.p
