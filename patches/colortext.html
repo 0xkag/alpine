@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head><TITLE>Paint special text in the body of the message in any custom color</TITLE>
+<meta name="description" content="Highlight specific words or remove from display unwanted words by coloring them in a special color.">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=ISO-8859-1">
+<LINK REL="SHORTCUT ICON" href="../images/favicon.ico">
+<LINK REL="stylesheet" HREF="../css/info.css" TYPE="text/css">
+</head>
+<body>
+<hr>
+<table align=center cellpadding=0 cellspacing=0 border=0 width="100%" >
+<tr>
+<td width="25%" align=center>
+<a href="../faq/">FAQ about patches</a>
+</td>
+
+<td>|</td>
+<td width="25%" align=center>
+<a href="../patches/others.html">More patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../">Main Page</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../"><a HREF="../md5/colortext.html">MD5 sum for this patch</a></a>
+</td>
+</tr>
+</table>
+<hr>
+<TABLE><TR><TD class=special>
+<B class=title>Paint special text in the body of the message in any custom color</B>
+
+<BR>
+<B>Patch is available for version:</B>
+<A HREF="../patches/alpine-1.00/colortext.patch.gz"><B>alpine 1.00</B></A>
+<A HREF="../patches/alpine-1.10/colortext.patch.gz"><B>alpine 1.10</B></A>
+<A HREF="../patches/alpine-2.00/colortext.patch.gz"><B>alpine 2.00</B></A>
+<A HREF="../patches/alpine-2.01/colortext.patch.gz"><B>alpine 2.01</B></A>
+<A HREF="../patches/alpine-2.10/colortext.patch.gz"><B>alpine 2.10</B></A>
+<A HREF="../patches/alpine-2.11/colortext.patch.gz"><B>alpine 2.11</B></A>
+<A HREF="../patches/alpine-2.20/colortext.patch.gz"><B>alpine 2.20</B></A>
+
+
+<BR>&#160;<BR>
+This patch allows you to define special custom text that will be seen
+in a different color than normal text. This can
+be used in different ways, one can use it to emphasize important keywords
+in a message, or to erase offensive language.
+
+<BR>&#160;<BR>
+In order to use this option, you must define the variable
+<B class=remark>special-text-color</B>, as a comma separated list
+of regular expressions (or simply text), that you want to have
+colored.
+
+<BR>&#160;<BR>
+Additionally, you must define the variables 
+<B class=remark>special-text-foreground-color</B>  and
+<B class=remark>special-text-background-color</B>, which specify the colors
+in which the special text will be painted. Notice that this variable must
+be defined, since otherwise you will not see any difference in the painted
+text (the default is to paint this text as if it were normal text). These 
+variables can be defined
+from the <B class=remark>Kolor configuration screen</B>
+(which can be reached by pressing <B class=remark>M S K</B>), and setting the 
+variable <B class=remark>Special-text Color</B>.
+
+<BR>&#160;<BR>
+When this patch is integrated with <A HREF="all.html">all.patch</A>,
+quote strings are ignored when painting special text, which is not the
+case when the patch is applied as an stand alone patch (and in fact, if you
+try to paint a &quot;>&quot; character using this patch, this will destroy painting
+of quoted text). I may add this functionality later
+
+<BR>&#160;<BR>
+Here's an example of what this patch does. Say you want Alpine to paint the
+word &quot;love&quot;, then you could define special-text-color=love, and say you
+define that you want Alpine to paint that word in red, then the text
+
+<BR>&#160;<BR>
+All we need is love in a clove
+
+<BR>&#160;<BR>
+would look like
+
+<BR>&#160;<BR>
+All we need is <span style="color: red;">love</span>
+in a c<span style="color: red;">love</span>
+
+<BR>&#160;<BR>
+<A HREF="../images/colortext.gif">This link</A> shows you an image of how
+Alpine looks when the word <B class=remark>pine</B> has been painted in red
+in a real message. Observe that Alpine still recognizes quote levels correctly.
+The image shows the patch integrated with <A HREF="all.html">all.patch</A>.
+
+</TD></TR></TABLE>
+<P>Last Updated 23:16:48 MST Wed Jan 07 2015.
+<IMG SRC="http://counter.digits.net/wc/-d/5/-b/ffffdd/-f/ffffdd/-e/ffffdd/edito" ALT="" ALIGN=middle WIDTH=75 HEIGHT=15>
+<IMG SRC="http://counter.digits.net/wc/-d/5/-b/ffffdd/-f/ffffdd/-e/ffffdd/seminar" ALT="" ALIGN=middle WIDTH=75 HEIGHT=15>
+<IMG SRC="http://counter.digits.net/wc/-d/5/-b/ffffdd/-f/ffffdd/-e/ffffdd/pinecounter" ALT="" ALIGN=middle WIDTH=75 HEIGHT=15>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head><TITLE>New Menu for the Reply Command</TITLE>
+<meta name="description" content="Make the reply command more flexible by adding a few options which allow you to choose roles or not strip signatures.">
+<LINK REL="SHORTCUT ICON" href="../images/favicon.ico">
+<LINK REL="stylesheet" HREF="../css/info.css" TYPE="text/css">
+</head>
+<body>
+<hr>
+<table align=center cellpadding=0 cellspacing=0 border=0 width="100%" >
+<tr>
+<td width="25%" align=center>
+<a href="../faq/">FAQ about patches</a>
+</td>
+
+<td>|</td>
+<td width="25%" align=center>
+<a href="../patches/others.html">More patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../">Main Page</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../"><a HREF="../md5/reply.html">MD5 sum for this patch</a></a>
+</td>
+</tr>
+</table>
+<hr>
+
+<TABLE><TR><TD class=special>
+<B class=title>New Menu for the Reply Command</B>
+
+<BR>
+<B>Patch is available for versions:</B>
+<A HREF="../patches/alpine-1.00/reply.patch.gz"><B>alpine 1.00</B></A>
+<A HREF="../patches/alpine-1.10/reply.patch.gz"><B>alpine 1.10</B></A>
+<A HREF="../patches/alpine-2.00/reply.patch.gz"><B>alpine 2.00</B></A>
+<A HREF="../patches/alpine-2.01/reply.patch.gz"><B>alpine 2.01</B></A>
+<A HREF="../patches/alpine-2.10/reply.patch.gz"><B>alpine 2.10</B></A>
+<A HREF="../patches/alpine-2.11/reply.patch.gz"><B>alpine 2.11</B></A>
+<A HREF="../patches/alpine-2.20/reply.patch.gz"><B>alpine 2.20</B></A>
+
+
+<BR>&#160;<BR>
+This patch adds a configuration option called "<B class=special>Alternate 
+Reply Menu</B>", which when activated allows you to override and set 
+values for configuration options that otherwise are not possible to 
+override. (e.g. you may have set the option to strip signatures, but for 
+the message you are answering you would like not to do that)
+
+<BR>&#160;<BR>
+  
+The way this feature works is as follows. Initially you get the question
+if you want to include the message, and in the menu you will see several
+options, each option is accompanied by some text explaining what will
+happen if you press the associated command. For example, if you read the text
+"<B class=remark>S</B> <B class=special>Strip Sig</B>", it means that if you press 
+<B class=remark>S</B>, the signature will be
+stripped off the message you are replying. 
+Note that when you do this the menu in the bottom will change to
+"<B class=remark>S</B> <B class=special>No Strip</B>". These options
+will be activated when you press RETURN.
+
+<BR>&#160;<BR>
+The possible options are:
+
+<OL> 
+
+<LI> <B class=special>A:</B> This determines if Alpine 
+will include or not the attachments sent to you in the message that you 
+are replying. By default Alpine will use the value of the configuration 
+option include-attachments-in-reply, but you can use this option to 
+override such behavior in a per message basis.
+
+
+<LI><B class=special>F:</B> To decide if you want to send flowed text 
+or not. This option appears unless you have quelled sending flowed text.
+
+<LI><B class=special>H:</B> This option determines if the headers of a
+message are to be included in the body of the message that is being
+replied. By default Alpine will use the value of the configuration option
+include-header-in-reply, but you can use this option to override such
+behavior in a per message basis.
+
+<LI> <B class=special>R:</B> To set a role, if you do not want Alpine to
+set one automatically for you or would like to set one when you can not
+select any.
+
+<LI> <B class=special>S:</B> To strip the signature from a message, 
+only available is the feature enable-sigdashes or the 
+strip-from-sigdashes-on-reply option are enabled.
+
+</OL>
+
+
+</TD></TR></TABLE>
+<P>Last Updated 23:12:56 MST Wed Jan 07 2015.
+<IMG SRC="http://counter.digits.net/wc/-d/5/-b/ffffdd/-f/ffffdd/-e/ffffdd/edito" ALT="" ALIGN=middle WIDTH=75 HEIGHT=15>
+<IMG SRC="http://counter.digits.net/wc/-d/5/-b/ffffdd/-f/ffffdd/-e/ffffdd/seminar" ALT="" ALIGN=middle WIDTH=75 HEIGHT=15>
+<IMG SRC="http://counter.digits.net/wc/-d/5/-b/ffffdd/-f/ffffdd/-e/ffffdd/pinecounter" ALT="" ALIGN=middle WIDTH=75 HEIGHT=15>
+</body>
+</html>

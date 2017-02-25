@@ -1,0 +1,620 @@
+diff -rc alpine-2.20/alpine/mailpart.c alpine-2.20.reply/alpine/mailpart.c
+*** alpine-2.20/alpine/mailpart.c	2015-01-07 22:53:20.583657095 -0700
+--- alpine-2.20.reply/alpine/mailpart.c	2015-01-07 23:12:46.995409683 -0700
+***************
+*** 3320,3326 ****
+      /*
+       * For consistency, the first question is always "include text?"
+       */
+!     if((include_text = reply_text_query(ps_global, 1, &prefix)) >= 0
+         && reply_news_test(a->body->nested.msg->env, outgoing) > 0
+         && reply_harvest(ps_global, msgno, a->number,
+  			a->body->nested.msg->env, &saved_from,
+--- 3320,3326 ----
+      /*
+       * For consistency, the first question is always "include text?"
+       */
+!     if((include_text = reply_text_query(ps_global, 1, NULL, &prefix)) >= 0
+         && reply_news_test(a->body->nested.msg->env, outgoing) > 0
+         && reply_harvest(ps_global, msgno, a->number,
+  			a->body->nested.msg->env, &saved_from,
+diff -rc alpine-2.20/alpine/reply.c alpine-2.20.reply/alpine/reply.c
+*** alpine-2.20/alpine/reply.c	2015-01-07 22:53:20.568657050 -0700
+--- alpine-2.20.reply/alpine/reply.c	2015-01-07 23:12:46.996409686 -0700
+***************
+*** 230,236 ****
+  	if(!times){		/* only first time */
+  	    char *p = cpystr(prefix);
+  
+! 	    if((include_text=reply_text_query(pine_state,totalm,&prefix)) < 0)
+  	      goto done_early;
+  	    
+  	    /* edited prefix? */
+--- 230,236 ----
+  	if(!times){		/* only first time */
+  	    char *p = cpystr(prefix);
+  
+! 	    if((include_text=reply_text_query(pine_state,totalm,env,&prefix)) < 0)
+  	      goto done_early;
+  	    
+  	    /* edited prefix? */
+***************
+*** 307,318 ****
+        goto done_early;
+  
+      /* Setup possible role */
+!     if(role_arg)
+!       role = copy_action(role_arg);
+  
+      if(!role){
+  	rflags = ROLE_REPLY;
+! 	if(nonempty_patterns(rflags, &dummy)){
+  	    /* setup default role */
+  	    nrole = NULL;
+  	    j = mn_first_cur(pine_state->msgmap);
+--- 307,320 ----
+        goto done_early;
+  
+      /* Setup possible role */
+!      if (ps_global->reply.role_chosen)
+! 	role = ps_global->reply.role_chosen;
+!      else if(role_arg)
+! 	role = copy_action(role_arg);
+  
+      if(!role){
+  	rflags = ROLE_REPLY;
+! 	if(!ps_global->reply.role_chosen && nonempty_patterns(rflags, &dummy)){
+  	    /* setup default role */
+  	    nrole = NULL;
+  	    j = mn_first_cur(pine_state->msgmap);
+***************
+*** 548,554 ****
+  
+  	    if(orig_body == NULL || orig_body->type == TYPETEXT || reply_raw_body) {
+  		reply_delimiter(env, role, pc);
+! 		if(F_ON(F_INCLUDE_HEADER, pine_state))
+  		  reply_forward_header(pine_state->mail_stream,
+  				       mn_m2raw(pine_state->msgmap,msgno),
+  				       NULL, env, pc, prefix);
+--- 550,556 ----
+  
+  	    if(orig_body == NULL || orig_body->type == TYPETEXT || reply_raw_body) {
+  		reply_delimiter(env, role, pc);
+! 		if(ps_global->reply.inchdr)
+  		  reply_forward_header(pine_state->mail_stream,
+  				       mn_m2raw(pine_state->msgmap,msgno),
+  				       NULL, env, pc, prefix);
+***************
+*** 567,573 ****
+  		   && orig_body->nested.part->body.type == TYPETEXT) {
+  		    /*---- First part of the message is text -----*/
+  		    reply_delimiter(env, role, pc);
+! 		    if(F_ON(F_INCLUDE_HEADER, pine_state))
+  		      reply_forward_header(pine_state->mail_stream,
+  					   mn_m2raw(pine_state->msgmap,
+  						    msgno),
+--- 569,575 ----
+  		   && orig_body->nested.part->body.type == TYPETEXT) {
+  		    /*---- First part of the message is text -----*/
+  		    reply_delimiter(env, role, pc);
+! 		    if(ps_global->reply.inchdr)
+  		      reply_forward_header(pine_state->mail_stream,
+  					   mn_m2raw(pine_state->msgmap,
+  						    msgno),
+***************
+*** 1003,1050 ****
+   *	     0 if we're NOT to include the text
+   *	    -1 on cancel or error
+   */
+  int
+! reply_text_query(struct pine *ps, long int many, char **prefix)
+  {
+      int ret, edited = 0;
+!     static ESCKEY_S rtq_opts[] = {
+! 	{'y', 'y', "Y", N_("Yes")},
+! 	{'n', 'n', "N", N_("No")},
+! 	{-1, 0, NULL, NULL},	                  /* may be overridden below */
+! 	{-1, 0, NULL, NULL}
+!     };
+  
+      if(F_ON(F_AUTO_INCLUDE_IN_REPLY, ps)
+!        && F_OFF(F_ENABLE_EDIT_REPLY_INDENT, ps))
+        return(1);
+  
+!     while(1){
+! 	if(many > 1L)
+! 	  /* TRANSLATORS: The final three %s's can probably be safely ignored */
+! 	  snprintf(tmp_20k_buf, SIZEOF_20KBUF, _("Include %s original messages in Reply%s%s%s? "),
+! 		comatose(many),
+! 		F_ON(F_ENABLE_EDIT_REPLY_INDENT, ps) ? " (using \"" : "",
+! 		F_ON(F_ENABLE_EDIT_REPLY_INDENT, ps) ? *prefix : "",
+! 		F_ON(F_ENABLE_EDIT_REPLY_INDENT, ps) ? "\")" : "");
+! 	else
+! 	  snprintf(tmp_20k_buf, SIZEOF_20KBUF, _("Include original message in Reply%s%s%s? "),
+  		F_ON(F_ENABLE_EDIT_REPLY_INDENT, ps) ? " (using \"" : "",
+  		F_ON(F_ENABLE_EDIT_REPLY_INDENT, ps) ? *prefix : "",
+  		F_ON(F_ENABLE_EDIT_REPLY_INDENT, ps) ? "\")" : "");
+  
+! 	if(F_ON(F_ENABLE_EDIT_REPLY_INDENT, ps)){
+! 	    rtq_opts[2].ch    = ctrl('R');
+! 	    rtq_opts[2].rval  = 'r';
+! 	    rtq_opts[2].name  = "^R";
+! 	    rtq_opts[2].label = N_("Edit Indent String");
+! 	}
+! 	else
+! 	  rtq_opts[2].ch    = -1;
+  
+  	switch(ret = radio_buttons(tmp_20k_buf, 
+  				   ps->ttyo->screen_rows > 4
+  				     ? -FOOTER_ROWS(ps_global) : -1,
+! 				   rtq_opts,
+  				   (edited || F_ON(F_AUTO_INCLUDE_IN_REPLY, ps))
+  				       ? 'y' : 'n',
+  				   'x', NO_HELP, RB_SEQ_SENSITIVE)){
+--- 1005,1117 ----
+   *	     0 if we're NOT to include the text
+   *	    -1 on cancel or error
+   */
++ #define MAX_REPLY_OPTIONS 8
+  int
+! reply_text_query(struct pine *ps, long int many, ENVELOPE *env, char **prefix)
+  {
+      int ret, edited = 0;
+!     static ESCKEY_S compose_style[MAX_REPLY_OPTIONS];
+!     int	ekey_num;
+!     int	orig_sf;
+! 
+!     orig_sf = *prefix && **prefix ? (F_OFF(F_QUELL_FLOWED_TEXT, ps)
+! 		&& F_OFF(F_STRIP_WS_BEFORE_SEND, ps)
+! 		&& (strcmp(*prefix, "> ") == 0
+! 			|| strcmp(*prefix, ">") == 0)) : 0;
+! 
+!     ps_global->reply.no_send_flowed = !orig_sf;
+!     ps_global->reply.role_chosen = NULL;
+!     ps_global->reply.strip = ps->full_header == 0
+! 		&& (F_ON(F_ENABLE_STRIP_SIGDASHES, ps)
+! 			|| F_ON(F_ENABLE_SIGDASHES, ps));
+!     ps_global->reply.attach = F_ON(F_ATTACHMENTS_IN_REPLY, ps);
+!     ps_global->reply.inchdr = F_ON(F_INCLUDE_HEADER, ps);
+  
+      if(F_ON(F_AUTO_INCLUDE_IN_REPLY, ps)
+!         && F_OFF(F_ENABLE_EDIT_REPLY_INDENT, ps) && F_OFF(F_ALT_REPLY_MENU,ps))
+        return(1);
+  
+!     while(1){ 
+! 	  /* TRANSLATORS: The final five %s's can probably be safely ignored */
+! 	snprintf(tmp_20k_buf, SIZEOF_20KBUF, _("Include %s%soriginal message%s in Reply%s%s%s%s%s%s? "),
+! 		(many > 1L) ? comatose(many) : "",
+! 		(many > 1L) ? " " : "",
+! 		(many > 1L) ? "s" : "",
+! 		(many > 1L) ? "s" : "",
+  		F_ON(F_ENABLE_EDIT_REPLY_INDENT, ps) ? " (using \"" : "",
+  		F_ON(F_ENABLE_EDIT_REPLY_INDENT, ps) ? *prefix : "",
++ 		ps_global->reply.role_chosen ? "\" and role \"" : "",
++ 		ps_global->reply.role_chosen ? ps_global->reply.role_chosen->nick : "",
+  		F_ON(F_ENABLE_EDIT_REPLY_INDENT, ps) ? "\")" : "");
+  
+! 	ekey_num = 0;
+! 	compose_style[ekey_num].ch    = 'y';
+! 	compose_style[ekey_num].rval  = 'y';
+! 	compose_style[ekey_num].name  = "Y";
+! 	compose_style[ekey_num++].label = N_("Yes");
+! 
+! 	compose_style[ekey_num].ch    = 'n';
+! 	compose_style[ekey_num].rval  = 'n';
+! 	compose_style[ekey_num].name  = "N";
+! 	compose_style[ekey_num++].label = N_("No");
+! 
+! 	if (F_ON(F_ENABLE_EDIT_REPLY_INDENT, ps)){
+! 	   compose_style[ekey_num].ch      = ctrl('R');
+! 	   compose_style[ekey_num].rval    = 'r';
+! 	   compose_style[ekey_num].name    = "^R";
+! 	   compose_style[ekey_num++].label = N_("Edit Indent String");
+! 	}
+! 
+! 	/***** Alternate Reply Menu ********/
+! 
+! 	if (F_ON(F_ALT_REPLY_MENU, ps)){
+! 	     unsigned which_help;
+! 
+! 	   if (F_ON(F_ENABLE_STRIP_SIGDASHES, ps) ||
+! 		F_ON(F_ENABLE_SIGDASHES, ps)){
+! 	      compose_style[ekey_num].ch      = 's';
+! 	      compose_style[ekey_num].rval    = 'S';
+! 	      compose_style[ekey_num].name    = "S";
+! 	      compose_style[ekey_num++].label = ps_global->reply.strip 
+! 						? N_("No Strip"): N_("Strip Sig");
+! 	   }
+! 
+! 	   compose_style[ekey_num].ch      = 'r';
+! 	   compose_style[ekey_num].rval    = 'R';
+! 	   compose_style[ekey_num].name    = "R";
+! 	   compose_style[ekey_num++].label = N_("Set Role");
+! 
+! 	   if(orig_sf){
+! 	      compose_style[ekey_num].ch      = 'f';
+! 	      compose_style[ekey_num].rval    = 'F';
+! 	      compose_style[ekey_num].name    = "F";
+! 	      compose_style[ekey_num++].label = ps_global->reply.no_send_flowed 
+! 						? N_("Quell Flow") : N_("Send Flowd");
+! 	   }
+! 
+! 	   compose_style[ekey_num].ch      = 'a';
+! 	   compose_style[ekey_num].rval    = 'A';
+! 	   compose_style[ekey_num].name    = "A";
+! 	   compose_style[ekey_num++].label = ps_global->reply.attach 
+! 						? N_("No Attach"): N_("Inc Attac");
+! 
+! 	   compose_style[ekey_num].ch      = 'h';
+! 	   compose_style[ekey_num].rval    = 'H';
+! 	   compose_style[ekey_num].name    = "H";
+! 	   compose_style[ekey_num++].label = ps_global->reply.inchdr 
+! 						? N_("No Header") : N_("Inc Head");
+! 
+! 	}
+! 	compose_style[ekey_num].ch    = -1;
+! 	compose_style[ekey_num].name  = NULL;
+! 	compose_style[ekey_num].label = NULL;
+! 
+! 	/***** End Alt Reply Menu  *********/
+  
+  	switch(ret = radio_buttons(tmp_20k_buf, 
+  				   ps->ttyo->screen_rows > 4
+  				     ? -FOOTER_ROWS(ps_global) : -1,
+! 				   compose_style,
+  				   (edited || F_ON(F_AUTO_INCLUDE_IN_REPLY, ps))
+  				       ? 'y' : 'n',
+  				   'x', NO_HELP, RB_SEQ_SENSITIVE)){
+***************
+*** 1052,1057 ****
+--- 1119,1164 ----
+  	    cmd_cancelled("Reply");
+  	    return(-1);
+  
++ 	  case 'F':
++ 		ps_global->reply.no_send_flowed = (ps_global->reply.no_send_flowed + 1) % 2;
++ 		break;
++ 
++ 	  case 'S':
++ 		ps_global->reply.strip = (ps_global->reply.strip + 1) % 2;
++ 	   break;
++ 
++ 	  case 'A':
++ 		ps_global->reply.attach = (ps_global->reply.attach + 1) % 2;
++ 	   break;
++ 
++ 	  case 'H':
++ 		ps_global->reply.inchdr = (ps_global->reply.inchdr + 1) % 2;
++ 	   break;
++ 
++ 
++ 	  case 'R':
++ 	  {
++            void (*prev_screen)(struct pine *) = ps->prev_screen,
++                (*redraw)(void) = ps->redrawer;
++            ps->redrawer = NULL;
++            ps->next_screen = SCREEN_FUN_NULL;
++            if(role_select_screen(ps, &ps_global->reply.role_chosen, 1) < 0){
++              cmd_cancelled("Reply");
++              ps->next_screen = prev_screen;
++              ps->redrawer = redraw;
++ 	     if (ps->redrawer)
++ 		(*ps->redrawer)();
++ 	     continue;
++            }
++            ps->next_screen = prev_screen;
++            ps->redrawer = redraw;
++            if(ps_global->reply.role_chosen)
++               ps_global->reply.role_chosen = combine_inherited_role(ps_global->reply.role_chosen);
++ 	  }
++ 	  if (ps->redrawer)
++ 	     (*ps->redrawer)();
++ 	  break;
++ 
+  	  case 'r':
+  	    if(prefix && *prefix){
+  		int  done = 0;
+***************
+*** 1075,1080 ****
+--- 1182,1193 ----
+  			if(flags & OE_USER_MODIFIED){
+  			    fs_give((void **)prefix);
+  			    *prefix = removing_quotes(cpystr(buf));
++ 			    orig_sf = *prefix && **prefix ?
++ 					   (F_OFF(F_QUELL_FLOWED_TEXT, ps)
++ 					&& F_OFF(F_STRIP_WS_BEFORE_SEND, ps)
++ 					&& (strcmp(*prefix, "> ") == 0
++ 					|| strcmp(*prefix, ">") == 0)) : 0;
++ 			    ps_global->reply.no_send_flowed = !orig_sf;
+  			    edited = 1;
+  			}
+  
+diff -rc alpine-2.20/alpine/reply.h alpine-2.20.reply/alpine/reply.h
+*** alpine-2.20/alpine/reply.h	2015-01-07 22:53:20.568657050 -0700
+--- alpine-2.20.reply/alpine/reply.h	2015-01-07 23:12:46.996409686 -0700
+***************
+*** 28,34 ****
+  int	    confirm_role(long, ACTION_S **);
+  int	    reply_to_all_query(int *);
+  int	    reply_using_replyto_query(void);
+! int	    reply_text_query(struct pine *, long, char **);
+  int	    reply_news_test(ENVELOPE *, ENVELOPE *);
+  char       *get_signature_file(char *, int, int, int);
+  int	    forward(struct pine *, ACTION_S *);
+--- 28,34 ----
+  int	    confirm_role(long, ACTION_S **);
+  int	    reply_to_all_query(int *);
+  int	    reply_using_replyto_query(void);
+! int	    reply_text_query(struct pine *, long, ENVELOPE *, char **);
+  int	    reply_news_test(ENVELOPE *, ENVELOPE *);
+  char       *get_signature_file(char *, int, int, int);
+  int	    forward(struct pine *, ACTION_S *);
+diff -rc alpine-2.20/pith/conf.c alpine-2.20.reply/pith/conf.c
+*** alpine-2.20/pith/conf.c	2015-01-07 22:53:20.676657373 -0700
+--- alpine-2.20.reply/pith/conf.c	2015-01-07 23:12:47.000409700 -0700
+***************
+*** 2807,2812 ****
+--- 2807,2814 ----
+  	 F_ALWAYS_SPELL_CHECK, h_config_always_spell_check, PREF_COMP, 0},
+  
+  /* Reply Prefs */
++ 	{"alternate-reply-menu", NULL,
++ 	 F_ALT_REPLY_MENU, h_config_alt_reply_menu, PREF_RPLY, 0},
+  	{"copy-to-address-to-from-if-it-is-us", "Copy To Address to From if it is Us",
+  	 F_COPY_TO_TO_FROM, h_config_copy_to_to_from, PREF_RPLY, 0},
+  	{"enable-reply-indent-string-editing", NULL,
+diff -rc alpine-2.20/pith/conftype.h alpine-2.20.reply/pith/conftype.h
+*** alpine-2.20/pith/conftype.h	2015-01-07 22:53:20.677657376 -0700
+--- alpine-2.20.reply/pith/conftype.h	2015-01-07 23:12:47.001409703 -0700
+***************
+*** 503,508 ****
+--- 503,509 ----
+  	F_MAILDROPS_PRESERVE_STATE,
+  	F_EXPOSE_HIDDEN_CONFIG,
+  	F_ALT_COMPOSE_MENU,
++ 	F_ALT_REPLY_MENU,
+  	F_ALT_ROLE_MENU,
+  	F_ALWAYS_SPELL_CHECK,
+  	F_QUELL_TIMEZONE,
+diff -rc alpine-2.20/pith/pine.hlp alpine-2.20.reply/pith/pine.hlp
+*** alpine-2.20/pith/pine.hlp	2015-01-07 22:53:20.683657394 -0700
+--- alpine-2.20.reply/pith/pine.hlp	2015-01-07 23:12:47.008409727 -0700
+***************
+*** 29012,29017 ****
+--- 29012,29082 ----
+  &lt;End of help on this topic&gt;
+  </BODY>
+  </HTML>
++ ====== h_config_alt_reply_menu =====
++ <HTML>
++ <HEAD>
++ <TITLE>FEATURE: <!--#echo var="FEAT_alternate-reply-menu"--></TITLE>
++ </HEAD>
++ <BODY>
++ <H1>FEATURE: <!--#echo var="FEAT_alternate-reply-menu"--></H1>
++ 
++ This feature controls the menu that is displayed when Reply is selected.
++ If set, a list of options will be presented, with each option representing
++ the type of composition that could be used. This feature is most useful
++ for users who want to avoid being prompted with each option separately, or
++ would like to override some defaults set in your configuration for the
++ message that you are replying (e.g. you may have set the option to strip
++ signatures, but for the message you are answering you would like not to do
++ that)
++ 
++ <P>
++ The way this feature works is as follows. Initially you get the question 
++ if you want to include the message, and in the menu you will see several 
++ options, each option is accompanied by some text explaining what will 
++ happen if you press the associated command. For example, if you read the 
++ text &quot;S Strip Sig&quot;, it means that if you press the letter 
++ &quot;S&quot; the signature will be stripped off the message you are 
++ replying. Observer that the menu will change to 
++ &quot;S No Strip&quot;, which means that if you press &quot;S&quot;, the 
++ signature will not be stripped off from the message. Your choices are
++ activated when you press RETURN.
++ 
++ <P>
++ Another way to remember what Pine will do, is that what will be done is
++ exactly the opposite of what you read in the menu.
++ 
++ <P>
++ The possible options are:
++ 
++ <OL>
++ <LI> A: This determines if Pine will include or not the attachments sent to
++ you in the message that you are replying. By default Pine will use the value
++ of the configuration option 
++ <A HREF="h_config_attach_in_reply"><!--#echo var="FEAT_include-attachments-in-reply"--></A>, but
++ you can use this option to override such behavior in a per message basis.
++ 
++ <LI> F: To decide if you want to send flowed text or not. This option appears
++ unless you have quelled sending flowed text.
++ 
++ <LI> H: This option determines if the headers of a message are to be 
++ included in the body of the message that is being replied. By default Pine 
++ will use the value of the configuration option 
++ <A HREF="h_config_include_header"><!--#echo var="FEAT_include-header-in-reply"--></A>, but 
++ you can use this option to override such behavior in a per message basis.
++ 
++ <LI> R: To set a role, if you do not want Pine to set one automatically for you
++ or would like to set one when you can not select any.
++ 
++ <LI> S: To strip the signature from a message, only available is the feature
++         <a href="h_config_sigdashes"><!--#echo var="FEAT_enable-sigdashes"--></a> or the
++ <a href="h_config_strip_sigdashes"><!--#echo var="FEAT_strip-from-sigdashes-on-reply"--></a> option are
++ enabled.
++ 
++ </OL>
++ <P>
++ &lt;End of help on this topic&gt;
++ </BODY>
++ </HTML>
+  ====== h_config_del_from_dot =====
+  <HTML>
+  <HEAD>
+diff -rc alpine-2.20/pith/reply.c alpine-2.20.reply/pith/reply.c
+*** alpine-2.20/pith/reply.c	2015-01-07 22:53:20.680657385 -0700
+--- alpine-2.20.reply/pith/reply.c	2015-01-07 23:12:47.009409730 -0700
+***************
+*** 1017,1023 ****
+  	if(!orig_body
+  	   || orig_body->type == TYPETEXT
+  	   || reply_raw_body
+! 	   || F_OFF(F_ATTACHMENTS_IN_REPLY, ps_global)){
+  	    char *charset = NULL;
+  
+  	    /*------ Simple text-only message ----*/
+--- 1017,1023 ----
+  	if(!orig_body
+  	   || orig_body->type == TYPETEXT
+  	   || reply_raw_body
+! 	   || !ps_global->reply.attach){
+  	    char *charset = NULL;
+  
+  	    /*------ Simple text-only message ----*/
+***************
+*** 1025,1031 ****
+  	    body->type		     = TYPETEXT;
+  	    body->contents.text.data = msgtext;
+  	    reply_delimiter(env, role, pc);
+! 	    if(F_ON(F_INCLUDE_HEADER, ps_global))
+  	      reply_forward_header(stream, msgno, sect_prefix,
+  				   env, pc, prefix);
+  
+--- 1025,1031 ----
+  	    body->type		     = TYPETEXT;
+  	    body->contents.text.data = msgtext;
+  	    reply_delimiter(env, role, pc);
+! 	    if(ps_global->reply.inchdr)
+  	      reply_forward_header(stream, msgno, sect_prefix,
+  				   env, pc, prefix);
+  
+***************
+*** 1083,1089 ****
+  
+  		if(reply_body_text(orig_body, &tmp_body)){
+  		    reply_delimiter(env, role, pc);
+! 		    if(F_ON(F_INCLUDE_HEADER, ps_global))
+  		      reply_forward_header(stream, msgno, sect_prefix,
+  					   env, pc, prefix);
+  
+--- 1083,1089 ----
+  
+  		if(reply_body_text(orig_body, &tmp_body)){
+  		    reply_delimiter(env, role, pc);
+! 		    if(ps_global->reply.inchdr)
+  		      reply_forward_header(stream, msgno, sect_prefix,
+  					   env, pc, prefix);
+  
+***************
+*** 1121,1127 ****
+  		        body->nested.part->body.subtype = cpystr("Plain");
+  		    }
+  		    reply_delimiter(env, role, pc);
+! 		    if(F_ON(F_INCLUDE_HEADER, ps_global))
+  		      reply_forward_header(stream, msgno, sect_prefix,
+  					   env, pc, prefix);
+  
+--- 1121,1127 ----
+  		        body->nested.part->body.subtype = cpystr("Plain");
+  		    }
+  		    reply_delimiter(env, role, pc);
+! 		    if(ps_global->reply.inchdr)
+  		      reply_forward_header(stream, msgno, sect_prefix,
+  					   env, pc, prefix);
+  
+***************
+*** 1144,1150 ****
+  		    int partnum;
+  
+  		    reply_delimiter(env, role, pc);
+! 		    if(F_ON(F_INCLUDE_HEADER, ps_global))
+  		      reply_forward_header(stream, msgno, sect_prefix,
+  					   env, pc, prefix);
+  
+--- 1144,1150 ----
+  		    int partnum;
+  
+  		    reply_delimiter(env, role, pc);
+! 		    if(ps_global->reply.inchdr)
+  		      reply_forward_header(stream, msgno, sect_prefix,
+  					   env, pc, prefix);
+  
+***************
+*** 2695,2701 ****
+   		 * tied our hands, alter the prefix to continue flowed
+   		 * formatting...
+   		 */
+!  		if(flow_res)
+  		  wrapflags |= GFW_FLOW_RESULT;
+  
+  		filters[filtcnt].filter = gf_wrap;
+--- 2695,2701 ----
+   		 * tied our hands, alter the prefix to continue flowed
+   		 * formatting...
+   		 */
+!  		if(flow_res && !ps_global->reply.no_send_flowed)
+  		  wrapflags |= GFW_FLOW_RESULT;
+  
+  		filters[filtcnt].filter = gf_wrap;
+***************
+*** 2731,2739 ****
+  	 * We also want to fold "> " quotes so we get the
+  	 * attributions correct.
+   	 */
+! 	if(flow_res && prefix && !strucmp(prefix, "> "))
+  	  *(prefix_p = prefix + 1) = '\0';
+! 
+  	if(!(wrapflags & GFW_FLOWED)
+  	   && flow_res){
+  	    filters[filtcnt].filter = gf_line_test;
+--- 2731,2739 ----
+  	 * We also want to fold "> " quotes so we get the
+  	 * attributions correct.
+   	 */
+! 	if(flow_res && !ps_global->reply.no_send_flowed && prefix && !strucmp(prefix, "> "))
+  	  *(prefix_p = prefix + 1) = '\0';
+! 	ps_global->reply.no_send_flowed = 0; /* reset for next call */
+  	if(!(wrapflags & GFW_FLOWED)
+  	   && flow_res){
+  	    filters[filtcnt].filter = gf_line_test;
+***************
+*** 2766,2774 ****
+      }
+  
+      if(prefix){
+! 	if(ps_global->full_header != 2
+! 	   && (F_ON(F_ENABLE_SIGDASHES, ps_global)
+! 	       || F_ON(F_ENABLE_STRIP_SIGDASHES, ps_global))){
+  	    dashdata = 0;
+  	    filters[filtcnt].filter = gf_line_test;
+  	    filters[filtcnt++].data = gf_line_test_opt(sigdash_strip, &dashdata);
+--- 2766,2772 ----
+      }
+  
+      if(prefix){
+! 	if(ps_global->reply.strip){
+  	    dashdata = 0;
+  	    filters[filtcnt].filter = gf_line_test;
+  	    filters[filtcnt++].data = gf_line_test_opt(sigdash_strip, &dashdata);
+diff -rc alpine-2.20/pith/state.h alpine-2.20.reply/pith/state.h
+*** alpine-2.20/pith/state.h	2015-01-07 22:53:20.680657385 -0700
+--- alpine-2.20.reply/pith/state.h	2015-01-07 23:12:47.009409730 -0700
+***************
+*** 249,254 ****
+--- 249,262 ----
+  
+      short	 init_context;
+  
++     struct { 
++ 	ACTION_S *role_chosen;
++ 	int attach;
++  	int strip;
++ 	int no_send_flowed;
++ 	int inchdr;
++     } reply;
++ 
+      int         *initial_cmds;         /* cmds to execute on startup */
+      int         *free_initial_cmds;    /* used to free when done */
+  
