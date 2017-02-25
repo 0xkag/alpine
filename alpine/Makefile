@@ -15,6 +15,7 @@
 
 
 # ========================================================================
+# Copyright 2013-2016 Eduardo Chappa
 # Copyright 2006-2008 University of Washington
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -337,10 +338,10 @@ OTOOL64 =
 PACKAGE = alpine
 PACKAGE_BUGREPORT = chappa@washington.edu
 PACKAGE_NAME = alpine
-PACKAGE_STRING = alpine 2.20.17
+PACKAGE_STRING = alpine 2.20.999
 PACKAGE_TARNAME = alpine
 PACKAGE_URL = 
-PACKAGE_VERSION = 2.20.17
+PACKAGE_VERSION = 2.20.999
 PATH_SEPARATOR = :
 POSUB = po
 PTHREAD_CC = gcc -std=gnu99
@@ -357,7 +358,7 @@ SHELL = /bin/bash
 SPELLPROG = aspell
 STRIP = strip
 USE_NLS = yes
-VERSION = 2.20.17
+VERSION = 2.20.999
 WEB_BINDIR = 
 WEB_BUILD = web/src/alpined.d
 WEB_PUBCOOKIE_BUILD = 
