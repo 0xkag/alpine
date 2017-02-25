@@ -10,7 +10,6 @@ autom4te.*/*
 *mapi*
 pinerc*
 imap2
-alpine
 pico
 rpdump
 rpload
