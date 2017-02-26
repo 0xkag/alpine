@@ -164,6 +164,8 @@
 #define GLO_EDITOR		     vars[V_EDITOR].global_val.l
 #define VAR_SPELLER		     vars[V_SPELLER].current_val.p
 #define GLO_SPELLER		     vars[V_SPELLER].global_val.p
+#define VAR_SPECIAL_TEXT	     vars[V_SPECIAL_TEXT].current_val.l
+#define GLO_SPECIAL_TEXT	     vars[V_SPECIAL_TEXT].global_val.l
 #ifdef _WINDOWS
 #define VAR_DICTIONARY		     vars[V_DICTIONARY].current_val.l
 #define GLO_DICTIONARY		     vars[V_DICTIONARY].global_val.l
@@ -470,6 +472,8 @@
 #define GLO_SIGNATURE_FORE_COLOR     vars[V_SIGNATURE_FORE_COLOR].global_val.p
 #define VAR_SIGNATURE_BACK_COLOR     vars[V_SIGNATURE_BACK_COLOR].current_val.p
 #define GLO_SIGNATURE_BACK_COLOR     vars[V_SIGNATURE_BACK_COLOR].global_val.p
+#define VAR_SPECIAL_TEXT_FORE_COLOR  vars[V_SPECIAL_TEXT_FORE_COLOR].current_val.p
+#define VAR_SPECIAL_TEXT_BACK_COLOR  vars[V_SPECIAL_TEXT_BACK_COLOR].current_val.p
 #define VAR_PROMPT_FORE_COLOR	     vars[V_PROMPT_FORE_COLOR].current_val.p
 #define VAR_PROMPT_BACK_COLOR	     vars[V_PROMPT_BACK_COLOR].current_val.p
 #define VAR_VIEW_HDR_COLORS	     vars[V_VIEW_HDR_COLORS].current_val.l

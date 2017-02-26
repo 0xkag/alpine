@@ -4228,6 +4228,7 @@ There are also additional details on
 <li><a href="h_config_print_cat">OPTION: <!--#echo var="VAR_personal-print-category"--></a>
 <li><a href="h_config_print_command">OPTION: <!--#echo var="VAR_personal-print-command"--></a>
 <li><a href="h_config_post_char_set">OPTION: <!--#echo var="VAR_posting-character-set"--></a>
+<li><a href="h_config_special_text_to_color">OPTION: <!--#echo var="VAR_h_config_special_text_to_color"--></a>
 <li><a href="h_config_postponed_folder">OPTION: <!--#echo var="VAR_postponed-folder"--></a>
 <li><a href="h_config_print_font_char_set">OPTION: Print-Font-Char-Set</a>
 <li><a href="h_config_print_font_name">OPTION: Print-Font-Name</a>
@@ -4256,6 +4257,7 @@ There are also additional details on
 <li><a href="h_config_sending_filter">OPTION: <!--#echo var="VAR_sending-filters"--></a>
 <li><a href="h_config_sendmail_path">OPTION: <!--#echo var="VAR_sendmail-path"--></a>
 <li><a href="h_config_signature_color">OPTION: Signature Color</a>
+<li><a href="h_config_special_text_color">OPTION: Special Text Color</a>
 <li><a href="h_config_signature_file">OPTION: <!--#echo var="VAR_signature-file"--></a>
 <li><a href="h_config_smtp_server">OPTION: <!--#echo var="VAR_smtp-server"--></a>
 <li><a href="h_config_sort_key">OPTION: <!--#echo var="VAR_sort-key"--></a>
@@ -24043,6 +24045,43 @@ aspell. A sample entry is &quot;en_US&quot; for american english, or
 &lt;End of help on this topic&gt;
 </BODY>
 </HTML>
+====== h_config_special_text_to_color =====
+<HTML>
+<HEAD>
+<TITLE>OPTION: <!--#echo var="VAR_special-text-color"--></TITLE>
+</HEAD>
+<BODY>
+<H1>OPTION: <!--#echo var="VAR_special-text-color"--></H1>
+
+Use this option to enter patterns (text or regular expressions) that 
+Alpine will highlight in the body of the text that is not part of a handle 
+(an internal or external link that Alpine paints in a different color).
+
+<P> 
+Enter each pattern in a different line. Pine will internally merge these 
+patterns (by adding a "|" character), or you can add them all in one line 
+by separating them by a "|" character. There is only a <A 
+HREF="h_regex_text">set</A> of regular expressions that are matched.
+
+<P>
+Pine will use the colors defined in the 
+<A HREF="h_config_special_text_color">Special Text Color</A> variable. 
+to paint any match.
+
+<P> 
+If the Special Text Color is not set, setting this variable will not
+cause that special text to be indicated in any special way. It will look
+like any normal text. You must set those colors in order to make Pine
+paint the screen differently when it finds the patterns specified in this
+variable.
+
+<P>
+<UL>   
+<LI><A HREF="h_finding_help">Finding more information and requesting help</A>
+</UL><P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
 ====== h_config_display_filters =====
 <HTML>
 <HEAD>
@@ -32645,6 +32684,30 @@ to include the &quot;ARROW&quot; token, you may set the color of
 the arrow displayed with this option.
 If you don't set the color it will be colored in the same color as
 the bulk of the index line.
+
+<P>
+<A HREF="h_color_setup">Descriptions of the available commands</A>
+<P>
+Look <A HREF="h_edit_nav_cmds">here</A>
+to see the available Editing and Navigation commands.
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+====== h_config_special_text_color =====
+<HTML>
+<HEAD>
+<TITLE>OPTION: Special Text Color</TITLE>
+</HEAD>
+<BODY>
+<H1>OPTION: Special Text Color</H1>
+
+Sets the color Pine uses for coloring any text in the body of the message
+that is not part of a handle (and internal or external link that Pine 
+paints in a different color). By default, this variable is not defined, 
+which means that text that matches the pattern is not painted in any
+particular way. This variable must be set in a special form if you
+want text to be painted.
 
 <P>
 <A HREF="h_color_setup">Descriptions of the available commands</A>

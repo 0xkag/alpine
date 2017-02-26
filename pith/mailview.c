@@ -282,6 +282,14 @@ format_body(long int msgno, BODY *body, HANDLE_S **handlesp, HEADER_S *hp, int f
 	    if((flgs & FM_DISPLAY)
 	       && !(flgs & FM_NOCOLOR)
 	       && pico_usingcolor()
+	       && ps_global->VAR_SPECIAL_TEXT_FORE_COLOR
+	       && ps_global->VAR_SPECIAL_TEXT_BACK_COLOR){
+		gf_link_filter(gf_line_test, gf_line_test_opt(color_this_text, NULL));
+	    }
+
+	    if((flgs & FM_DISPLAY)
+	       && !(flgs & FM_NOCOLOR)
+	       && pico_usingcolor()
 	       && ps_global->VAR_SIGNATURE_FORE_COLOR
 	       && ps_global->VAR_SIGNATURE_BACK_COLOR){
 		gf_link_filter(gf_line_test, gf_line_test_opt(color_signature, &is_in_sig));
@@ -2503,6 +2511,190 @@ hdr_color(char *fieldname, char *value, SPEC_COLOR_S *speccolor)
     return(color_pair);
 }
 
+void
+interval_free(IVAL_S **ival)
+{
+  if (!(*ival))
+    return;
+
+  if ((*ival)->next)
+    interval_free(&((*ival)->next));
+
+  fs_give((void **)(ival));
+}
+
+IVAL_S *
+compute_interval (char *string, int endm)
+{
+  IVAL_S *ival = NULL;
+  regmatch_t pmatch;
+
+  if(ps_global->paterror == 0 && 
+     regexec(&ps_global->colorpat, string + endm, 1, &pmatch, 0) == 0){
+       ival = (IVAL_S *) fs_get(sizeof(IVAL_S));
+       ival->start = endm + pmatch.rm_so;
+       ival->end   = endm + pmatch.rm_eo;
+       ival->next  = compute_interval(string, ival->end);
+  }
+  return ival;
+}
+
+void
+regex_pattern(char **plist)
+{
+  int i = 0, j = 0, len = 0;
+  char *pattern = NULL;
+  regex_t preg;
+
+  if(ps_global->paterror == 0)
+    regfree(&ps_global->colorpat);
+
+  if(plist && *plist && *plist){
+    for (i = 0; plist[i] && plist[i][0]; i++)
+	len += strlen(plist[i]) + 1;
+    pattern = (char *) fs_get(len * sizeof(char));
+    *pattern = '\0';
+    for (j = 0; j < i; j++){
+	strcat(pattern, plist[j]);
+	strcat(pattern, (j < i - 1) ? "|" : "");
+    }
+    if ((ps_global->paterror = regcomp(&preg, pattern, REG_EXTENDED)) != 0)
+      regfree(&preg);
+    else
+       ps_global->colorpat = preg;
+  }
+  if(pattern)
+    fs_give((void **)&pattern);
+}
+
+LT_INS_S **
+insert_color_special_text(LT_INS_S **ins, char **p, IVAL_S *ival, int last_end,
+			COLOR_PAIR *col)
+{
+   struct variable *vars = ps_global->vars;
+
+   if (ival){
+      *p += ival->start - last_end;
+      ins = gf_line_test_new_ins(ins, *p,  color_embed(col->fg, col->bg),
+				   (2 * RGBLEN) + 4);
+      *p += ival->end - ival->start;
+      ins = gf_line_test_new_ins(ins, *p, color_embed(VAR_NORM_FORE_COLOR,
+		      VAR_NORM_BACK_COLOR), (2 * RGBLEN) + 4);
+      ins = insert_color_special_text(ins, p, ival->next, ival->end, col);
+   }
+   return ins;
+}  
+
+int
+length_color(char *p, int begin_color)
+{
+  int len = 0, done = begin_color ? 0 : -1;
+  char *orig = p;
+
+  while (*p  && done <= 0){
+        switch(*p++){
+           case TAG_HANDLE :
+             p += *p + 1; 
+	     done++;
+           break;
+
+           case TAG_FGCOLOR :
+           case TAG_BGCOLOR :
+             p += RGBLEN;
+	     if (!begin_color)
+		done++;  
+           break;
+
+           default :
+             break;
+        }
+   }
+   len = p - orig;
+   return len;
+}
+
+int
+any_color_in_string(char *p)
+{
+   int rv = 0;
+   char *orig = p;
+   while (*p && !rv)
+      if (*p++ == TAG_EMBED)
+	rv = p - orig;
+   return rv;
+}
+
+void
+remove_spaces_ival(IVAL_S **ivalp, char *p)
+{
+    IVAL_S *ival;
+    int i;
+    if (!ivalp || !*ivalp)
+    return;
+    ival = *ivalp;
+    for (i = 0; isspace((unsigned char) p[ival->start + i]); i++);
+    if (ival->start + i < ival->end)  /* do not do this if match only spaces */
+      ival->start += i;
+    else
+      return;
+    for (i = 0; isspace((unsigned char) p[ival->end - i - 1]); i++);
+     ival->end -= i;
+    if (ival->next)
+	remove_spaces_ival(&(ival->next), p);
+}
+
+int
+color_this_text(long linenum, char *line, LT_INS_S **ins, void *local)
+{
+    struct variable *vars = ps_global->vars;
+    COLOR_PAIR *col = NULL;
+    char *p;
+    int i = 0;
+    static char *pattern = NULL;
+
+/*  select_quote(linenum, line, ins, (void *) &i);
+    for (i = 0; tmp_20k_buf[i] != '\0'; i++); */
+    p = line + i;
+
+    if(VAR_SPECIAL_TEXT_FORE_COLOR && VAR_SPECIAL_TEXT_BACK_COLOR
+       && (col = new_color_pair(VAR_SPECIAL_TEXT_FORE_COLOR,
+                                VAR_SPECIAL_TEXT_BACK_COLOR))
+       && !pico_is_good_colorpair(col))
+          free_color_pair(&col);
+
+    if(ps_global->VAR_SPECIAL_TEXT && *ps_global->VAR_SPECIAL_TEXT 
+	&& **ps_global->VAR_SPECIAL_TEXT && col){
+       IVAL_S *ival;
+       int done = 0, begin_color = 0;
+
+        while (!done){
+           if (i = any_color_in_string(p)){
+	      begin_color = (begin_color + 1) % 2;
+	      if (begin_color){
+                 p[i - 1] = '\0';
+                 ival = compute_interval(p, 0);
+		 remove_spaces_ival(&ival, p);
+                 p[i - 1] = TAG_EMBED;
+	         ins = insert_color_special_text(ins, &p, ival, 0, col);
+	      }
+              for (;*p++ != TAG_EMBED; );
+              p += length_color(p, begin_color);
+           }
+           else{
+              ival = compute_interval(p, 0);
+	      remove_spaces_ival(&ival, p);
+	      ins = insert_color_special_text(ins, &p, ival, 0, col);
+	      done++;
+           }
+	   interval_free(&ival);
+           if (!*p)
+             done++;
+        }
+        free_color_pair(&col);
+    }
+
+    return 0;
+}
 
 /*
  * The argument fieldname is something like "Subject:..." or "Subject".
