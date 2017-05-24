@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head><TITLE>Mark messages to you that are part of a group message using a special symbol</TITLE>
+<meta name="description" content="Mark messages to you that are part of a group message using a special symbol">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=ISO-8859-1">
+<LINK REL="SHORTCUT ICON" href="../images/favicon.ico">
+<LINK REL="stylesheet" HREF="../css/info.css" TYPE="text/css">
+</head>
+<body>
+<hr>
+<table align=center cellpadding=0 cellspacing=0 border=0 width="100%" >
+<tr>
+<td width="25%" align=center>
+<a href="../faq/">FAQ about patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../patches/others.html">More patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../">Main Page</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../md5/tome.html">SHA256 digest for this patch</a>
+</td>
+</tr>
+</table>
+<hr>
+<TABLE><TR><TD class=special>
+<B class=title>Mark messages to you that are part of a group message using a special symbol</B>
+
+<BR>
+<B>Patch  is available for version:</B>
+<A HREF="../patches/alpine-2.00/tome.patch.gz"><B>alpine 2.00</B></A>
+<A HREF="../patches/alpine-2.01/tome.patch.gz"><B>alpine 2.01</B></A>
+<A HREF="../patches/alpine-2.10/tome.patch.gz"><B>alpine 2.10</B></A>
+<A HREF="../patches/alpine-2.11/tome.patch.gz"><B>alpine 2.11</B></A>
+<A HREF="../patches/alpine-2.20/tome.patch.gz"><B>alpine 2.20</B></A>
+<A HREF="../patches/alpine-2.21/tome.patch.gz"><B>alpine 2.21</B></A>
+<A HREF="../patches/alpine-2.22/tome.patch.gz"><B>alpine 2.22</B></A>
+<A HREF="../patches/alpine-2.23/tome.patch.gz"><B>alpine 2.23</B></A>
+<A HREF="../patches/alpine-2.24/tome.patch.gz"><B>alpine 2.24</B></A>
+<A HREF="../patches/alpine-2.25/tome.patch.gz"><B>alpine 2.25</B></A>
+<A HREF="../patches/alpine-2.26/tome.patch.gz"><B>alpine 2.26</B></A>
+
+
+<BR>&#160;<BR>
+Alpine marks messages sent to you using the special '+' symbol, which is normally
+the first character of the index message. This symbol is used regardless of if you
+are the only receipient of the message, or if your address is part of a group
+message where you are just one of the receipients. This patch makes Alpine use
+the '.' symbol for messages where your address is part of the To: field, but 
+you are not the only recipient of the message, and reserves the use of '+' to
+messages where you are the only recipient.
+<BR>&#160;<BR>
+After you apply the patch the feature gets activated automatically, but it
+can be disabled from the main configuation screen by disabling
+<BR>&#160;<BR>
+<center>
+<B class=remark> [&nbsp;]  Mark for Group Message to Me</B>
+</center>
+
+</TD></TR></TABLE>
+<P>Last Updated 18:15:13 MDT Thu Jun 02 2022.
+
+
+
+</body>
+</html>

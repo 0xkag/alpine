@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# vim: et sw=4 ts=4:
+
+set -e
+set -x
+set -u
+
+set -o pipefail
+
+urlbase=https://alpineapp.email/alpine
+urlbasehtml=$urlbase/info
+urlbasepatch=$urlbase/patches/alpine-2.26
+
+for patch in \
+    colortext \
+    compose \
+    count \
+    fancy \
+    fillpara \
+    longurl \
+    maildir \
+    rules \
+    tome
+do
+    curl --fail -s -O $urlbasehtml/$patch.html
+    curl --fail -s $urlbasepatch/$patch.patch.gz | gzip -d > $patch.patch
+done
+
+curl --fail -s $urlbase/info/courier.html > maildir-courier.html
+
