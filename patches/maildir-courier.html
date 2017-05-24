@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head><TITLE>Maildir patch for Alpine</TITLE>
+<meta name="description" content="A patch to give Alpine and UW-IMAP maildir format support.">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=ISO-8859-1">
+<LINK REL="SHORTCUT ICON" href="../images/favicon.ico">
+<LINK REL="stylesheet" HREF="../css/info.css" TYPE="text/css">
+</head>
+<body>
+<hr>
+<table align=center cellpadding=0 cellspacing=0 border=0 width="100%" >
+<tr>
+<td width="33%" align=center>
+<a href="../../faq/">FAQ about patches</a>
+</td>
+<td>|</td>
+<td width="33%" align=center>
+<a href="../patches/others.html">More patches</a>
+</td>
+<td>|</td>
+<td width="34%" align=center>
+<a href="../">Main Page</a>
+</td>
+</table>
+<hr>
+<TABLE><TR><TD class=special>
+<B class=title>Support for Courier/Cyrus/Dovecot file systems in the Maildir patch for Alpine</B>
+
+<BR>&#160;<BR>
+If you are familiar with the original Maildir patch this is an extra
+feature added to that patch, so most of the configuration is done
+very similarly.
+<BR>&#160;<BR>
+In a courier/cyrus/dovecot file system (henceforth called Courier for 
+brevity) all folders are subfolders of a root folder called INBOX. 
+Normally INBOX is located at ~/Maildir and subfolders are &quot;dot&quot; 
+directories in ~/Maildir. For example ~/Maildir/.Trash is a subfolder of 
+INBOX and is accessed with the nickname &quot;INBOX.Trash&quot;.
+
+<BR>&#160;<BR>
+You can not access folders in this way unless you preceed them with the 
+string &quot;#mc/&quot;. The purpose of the string &quot;#mc/&quot; is to warn Alpine that a 
+collection in the Courier format is going to be accessed, so you can 
+SELECT a folder like &quot;#mc/INBOX.Trash&quot;, but not &quot;INBOX.Trash&quot;
+
+<BR>&#160;<BR>
+You can access a collection through a server, but if you want to access a 
+collection of folders created using the Courier server, you MUST edit your
+&quot;.pinerc&quot; file and enter the definition of the collection as follows:
+
+<BR>&#160;<BR>
+folder-collections=&quot;Anything you want&quot; #mc/INBOX.[]
+
+<BR>&#160;<BR>
+You can replace the string &quot;#mc/INBOX.&quot; by something different, for example
+&quot;#mc/Maildir/.&quot; will make Alpine search for your collection in ~/Maildir.
+
+<BR>&#160;<BR>
+You can not add this directly into Alpine because Alpine fails to accept this 
+value from its input, but it takes it correctly when it is added through 
+the &quot;.pinerc&quot; file.
+
+<BR>&#160;<BR>
+You can access your inbox as &quot;#mc/INBOX&quot; or &quot;#md/INBOX&quot;. Both definitions 
+point to the same place.
+
+<BR>&#160;<BR>
+Please <A HREF="mailto:alpine.chappa@gmx.com">send me</A> all 
+feedback you have about the patch so that it can be improved in later
+versions.
+<BR>&#160;<BR>
+Thanks
+
+</UL>
+
+</TD></TR></TABLE>
+<P>Last Updated 11:01:25 PST Fri Apr 01 2005.
+<IMG SRC="http://counter.digits.net/wc/-d/5/-b/ffffdd/-f/ffffdd/-e/ffffdd/edito" ALT="" ALIGN=middle WIDTH=75 HEIGHT=15>
+<IMG SRC="http://counter.digits.net/wc/-d/5/-b/ffffdd/-f/ffffdd/-e/ffffdd/seminar" ALT="" ALIGN=middle WIDTH=75 HEIGHT=15>
+<IMG SRC="http://counter.digits.net/wc/-d/5/-b/ffffdd/-f/ffffdd/-e/ffffdd/pinecounter" ALT="" ALIGN=middle WIDTH=75 HEIGHT=15>
+</body>
+</html>
