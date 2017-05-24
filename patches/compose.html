@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head><TITLE>Add new subcommands to the compose command</TITLE>
+<meta name="description" content="Add new subcommands to the compose command">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=ISO-8859-1">
+<LINK REL="SHORTCUT ICON" href="../images/favicon.ico">
+<LINK REL="stylesheet" HREF="../css/info.css" TYPE="text/css">
+</head>
+<body>
+<hr>
+<table align=center cellpadding=0 cellspacing=0 border=0 width="100%" >
+<tr>
+<td width="25%" align=center>
+<a href="../faq/">FAQ about patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../patches/others.html">More patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../">Main Page</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../md5/compose.html">SHA256 digest for this patch</a>
+</td>
+</tr>
+</table>
+<hr>
+<TABLE><TR><TD class=special>
+<B class=title>Add new subcommands to the compose command</B>
+
+<BR>
+<B>Patch is available for version:</B>
+<A HREF="../patches/alpine-2.20/compose.patch.gz"><B>alpine 2.20</B></A>
+<A HREF="../patches/alpine-2.21/compose.patch.gz"><B>alpine 2.21</B></A>
+<A HREF="../patches/alpine-2.22/compose.patch.gz"><B>alpine 2.22</B></A>
+<A HREF="../patches/alpine-2.23/compose.patch.gz"><B>alpine 2.23</B></A>
+
+<BR>&#160;<BR>
+If you have enabled
+<BR>&#160;<BR>
+ [X]  Alternate Compose Menu 
+<BR>&#160;<BR>
+then this patch will add two new subcommands to the compose command. Here
+are their descriptions:
+<UL>
+<LI> <B class=remark>S</B>:
+If you are reading a message from a person, and you would like to
+compose a new message to that person, then this option will enter
+the address in the From: field of that message into the To: field of
+the new message. This allows you to start a fresh conversation
+with that person, without using the reply command, which might not
+always be the best way to start a conversation (thread) with another user.
+One of the main advantages of this approach is that is makes composing
+a message to a person faster than entering their address or nickname
+in the To: field.
+<LI> <B class=remark>M</B>:
+If you are reading a message that was sent to a mailing list, this
+option will add the address of the mailing list in the To: field of
+your message. In many mailing lists, people are frowned upon if they
+reply to an old message to start a new message to the list. Using this
+option will start a new message (thread) in that mailing list.
+</UL>
+These options are not available in case that the alternate composer menu
+is not enabled, as they slow down users to start composing a message.
+
+</TD></TR></TABLE>
+<P>Last Updated 16:08:23 MDT Thu Jun 18 2020.
+
+
+
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head><TITLE>Define your own rules and make Alpine flexible!</TITLE>
+<meta name="description" content="Extend the flexibility of Alpine by adding features that allow you to override global configuration options.">
+<LINK REL="SHORTCUT ICON" href="../images/favicon.ico">
+<LINK REL="stylesheet" HREF="../css/info.css" TYPE="text/css">
+</head>
+<body>
+
+<hr>
+<table align=center cellpadding=0 cellspacing=0 border=0 width="100%" >
+<tr>
+<td width="25%" align=center>
+<a href="../faq/">FAQ about patches</a>
+</td>
+
+<td>|</td>
+<td width="25%" align=center>
+<a href="../patches/others.html">More patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../">Main Page</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../"><a HREF="../md5/rules.html">SHA256 digest for this patch</a></a>
+</td>
+</tr>
+</table>
+<hr>
+
+<TABLE cellpadding=5><TR><TD class=special>
+<B class=title>Define your own rules and make Alpine flexible!</B><BR>
+
+<B>Patch is available for versions:</B>
+<A HREF="../patches/alpine-1.00/rules.patch.gz"><B>alpine 1.00</B></A>
+<A HREF="../patches/alpine-1.10/rules.patch.gz"><B>alpine 1.10</B></A>
+<A HREF="../patches/alpine-2.00/rules.patch.gz"><B>alpine 2.00</B></A>
+<A HREF="../patches/alpine-2.01/rules.patch.gz"><B>alpine 2.01</B></A>
+<A HREF="../patches/alpine-2.10/rules.patch.gz"><B>alpine 2.10</B></A>
+<A HREF="../patches/alpine-2.11/rules.patch.gz"><B>alpine 2.11</B></A>
+<A HREF="../patches/alpine-2.20/rules.patch.gz"><B>alpine 2.20</B></A>
+<A HREF="../patches/alpine-2.21/rules.patch.gz"><B>alpine 2.21</B></A>
+<A HREF="../patches/alpine-2.22/rules.patch.gz"><B>alpine 2.22</B></A>
+<A HREF="../patches/alpine-2.23/rules.patch.gz"><B>alpine 2.23</B></A>
+
+
+<BR>&#160;<BR>
+This patch allows you to create specific hooks, so that operations that
+would normally be global in nature can be customized on a per
+message/folder/person basis.
+
+<P> There are two ingredients in this configuration. One are the variables 
+that can be configured, the other how to configure them.
+
+<P> The syntax used to configure them is very standard. If you are new to 
+this patch, <A HREF="../readme/rules.html">read</A> the explanation of the 
+syntax before seeing the examples below.
+
+<P> <B class=remark>NEW</B> in version 2.11, this patch adds the OR 
+logical connection. It is symbolized by ||. The classical AND connector, 
+is symbolized by &&.
+
+<P> This text describes all configuration options that are related to this 
+patch. They are sorted alphabetically, regardless of when they were added. 
+There is more help available in the patch itself.
+
+<UL>
+<LI><B class=remark>Compose Rules</B>
+This option can be used to generate signatures in cases when setting up
+a role does not work. Examples are
+<OL>
+<LI>_TO_ &gt;&gt; {Peter Flinstones} =&gt; _SIGNATURE_{~/.petersignature}
+<LI>_COLLECTION_ &gt;&gt; {Mail} =&gt; _SIGNATURE_{~/ll}
+</OL>
+<BR>&nbsp<BR>
+<LI><B class=remark>Forward Rules</B>
+This option controls several aspects of what happens when you forward a 
+message. Examples are
+<OL>
+<LI>_ROLE_ == {admin} && _SUBJECT_ !&gt; {[tag] } =&gt; _COPY_{[tag] _SUBJECT_}
+<LI>_ROLE_ == {work} =&gt; _LCC_ := _TRIM_{_FORWARDFROM_ &lt;_FORWARDADDRESS_&gt;}
+</OL>
+
+<BR>&nbsp<BR>
+<LI><B class=remark>Index Rules</B>
+This option controls the index format of a folder. It supersedes any value
+configured in Alpine, including the one set under Other Rules. Examples are:
+<OL>
+<LI>_FOLDER_ == {INBOX} =&gt; _INDEX_{IMAPSTATUS DATE FROM(33%) SIZE SUBJECT(67%)}
+<LI>_FOLDER_ == {INBOX} =&gt; _INDEX_{SHORTIMAPSTATUS FROMORTO(18) SUBJECT(18) OPENINGTEXTNQ}
+</OL>
+
+<BR>&nbsp<BR>
+<LI><B class=remark>Key Definition Rules</B>
+This option allows to redefine keys, or create macros in different screens.
+Examples are:
+<OL>
+<LI>&quot;_SCREEN_ == {index} && _PKEY_ == {~} =&gt; _COMMAND_{a,s,&quot;spam&quot;,CR,x}&quot;
+<LI>_SCREEN_ == {index} && _PKEY_ == {~} =&gt; _COMMAND_{&quot;$h&quot;}
+</OL>
+
+<BR>&nbsp<BR>
+<LI><B class=remark>Replace Rules</B>
+This option allows you to override the way in which the index screen is 
+printed in several fields, like the From, Subject, or Opening text. Examples
+are:
+<OL>
+<LI>_FOLDER_ != {sent-mail} && _NICK_ != {} =&gt; _FROM_ := _REPLACE_{_FROM_ (_NICK_)}
+<LI>_FOLDER_ == {mailing-list} =&gt; _OPENINGTEXTNQ_ := _REXTRIM_{On.*wrote:&nbsp;}
+<LI>_FOLDER_ == {INBOX} =&gt; _SUBJECT_ := _EXEC_{/path/to/script}
+</OL>
+<BR>
+The rule with the _EXEC_ function, takes the _SUBJECT_ as the input of the
+script and transforms it, then Alpine uses its output as the new subject.
+
+<BR>&nbsp<BR>
+Take a <A  HREF="../readme/replacerules.html">look</A> at the impact that a rule
+like this can have. 
+
+<BR>&nbsp<BR>
+<LI><B class=remark>Reply Indent Rules</B>
+This option allows you to customize your reply indent string, examples are:
+<OL>
+<LI>_FROM_ == {Your Boss} =&gt; _RESTR_{"&gt;&nbsp;"}
+<LI>_FROM_ == {Perter Flinstone;Wilma Flinstone} =&gt; _RESTR_{"_INIT_ &gt;&nbsp;"}
+</OL>
+
+<BR>&nbsp<BR>
+<LI><B class=remark>Reply Leadin Rules</B>
+This option allows you to change the text that Alpine writes on the top of
+the message before the quoted text. Examples are:
+<OL>
+<LI>_FOLDER_ &lt;&lt; {pine-info;_NEWS_} =&gt; _REPLY_{*** _FROM_ wrote:&nbsp;}
+<LI>_FOLDER_ == {INBOX} =&gt; _REPLY_{On _DATE_ you wrote:}
+</OL>
+
+<BR>&nbsp<BR>
+<LI><B class=remark>Reply Subject Rules</B>
+This option can be used to control how to form the subject of a message that
+is being replied to. Examples are:
+<OL>
+<LI>_SUBJECT_ == {} =&gt; _RESUB_{Re: your message}
+<LI>_SUBJECT_ &gt;&gt; {Sv: ;AW: } =&gt; _SUBJECT_ := _TRIM_{Sv: ;AW: }
+</OL>
+
+<BR>&nbsp<BR>
+<LI><B class=remark>Save Rules</B>
+This is a quite powerful option that allows you to control the folder to which
+a message is offered to be saved. Examples are:
+<OL>
+<LI>_FLAG_ >> {D} -&gt; Trash
+<LI>_FROM_ == {U2} -&gt; Bono
+<LI>_FOLDER_ == {comp.mail.pine} -&gt; pine-stuff
+</OL>
+
+<BR>&nbsp<BR>
+If you enable the feature <B class=remark> 
+[X]&nbsp;Auto&nbsp;Move&nbsp;Read&nbsp;Messages&nbsp;Using&nbsp;Rules,</B>
+and the <B class=remark>Read Message Folder</B> has been defined, 
+then these rules will be applied to move the matching messages to their
+target folders as defined above.
+
+<BR>&nbsp<BR>
+<LI><B class=remark>Smtp Rules</B>
+This option allows you to define smtp servers that you can use to
+send your messages. An examples is:
+<OL>
+<LI>_ADDRESSTO_ == {peter@bedrock.com} =&gt; _SMTP_{smtp.bedrock.com}
+</OL>
+<BR>&nbsp<BR>
+<LI><B class=remark>Sort Rules</B>
+You can use this option to configure sort order for specific folders.
+Examples are:
+<OL>
+<LI>_FOLDER_ == {INBOX;comp.mail.pine;maildroptest} =&gt; _SORT_{tHread}
+<LI>_COLLECTION_ &gt;&gt; {Incoming-Folders;News} && _FOLDER_ != {INBOX} =&gt; _SORT_{Arrival}
+</OL>
+
+<BR>&nbsp<BR>
+<LI><B class=remark>Startup Rules</B>
+You can tell Alpine where to position the cursor when a folder is opened, in
+a per-folder basis. Examples are
+<OL>
+<LI>_FOLDER_ == {Lynx;pine-info;_NEWS_} =&gt; _STARTUP_{first-unseen}
+<LI>_FOLDER_ == {INBOX} =&gt; _STARTUP_{first-recent}
+</OL>
+
+<BR>&nbsp<BR>
+<LI><B class=remark>Threading Display Style Rule</B>
+You can use this option to configure the display style of a thread of specific 
+folders. For example:
+<OL>
+<LI>_FOLDER_ == {pine-info} =&gt; _THREADSTYLE_{mutt-like}
+<LI>_FOLDER_ == {INBOX} =&gt; _THREADSTYLE_{show-thread-structure}
+</OL>
+
+<BR>&nbsp<BR>
+<LI><B class=remark>Threading Index Style Rule</B>
+You can use this option to configure the  index style of a thread of specific 
+folders. For example:
+<OL>
+<LI>_FOLDER_ == {pine-info} =&gt; _THREADINDEX_{regular-index-with-expanded-threads}
+<LI>_FOLDER_ == {INBOX} =&gt; _TREADINDEX_{separate-index-screen-except-for-single-messages}
+</OL>
+
+</UL>
+
+</TD></TR></TABLE>
+<P>Last Updated 16:08:10 MDT Thu Jun 18 2020.
+
+
+
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head><TITLE>Recognize multiline URLs</TITLE>
+<meta name="description" content="Recognize multiline URLs">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=ISO-8859-1">
+<LINK REL="SHORTCUT ICON" href="../images/favicon.ico">
+<LINK REL="stylesheet" HREF="../css/info.css" TYPE="text/css">
+</head>
+<body>
+<hr>
+<table align=center cellpadding=0 cellspacing=0 border=0 width="100%" >
+<tr>
+<td width="25%" align=center>
+<a href="../faq/">FAQ about patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../patches/others.html">More patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../">Main Page</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../md5/longurl.html">SHA256 digest for this patch</a>
+</td>
+</tr>
+</table>
+<hr>
+<TABLE><TR><TD class=special>
+<B class=title>Recognize multiline URLs</B>
+
+<BR>
+<B>Patch  is available for version:</B>
+<A HREF="../patches/alpine-2.00/longurl.patch.gz"><B>alpine 2.00</B></A>
+<A HREF="../patches/alpine-2.01/longurl.patch.gz"><B>alpine 2.01</B></A>
+<A HREF="../patches/alpine-2.10/longurl.patch.gz"><B>alpine 2.10</B></A>
+<A HREF="../patches/alpine-2.11/longurl.patch.gz"><B>alpine 2.11</B></A>
+<A HREF="../patches/alpine-2.20/longurl.patch.gz"><B>alpine 2.20</B></A>
+<A HREF="../patches/alpine-2.21/longurl.patch.gz"><B>alpine 2.21</B></A>
+<A HREF="../patches/alpine-2.22/longurl.patch.gz"><B>alpine 2.22</B></A>
+<A HREF="../patches/alpine-2.23/longurl.patch.gz"><B>alpine 2.23</B></A>
+
+
+<BR>&#160;<BR>
+Many times one receives URLs in messages that have been folded in several
+lines. When this happens, Alpine can only recognize the first line in the
+URL, but other lines are not.
+<BR>&#160;<BR>
+This patch searches for a continuation of a URL in several lines. This
+is done automatically if the URL is delimited between &lt; and &gt;. This
+case should be handled without problems.
+<BR>&#160;<BR>
+The option <B class=remark>[X] Enable Recognition of Long URLS without Delimiter</B> 
+can be used to go even further. If a URL is not delimited between &lt; and &gt;, then 
+this option can be used to search for continuation of those URLs. In this case, 
+Alpine can make mistakes and find a string longer than the URL. It should be clear 
+what Alpine selected as the URL from what you can see in the screen. If Alpine made a 
+mistake, you can edit the URL before sending it to the browser.
+
+
+</TD></TR></TABLE>
+<P>Last Updated 16:08:17 MDT Thu Jun 18 2020.
+
+
+
+</body>
+</html>

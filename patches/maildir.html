@@ -1,0 +1,181 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head><TITLE>Maildir patch for Alpine</TITLE>
+<meta name="description" content="A patch to give Alpine and UW-IMAP maildir format support. Available for the latest release of Alpine.">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=ISO-8859-1">
+<LINK REL="SHORTCUT ICON" href="../images/favicon.ico">
+<LINK REL="stylesheet" HREF="../css/info.css" TYPE="text/css">
+</head>
+<body>
+<hr>
+<table align=center cellpadding=0 cellspacing=0 border=0 width="100%" >
+<tr>
+<td width="25%" align=center>
+<a href="../faq/">FAQ about patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../patches/others.html">More patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../">Main Page</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../md5/maildir.html">SHA256 digest for this patch</a>
+</td>
+</tr>
+</table>
+<hr>
+<TABLE><TR><TD class=special>
+<B class=title>Maildir patch for Alpine</B>
+
+<BR>
+<B>Patch is available for version:</B>
+<A HREF="../patches/alpine-1.00/maildir.patch.gz"><B>alpine 1.00</B></A>
+<A HREF="../patches/alpine-1.10/maildir.patch.gz"><B>alpine 1.10</B></A>
+<A HREF="../patches/alpine-2.00/maildir.patch.gz"><B>alpine 2.00</B></A>
+<A HREF="../patches/alpine-2.01/maildir.patch.gz"><B>alpine 2.01</B></A>
+<A HREF="../patches/alpine-2.10/maildir.patch.gz"><B>alpine 2.10</B></A>
+<A HREF="../patches/alpine-2.11/maildir.patch.gz"><B>alpine 2.11</B></A>
+<A HREF="../patches/alpine-2.20/maildir.patch.gz"><B>alpine 2.20</B></A>
+<A HREF="../patches/alpine-2.21/maildir.patch.gz"><B>alpine 2.21</B></A>
+<A HREF="../patches/alpine-2.22/maildir.patch.gz"><B>alpine 2.22</B></A>
+<A HREF="../patches/alpine-2.23/maildir.patch.gz"><B>alpine 2.23</B></A>
+
+
+<BR>&#160;<BR>
+This is the update of a <A HREF="../../pine/info/maildir.html">similar 
+patch</A> for Pine, and is configured similarly. 
+
+
+<BR>&#160;<BR>
+If you have already built Alpine before you apply this patch, you need to 
+execute the command "make clean" in the source code of Alpine. This is 
+done to make sure that the scripts that are executed at the beginning of 
+the compilation create the necessary links needed for compilation. If you 
+just unpacked Alpine you can just apply this patch and build as you normally
+would. There are no extra configurations for this patch that can be
+set from the configure script.
+
+<BR>&#160;<BR>
+I have added support for the Courier/Cyrus/Dovecot file system, 
+<A HREF="courier.html">read</A> the configuration instructions.
+
+<BR>&#160;<BR>
+If you are interested, you can read the <A 
+HREF="../updates/maildir.html">list of the latest updates</A> to this 
+patch.
+
+Here is the way of using this patch.
+<UL>
+<LI> This patch assumes that your INBOX is located at "$HOME/Maildir". This
+is a directory which should have three subdirectories "cur", "tmp" and "new".
+If you read maildir from another directory in your $HOME directory
+(e.g. .maildir), then set the variable maildir-location to reflect this
+fact (e.g. maildir-location=.maildir). This is the best way to change
+the path of the inbox. Set Inbox Path = #md/INBOX.
+
+<LI> You can create a collection of folders which are in maildir format. In
+order to do that press M S L and add the following data:
+
+<BR>&#160;<BR>
+Nickname: Anything, your choice<BR>
+Server:<BR>
+Path: #md/relative/path/to/home<BR>
+View:<BR>
+<BR>&#160;<BR>
+Observe that in a maildir collection you can only have maildir format folders,
+folders in another format are ignored. This helps Alpine ignore other files
+that are part of configuration of other servers (e.g. Cyrus, Courier). Folders 
+in a maildir collection are created  in the maildir format. Folders in any 
+other collection are created in the format defined when building Alpine 
+(normally unix or mbox format, which is a default that is not changed by this patch).
+<BR>&#160;<BR>
+It was noted by Jonathan Johnson that if you add the line
+<BR>&#160;<BR>
+folder-collections=Mail #md/Maildir/[]
+<BR>&#160;<BR>
+to the global Alpinerc file (normally in /usr/lib/pine.conf or in /etc/pine.conf),
+then your users will be able to use Maildir as their default format.
+
+<LI> You can use your mail/ collection to store Maildir style folder. If
+you want to add a maildir folder called foo to your mail/ collection make
+sure that you are in the folder list screen and press A, then enter
+
+<BR>&#160;<BR>
+#driver.md/mail/foo
+
+<BR>&#160;<BR>
+You can have all types of folders in your mail/ collection, including Maildir
+format. In other words, this patch allows you to have both worlds under the
+same collection, or you can have a collection of only maildir folders.
+
+<LI> Here are directions on how to convert a mailbox from any format (supported
+by Alpine) to maildir format.
+
+<OL>
+<LI><B class=remark>Not Using Alpine</B> After building Alpine with this patch, use
+the mailutil program. For example assume that you added a collection of Maildir
+folders in the above step that is located in the &quot;Mdir&quot; directory, then
+in order to transform your saved-messages folder into Maildir format you would
+execute a command like:
+
+<BR>&#160;<BR>
+mailutil copy ~/mail/saved-messages #driver.md/Mdir/saved-messages
+<BR>&#160;<BR>
+This command will create a folder called saved-messages in the Mdir collection.
+In particular it is assumed that that folder does not exist. If you
+want to append messages to a maildir folder, foo in the Mdir collection
+use the command
+
+<BR>&#160;<BR>
+mailutil append ~/mail/saved-messages #driver.md/Mdir/foo
+<BR>&#160;<BR>
+
+Finally if you want to create a Maildir folder called bar in the Mdir
+collection use the command:
+
+<BR>&#160;<BR>
+mailutil create #driver.md/Mdir/bar
+<BR>&#160;<BR>
+
+<LI><B class=remark>Using Alpine</B> Use aggregate operations as you normally
+would to tranfer messages between folders.
+
+</OL>
+<LI> The internal name (for Alpine) of this driver is <B class=remark>md</B>, not
+<I>maildir</I>. In particular, this also means that if you need to disable this driver
+for any reason, you have to use the command
+
+<BR>&#160;<BR>
+disable-these-drivers=md
+
+<BR>&#160;<BR>
+Hopefully you will never have to do this.
+
+<BR>&#160;<BR>
+If you intend to use this patch in <A 
+HREF="http://www.cygwin.com">Cygwin</A> notice that the separator 
+character used in Maildir was changed from ':' (a colon) to ';' (a 
+semicolon). Configure your Mail Delivery Agent (e.g Exim) to use such 
+character when delivering to a Maildir folder.
+
+
+<BR>&#160;<BR>
+Please <A HREF="mailto:alpine.chappa@gmx.com">send me</A> all 
+feedback you have about the patch so that it can be
+improved in later versions.
+<BR>&#160;<BR>
+Thanks
+
+</UL>
+
+</TD></TR></TABLE>
+<P>Last Updated 16:08:08 MDT Thu Jun 18 2020.
+
+
+
+</body>
+</html>

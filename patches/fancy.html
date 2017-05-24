@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head><TITLE>Fancy Thread Interface</TITLE>
+<meta name="description" content="Extend the functionality of the thread interface in Alpine.">
+<meta name="keywords" content="thread, threading, patch">
+<LINK REL="SHORTCUT ICON" href="../images/favicon.ico">
+<LINK REL="stylesheet" HREF="../css/info.css" TYPE="text/css">
+</head>
+<body>
+<hr>
+<table align=center cellpadding=0 cellspacing=0 border=0 width="100%" >
+<tr>
+<td width="25%" align=center>
+<a href="../faq/">FAQ about patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../patches/others.html">More patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../">Main Page</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../"><A HREF="../md5/fancy.html">SHA256 digest for this patch</A></a>
+</td>
+</tr>
+</table>
+<hr>
+<TABLE><TR><TD class=special>
+<B class=title>Fancy Thread Interface</B>
+
+<BR>
+<B>Patch is available for versions:</B>
+<A HREF="../patches/alpine-1.00/fancy.patch.gz"><B>alpine 1.00</B></A>
+<A HREF="../patches/alpine-1.10/fancy.patch.gz"><B>alpine 1.10</B></A>
+<A HREF="../patches/alpine-2.00/fancy.patch.gz"><B>alpine 2.00</B></A>
+<A HREF="../patches/alpine-2.01/fancy.patch.gz"><B>alpine 2.01</B></A>
+<A HREF="../patches/alpine-2.10/fancy.patch.gz"><B>alpine 2.10</B></A>
+<A HREF="../patches/alpine-2.11/fancy.patch.gz"><B>alpine 2.11</B></A>
+<A HREF="../patches/alpine-2.20/fancy.patch.gz"><B>alpine 2.20</B></A>
+<A HREF="../patches/alpine-2.21/fancy.patch.gz"><B>alpine 2.21</B></A>
+<A HREF="../patches/alpine-2.22/fancy.patch.gz"><B>alpine 2.22</B></A>
+<A HREF="../patches/alpine-2.23/fancy.patch.gz"><B>alpine 2.23</B></A>
+
+
+<BR>&#160;<BR>
+You can use this patch to add functionality to the thread interface offered
+by Alpine. It adds commands and options that control several aspects of the
+way threads are presented.
+
+<UL>
+<LI>
+You can delete a thread, by pressing 
+<B class=remark>^R</B> (to remove), you can undelete it by pressing <B class=remark>^U</B> (without
+this patch, you would have to collapse the thread before you can delete it). 
+<BR>&#160;<BR>
+            
+<LI>
+You can select and unselect a thread, by pressing <B class=remark>^T</B>. This is useful if you want to
+make aggregate operations on a thread, like saving it. 
+<BR>&#160;<BR>
+
+<LI>
+
+You can collapse or expand a particular thread by pressing <B class=remark>[</B> or <B class=remark>]</B>
+respectively. If you want to collapse or expand ALL threads, use the
+commands <B class=remark>{</B> and <B class=remark>}</B> respectively. These last two commands work only if you
+have selected any of the options <BR> <B class=remark>(*) regular-index-with-expanded/collapsed-threads</B>.
+
+<BR>&#160;<BR>
+            
+<LI>
+You can move to the next or previous thread by pressing <B class=remark>)</B>
+or <B class=remark>(</B> respectively.
+
+<BR>&#160;<BR>
+            
+<LI>
+You can sort threads by arrival, in order to do this press 
+<B class=remark>k a</B>. There are other sorts for threads by Date and by
+Score. If you want to have threads permanently sorted
+by arrival, say, then set the variable <B class=remark>thread-sort-key</B> to be arrival. You can
+also start Alpine with the option <B class=remark>-threadsort arrival</B> to accomplish the
+same.
+
+<BR>&#160;<BR>
+            
+<LI>
+Similarly, you can sort threads by their length. In order to do this press 
+<B class=remark>k z</B>. Small threads appear at the beginning of the listing,
+while long threads appear at the bottom. Threads of the same length are sorted
+according to the date of their first message. In particular, single message
+threads are sorted by date.
+
+<BR>&#160;<BR>
+            
+<LI>
+A new configuration option was added:<BR> 
+<B class=remark>[X] enhanced-fancy-thread-support</B> <BR>
+if you enable this configuration option, then all of the above commands
+will act on loose threads, which are threads without parents.
+
+<BR>&#160;<BR>
+            
+<LI>
+The <B class=remark>SIZETHREAD</B> index token was added, which tells you the size of a
+thread, instead of the size of the individual messages in the thread.
+</UL>
+
+<B class=remark>BUGS:</B> When the configuration option enhanced-fancy-thread-support is
+enabled, the command <B class=remark>/</B> will not act on the full thread (for loose
+threads), but only on branches of it. I am not quite sure that I want to
+change this, because it gives you flexibility. In particular collapsing a
+branch and pressing D, will delete the branch and not the thread, so you
+would have an extra option :). My advice is that you do not enable
+slash-collapses-entire-thread, since this will give you much more
+flexibility. In every possible situation I've found this, I've seen it as an
+advantage and not as a disadvantage, I hope you do too.
+
+<BR>&#160;<BR>
+
+Send all comments and bug reports about this patch to <A
+HREF="mailto:alpine.chappa@gmx.com">me</A>. Thanks, and enjoy!
+
+</TD></TR></TABLE>
+<P>Last Updated 16:08:07 MDT Thu Jun 18 2020.
+
+
+
+</body>
+</html>

@@ -1,0 +1,249 @@
+diff -rc alpine-2.22/alpine/send.c alpine-2.22.compose/alpine/send.c
+*** alpine-2.22/alpine/send.c	2020-01-19 01:32:20.126476758 -0700
+--- alpine-2.22.compose/alpine/send.c	2020-01-19 01:35:04.431391171 -0700
+***************
+*** 52,57 ****
+--- 52,58 ----
+  #include "../pith/news.h"
+  #include "../pith/detoken.h"
+  #include "../pith/util.h"
++ #include "../pith/url.h"
+  #include "../pith/init.h"
+  #include "../pith/mailcmd.h"
+  #include "../pith/ablookup.h"
+***************
+*** 272,283 ****
+      char	  *fcc_to_free,
+  		  *fcc      = NULL,
+  		  *lcc      = NULL,
+! 		  *sig      = NULL;
+      int		   fcc_is_sticky = 0,
+  		   to_is_sticky = 0,
+                     intrptd = 0,
+                     postponed = 0,
+! 		   form = 0;
+  
+      dprint((1,
+                   "\n\n    ---- COMPOSE SCREEN (not in pico yet) ----\n"));
+--- 273,287 ----
+      char	  *fcc_to_free,
+  		  *fcc      = NULL,
+  		  *lcc      = NULL,
+! 		  *sig      = NULL,
+! 		  *mlist_to = NULL;
+      int		   fcc_is_sticky = 0,
+  		   to_is_sticky = 0,
+                     intrptd = 0,
+                     postponed = 0,
+! 		   form = 0,
+! 		   to_sender = 0,
+! 		   m_list = 0;
+  
+      dprint((1,
+                   "\n\n    ---- COMPOSE SCREEN (not in pico yet) ----\n"));
+***************
+*** 329,334 ****
+--- 333,340 ----
+   	char    *postpnd  = "Postponed";
+   	char    *formltr  = "FormLetter";
+   	char    *roles    = "setRole";
++ 	char	*sender	  = "To Sender";
++ 	char	*mlist	  = "Mail List";
+  	HelpType help     = h_composer_browse;
+  	ESCKEY_S compose_style[6];
+  	unsigned which_help;
+***************
+*** 366,371 ****
+--- 372,409 ----
+  	compose_style[ekey_num].name    = "R";
+  	compose_style[ekey_num++].label = roles;
+  
++ 	if(ps_global->mail_stream){
++ 	  MSGNO_S *msgmap = ps_global->msgmap;
++ 	  if(msgmap){
++ 	    char *h, *b, **req;
++ 	    int len;
++ 	    unsigned long msgno = mn_m2raw(msgmap, mn_get_cur(msgmap));
++ 
++ 	    if(msgno > 0L){
++ 	      compose_style[ekey_num].ch      = 's';
++ 	      compose_style[ekey_num].rval    = 's';
++ 	      compose_style[ekey_num].name    = "S";
++ 	      compose_style[ekey_num++].label = sender;
++ 
++ 	      req = fs_get(2*sizeof(char *));
++ 	      req[0] = cpystr("List-Post");
++ 	      req[1] = NULL;
++ 	      h = pine_fetchheader_lines(ps_global->mail_stream, msgno, NULL, req);
++ 	      if(h != NULL){
++ 	        if((b = mail_addr_scan(h, &len)) != NULL){
++ 		  compose_style[ekey_num].ch      = 'm';
++ 		  compose_style[ekey_num].rval    = 'm';
++ 		  compose_style[ekey_num].name    = "M";
++ 		  compose_style[ekey_num++].label = mlist;
++ 		  mlist_to = cpystr(b);
++ 		  mlist_to[len] = '\0';
++ 	        }
++ 	        fs_give((void **)&h);
++ 	      }
++ 	    }
++ 	  }
++ 	}
++ 
+   	compose_style[ekey_num].ch    = -1;
+  
+   	if(F_ON(F_BLANK_KEYMENU,ps_global)){
+***************
+*** 420,426 ****
+  
+   	chosen_task = radio_buttons(prompt, -FOOTER_ROWS(ps_global),
+   				    compose_style, 'n', 'x', help, RB_NORM);
+! 	intrptd = postponed = form = 0;
+  
+  	switch(chosen_task){
+  	  case 'i':
+--- 458,464 ----
+  
+   	chosen_task = radio_buttons(prompt, -FOOTER_ROWS(ps_global),
+   				    compose_style, 'n', 'x', help, RB_NORM);
+! 	intrptd = postponed = form = to_sender = m_list = 0;
+  
+  	switch(chosen_task){
+  	  case 'i':
+***************
+*** 449,455 ****
+  		role = combine_inherited_role(role);
+  	    }
+  	    break;
+! 	  
+  	  case 'f':
+  	    form = 1;
+  	    break;
+--- 487,501 ----
+  		role = combine_inherited_role(role);
+  	    }
+  	    break;
+! 
+! 	  case 's':
+! 	    to_sender = 1;
+! 	    break;
+! 
+! 	  case 'm':
+! 	    m_list = 1;
+! 	    break;
+! 
+  	  case 'f':
+  	    form = 1;
+  	    break;
+***************
+*** 608,613 ****
+--- 654,683 ----
+          body         = mail_newbody();
+          outgoing     = mail_newenvelope();
+  
++ 	if(to_sender){
++ 	  if(ps_global->mail_stream){
++ 	    MSGNO_S *msgmap = ps_global->msgmap;
++ 	    if(msgmap){
++ 	      ENVELOPE *env;
++ 	      unsigned long msgno = mn_m2raw(msgmap, mn_get_cur(msgmap));
++ 
++ 	      env = pine_mail_fetchstructure(ps_global->mail_stream, 
++ 						msgno, NULL);
++ 	      if(env == NULL)
++                 q_status_message1(SM_ORDER,3,4,
++ 			_("Error fetching message %s"), long2string(msgno));  
++               else
++ 		outgoing->to = copyaddr(env->from);
++ 	    }
++ 	  }
++ 	  else
++ 	    q_status_message(SM_ORDER, 3, 4, 
++ 			_("No folder opened, failed to get sender"));
++ 	}
++ 
++ 	if(m_list)
++ 	  rfc822_parse_adrlist(&outgoing->to, mlist_to, ps_global->maildomain);
++ 
+          if(given_to)
+  	  rfc822_parse_adrlist(&outgoing->to, given_to, ps_global->maildomain);
+  
+diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.compose/pith/pine.hlp
+*** alpine-2.22/pith/pine.hlp	2020-01-19 01:32:19.035498584 -0700
+--- alpine-2.22.compose/pith/pine.hlp	2020-01-19 01:35:04.444391082 -0700
+***************
+*** 29974,29979 ****
+--- 29974,29993 ----
+  <P>
+  setRole, for selecting a role to apply to a composition.
+  
++ <P> 
++ To Sender, creates a new message, but sets the To: field of the outgoing 
++ message to the value of the From: field of the message that is currently 
++ being read or where the cursor is positioned in the index screen. This 
++ option allows you to compose a message and set the To: field faster than 
++ using your addressbook, and helps you create a new conversation with the 
++ person in the From: field, without having to use the Reply command. Using 
++ the Reply command is many times undesirable because the way a reply is 
++ handled by Alpine is different than a new message. For example, text of 
++ the original message and attachments of the original message might be 
++ included in a reply, and this is not desirable in a new composition. This 
++ command is intended to be used to create a fresh, new message, by filling 
++ out the To: field automatically.
++ 
+  <P>
+  &lt;End of help on this topic&gt;
+  </BODY>
+***************
+*** 37445,37469 ****
+  with question marks; return to the composer; or cancel message altogether.
+  ========== h_compose_intrptd ==========
+  N, compose a new msg. I, continue interrupted msg. R, set a role.
+! ^C to cancel.
+  ========== h_compose_postponed ==========
+  N, compose a new message. P, continue postponed msg. R, set a role.
+! ^C to cancel.
+  ========== h_compose_intrptd_postponed ==========
+  N, compose a new msg. I, continue interrupted msg. P, continue postponed msg.
+! R, set a role. ^C to cancel.
+  ========== h_compose_form ==========
+  N, compose a new message. F, use form letter. R, set a role.
+! ^C to cancel.
+  ========== h_compose_intrptd_form ==========
+  N, compose a new msg. I, continue interrupted msg. F, use form letter.
+! R, set a role. ^C to cancel.
+  ========== h_compose_postponed_form ==========
+  N, compose a new message. P, continue postponed msg. F, use form letter.
+! R, set a role. ^C to cancel.
+  ========== h_compose_intrptd_postponed_form ==========
+  N, compose a new msg. I, continue interrupted msg. P, continue postponed msg.
+! F, use form letter. R, set a role. ^C to cancel.
+  ========== h_config_context_del_except ==========
+  If you delete the last exceptional collection you can only add it back by
+  manually editing the exceptions config file.
+--- 37459,37483 ----
+  with question marks; return to the composer; or cancel message altogether.
+  ========== h_compose_intrptd ==========
+  N, compose a new msg. I, continue interrupted msg. R, set a role.
+! S, compose msg to sender. ^C to cancel.
+  ========== h_compose_postponed ==========
+  N, compose a new message. P, continue postponed msg. R, set a role.
+! S, compose msg to sender. ^C to cancel.
+  ========== h_compose_intrptd_postponed ==========
+  N, compose a new msg. I, continue interrupted msg. P, continue postponed msg.
+! S, compose msg to sender. R, set a role. ^C to cancel.
+  ========== h_compose_form ==========
+  N, compose a new message. F, use form letter. R, set a role.
+! S, compose msg to sender. ^C to cancel.
+  ========== h_compose_intrptd_form ==========
+  N, compose a new msg. I, continue interrupted msg. F, use form letter.
+! S, compose msg to sender. R, set a role. ^C to cancel.
+  ========== h_compose_postponed_form ==========
+  N, compose a new message. P, continue postponed msg. F, use form letter.
+! S, compose msg to sender. R, set a role. ^C to cancel.
+  ========== h_compose_intrptd_postponed_form ==========
+  N, compose a new msg. I, continue interrupted msg. P, continue postponed msg.
+! S, compose msg to sender. F, use form letter. R, set a role. ^C to cancel.
+  ========== h_config_context_del_except ==========
+  If you delete the last exceptional collection you can only add it back by
+  manually editing the exceptions config file.

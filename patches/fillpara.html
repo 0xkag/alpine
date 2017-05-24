@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head><TITLE>Justify paragraphs that contain more than one level of quoting.</TITLE>
+<meta name="description" content="A patch that allows you to justify text in e-mail and newsgroups even if it is quoted or under several levels of quoting.">
+<LINK REL="SHORTCUT ICON" href="../images/favicon.ico">
+<LINK REL="stylesheet" HREF="../css/info.css" TYPE="text/css">
+</head>
+<body>
+<hr>
+<table align=center cellpadding=0 cellspacing=0 border=0 width="100%" >
+<tr>
+<td width="24%" align=center>
+<a href="../faq/">FAQ about patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../patches/others.html">More patches</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../">Main Page</a>
+</td>
+<td>|</td>
+<td width="25%" align=center>
+<a href="../"><A HREF="../md5/fillpara.html">SHA256 digest for this patch</A></a>
+</td>
+</tr>
+</table>
+<hr>
+<TABLE cellpadding=5 cellspacing=5><TR><TD class=special>
+<B class=title>Justify paragraphs that contain more than one level of quoting.</B>
+
+<BR>
+<B>Patch is available for versions:</B>
+<A HREF="../patches/alpine-1.00/fillpara.patch.gz"><B>alpine 1.00</B></A>
+<A HREF="../patches/alpine-1.10/fillpara.patch.gz"><B>alpine 1.10</B></A>
+<A HREF="../patches/alpine-2.00/fillpara.patch.gz"><B>alpine 2.00</B></A>
+<A HREF="../patches/alpine-2.01/fillpara.patch.gz"><B>alpine 2.01</B></A>
+<A HREF="../patches/alpine-2.10/fillpara.patch.gz"><B>alpine 2.10</B></A>
+<A HREF="../patches/alpine-2.11/fillpara.patch.gz"><B>alpine 2.11</B></A>
+<A HREF="../patches/alpine-2.20/fillpara.patch.gz"><B>alpine 2.20</B></A>
+<A HREF="../patches/alpine-2.21/fillpara.patch.gz"><B>alpine 2.21</B></A>
+<A HREF="../patches/alpine-2.22/fillpara.patch.gz"><B>alpine 2.22</B></A>
+<A HREF="../patches/alpine-2.23/fillpara.patch.gz"><B>alpine 2.23</B></A>
+
+
+<BR>&#160;<BR>
+When you reply to a message, which has been quoted by several people and
+you justify a paragraph, Alpine may not notice any other quote strings and
+justify the paragraph as if there was no other quote strings in it. This
+patch will help Alpine recognize extra levels of quoting, so that justifying
+will still make the text readable. This is important because the purpose
+of justification is to make the text more readable, and an incorrect
+justification may make the text impossible to read.
+
+<BR>&#160;<BR> 
+Here's a real example:
+
+<BR>&#160;<BR> 
+<span style="color:#0000bb;">
+The following text is not justified:
+</span>
+<PRE>
+:) > this is a
+:) > test
+:) >
+:) >
+</PRE>
+<span style="color:#0000bb;">
+ If we justified this text in Alpine we'd get
+</span>
+
+<PRE>
+:) > this is a > test > >
+:) 
+:) 
+</PRE>
+
+<span style="color:#0000bb;">
+If you apply the patch and justify the above text, you'd get
+</span>
+
+<PRE>
+:) > this is a test
+:) >
+:) >
+</PRE>
+
+<span style="color:#0000bb;">
+Note how quote levels were preserved.
+</span>
+
+
+<BR>&#160;<BR> 
+It's very difficult, although not impossible, to fool the algorithm. I
+still have to find a real life example where I can fool the algorithm, if
+you find one please let me know. As usual, the Ctrl-U command can undo
+justification, so keep it in mind if you find that the patch does not do
+its work correctly.
+
+<BR>&#160;<BR> <A href="../readme/fillpara.html">Here</A> there are more
+interesting examples.
+
+<BR>&#160;<BR><B class=remark>New:</B> Additionally, if you use Alpine with 
+colors, now this patch was added some code that will allow you to read 
+different quoting levels in different colors. <A 
+HREF="../images/fillpara.gif">Here</A> you can see an image that shows 3 
+different labels painted correctly. This patch 
+also supports flowed text. This means that if flowed text contains a 
+non standard quote string it will be wrapped correctly. For example, you 
+can see <A HREF="../images/flowedexpanded.gif">image</A> which shows 
+flowed text in a terminal 80 columns wide. If you compress this text, <A 
+HREF="../images/flowedcompressed.gif">you can see</A> that text is wrapped 
+and painted correctly.
+<BR>&#160;<BR>
+You can also
+remove paragraphs. 
+The command <B class=remark>^W^P</B> can be used to erase the paragraph 
+over which the cursor is. If the cursor is not over a paragraph, Pico will 
+delete the paragraph following to the position of the cursor. Paragraphs 
+that are quoted are also recognized by this patch (and it is the main 
+reason why this functionality was added to this patch). You can recover a 
+paragraph that you just deleted by pressing <B class=remark>^U</B>. If you 
+delete two consecutive paragraphs without pressing any other key in 
+between, then pressing <B class=remark>^U</B> will recover both 
+paragraphs.
+<BR>&#160;<BR> 
+The variable quote-suppression-threshold also controls the number of 
+quoted consecutive lines that are displayed, not only those quoted using 
+the &gt; character.
+
+<BR>&#160;<BR> 
+Alpine has basic support for justification of
+more than one quoting level, but only when the quote string in every
+level of quoting is the same (this means that, other quote strings are
+not recognized). That implementation of justification has some bugs which
+do not allow it to recognize certain combinations of the same quote
+string (in raw form). For example, if a text is quoted with  the quote string
+"&gt;&#160;&#160;" (two spaces at the end), Alpine will fail to recognize 
+quoted text, even if it is justified with the "&gt;" or "&gt; " quote
+strings.
+
+<BR>&#160;<BR> 
+The editor nano (version 1.2.0) also has support for multiple levels 
+of quoting, but it does not support all quotes that this algorithm supports
+out of the box. For example, nano supports several levels of arbitrary
+quote strings starting the editor with the command "nano". If you do so, the above
+test text will be justified as:
+<PRE>
+:) > this is a ) > test ) > ) >
+</PRE>
+You can always justify correctly if you tell nano what the quote string is,
+and that's a big difference with this algorithm, in which you don't have to
+tell the algorithm what is the quote string, but it will guess it pretty well.
+It is my understanding that other editors (e.g. vim) behave in a similar way
+to nano.
+
+</TD></TR></TABLE>
+<P>Last Updated 16:08:12 MDT Thu Jun 18 2020.
+
+
+
+</body>
+</html>
