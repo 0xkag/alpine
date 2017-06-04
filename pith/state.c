@@ -33,7 +33,7 @@ static char rcsid[] = "$Id: state.c 1074 2008-06-04 00:08:43Z hubert@u.washingto
 #include "../pith/remote.h"
 #include "../pith/list.h"
 #include "../pith/smime.h"
-
+#include "../pith/rules.h"
 
 /*
  * Globals referenced throughout pine...
@@ -239,6 +239,9 @@ free_pine_struct(struct pine **pps)
     if((*pps)->msgmap)
       msgno_give(&(*pps)->msgmap);
     
+    if((*pps)->rule_list)
+	free_parsed_rule_list(&(*pps)->rule_list);
+
     free_vars(*pps);
 
     fs_give((void **) pps);

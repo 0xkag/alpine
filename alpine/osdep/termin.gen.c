@@ -33,6 +33,8 @@ static char rcsid[] = "$Id: termin.gen.c 1025 2008-04-08 22:59:38Z hubert@u.wash
 #include "../../pith/newmail.h"
 #include "../../pith/conf.h"
 #include "../../pith/busy.h"
+#include "../../pith/list.h"
+#include "../../pith/rules.h"
 
 #include "../../pico/estruct.h"
 #include "../../pico/pico.h"
@@ -72,7 +74,8 @@ int	pcpine_oe_cursor(int, long);
  *     Generic tty input routines
  */
 
-
+void    process_init_cmds(struct pine *, char **);
+void    queue_init_errors(struct pine *);
 /*----------------------------------------------------------------------
         Read a character from keyboard with timeout
  Input:  none
@@ -114,6 +117,41 @@ read_command(char **utf8str)
       *utf8str = NULL;
 
     ucs = read_char(tm);
+    if(!ps_global->initial_cmds){
+      RULE_RESULT *rule;
+      char **list = NULL, *error = NULL;
+      int    commas = 0, k;   /* From args.c */
+
+      ps_global->pressed_key = cpystr(pretty_command(ucs));
+      rule = (RULE_RESULT *)get_result_rule(V_KEY_RULES, FOR_KEY, NULL);
+      if(ps_global->pressed_key)
+        fs_give((void **)&ps_global->pressed_key);
+      if (rule){
+         for(k = 0; rule->result[k]; k++)
+            if(rule->result[k] == ',') commas++;
+         list = parse_list(rule->result, commas+1, 0, &error);
+         if(error)
+            sprintf(tmp_20k_buf, "Error in parsing command list: %s, %s",
+                      rule->result, error);
+         if (rule->result)
+           fs_give((void **)&rule->result);
+         fs_give((void **)&rule);
+         if(error){
+            q_status_message(SM_ORDER | SM_DING, 0, 2, tmp_20k_buf);
+            return (NO_OP_COMMAND);
+         }
+	 process_init_cmds(ps_global, list);
+	 if(ps_global->init_errs){
+	    queue_init_errors(ps_global);
+            return (NO_OP_COMMAND);
+	 }
+	 ucs = read_char(tm);
+	 ps_global->in_init_seq = 1;  /* no output please */
+	 for(k = 0; k < commas; k++)
+            if(list[k]) fs_give((void **)&list[k]);
+         if (list) fs_give((void **)list);
+      }
+    }
     if(ucs != NO_OP_COMMAND && ucs != NO_OP_IDLE && ucs != KEY_RESIZE)
       zero_new_mail_count();
 
@@ -1158,6 +1196,7 @@ process_config_input(UCS *ch)
 	if(!*ps_global->initial_cmds && ps_global->free_initial_cmds){
 	    fs_give((void **) &ps_global->free_initial_cmds);
 	    ps_global->initial_cmds = NULL;
+	    firsttime = (char) 1;
 	}
 
 	return(ret);

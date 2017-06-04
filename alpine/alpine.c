@@ -485,6 +485,7 @@ main(int argc, char **argv)
     /* Set up optional for user-defined display filtering */
     pine_state->tools.display_filter	     = dfilter;
     pine_state->tools.display_filter_trigger = dfilter_trigger;
+    pine_state->tools.exec_rule		     = exec_function_rule;
 
 #ifdef _WINDOWS
     if(ps_global->install_flag){
@@ -3162,6 +3163,9 @@ goodnight_gracey(struct pine *pine_state, int exit_val)
     extern KBESC_T *kbesc;
 
     dprint((2, "goodnight_gracey:\n"));    
+    strncpy(pine_state->cur_folder, pine_state->inbox_name, 
+					sizeof(pine_state->cur_folder));
+    pine_state->cur_folder[sizeof(pine_state->cur_folder) - 1] = '\0';
 
     /* We want to do this here before we close up the streams */
     trim_remote_adrbks();

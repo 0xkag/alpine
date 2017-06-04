@@ -45,6 +45,6 @@ char	*sort_name(SortOrder);
 void	 sort_folder(MAILSTREAM *, MSGNO_S *, SortOrder, int, unsigned);
 int	 decode_sort(char *, SortOrder *, int *);
 void	 reset_sort_order(unsigned);
-
+SortOrder translate(char *, int);
 
 #endif /* PITH_SORT_INCLUDED */

@@ -51,6 +51,7 @@ static char rcsid[] = "$Id: confscroll.c 1169 2008-08-27 06:42:06Z hubert@u.wash
 #include "../pith/tempfile.h"
 #include "../pith/pattern.h"
 #include "../pith/charconv/utf8.h"
+#include "../pith/rules.h"
 
 
 #define	CONFIG_SCREEN_HELP_TITLE	_("HELP FOR SETUP CONFIGURATION")
@@ -2436,6 +2437,9 @@ delete:
 	 * Now go and set the current_val based on user_val changes
 	 * above.  Turn off command line settings...
 	 */
+	set_current_val((*cl)->var,
+	    (strcmp((*cl)->var->name,"key-definition-rules") ? TRUE : FALSE),
+	    FALSE);
 	set_current_val((*cl)->var, TRUE, FALSE);
 	fix_side_effects(ps, (*cl)->var, 0);
 
@@ -5199,6 +5203,30 @@ fix_side_effects(struct pine *ps, struct variable *var, int revert)
 #endif
 	    var == &ps->vars[V_ABOOK_FORMATS]){
 	addrbook_reset();
+    }
+    else if(var == &ps->vars[V_INDEX_RULES]){
+	   if(ps_global->rule_list)
+	      free_parsed_rule_list(&ps_global->rule_list);
+	   create_rule_list(ps->vars);
+	   reset_index_format();
+	   clear_index_cache(ps->mail_stream, 0);
+    }
+    else if(var == &ps->vars[V_COMPOSE_RULES] ||
+	    var == &ps->vars[V_FORWARD_RULES] ||
+	    var == &ps->vars[V_KEY_RULES] ||
+	    var == &ps->vars[V_REPLACE_RULES] ||
+	    var == &ps->vars[V_REPLY_INDENT_RULES] ||
+	    var == &ps->vars[V_REPLY_LEADIN_RULES] ||
+	    var == &ps->vars[V_RESUB_RULES] ||
+	    var == &ps->vars[V_SAVE_RULES] ||
+	    var == &ps->vars[V_SMTP_RULES] ||
+	    var == &ps->vars[V_SORT_RULES] ||
+	    var == &ps->vars[V_STARTUP_RULES] ||
+	    var == &ps->vars[V_THREAD_DISP_STYLE_RULES] ||
+	    var == &ps->vars[V_THREAD_INDEX_STYLE_RULES]){
+	if(ps_global->rule_list)
+	   free_parsed_rule_list(&ps_global->rule_list);
+	create_rule_list(ps->vars);
     }
     else if(var == &ps->vars[V_INDEX_FORMAT]){
 	reset_index_format();
