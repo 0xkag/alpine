@@ -68,6 +68,7 @@ static char args_err_non_abs_pwdcertdir[] =	N_("argument to \"-pwdcertdir\" shou
 #endif /* SMIME inside PASSFILE */
 #endif
 static char args_err_missing_sort[] =		N_("missing argument for option \"-sort\"");
+static char args_err_missing_thread_sort[] =	N_("missing argument for option \"-threadsort\"");
 static char args_err_missing_flag_arg[] =	N_("missing argument for flag \"%c\"");
 static char args_err_missing_flag_num[] =	N_("Non numeric argument for flag \"%c\"");
 static char args_err_missing_debug_num[] =	N_("Non numeric argument for \"%s\"");
@@ -111,6 +112,7 @@ N_(" -k \t\tKeys - Force use of function keys"),
 N_(" -z \t\tSuspend - allow use of ^Z suspension"),
 N_(" -r \t\tRestricted - can only send mail to oneself"),
 N_(" -sort <sort>\tSort - Specify sort order of folder:"),
+N_(" -threadsort <sort>\tSort - Specify sort order of thread index screen:"),
 N_("\t\t\tarrival, subject, threaded, orderedsubject, date,"),
 N_("\t\t\tfrom, size, score, to, cc, /reverse"),
 N_(" -i\t\tIndex - Go directly to index, bypassing main menu"),
@@ -208,6 +210,7 @@ pine_args(struct pine *pine_state, int argc, char **argv, ARGDATA_S *args)
     char *cmd_list            = NULL;
     char *debug_str           = NULL;
     char *sort                = NULL;
+    char *threadsort          = NULL;
     char *pinerc_file         = NULL;
     char *lc		      = NULL;
     int   do_help             = 0;
@@ -428,6 +431,17 @@ Loop: while(--ac > 0)
 		  }
 
 		  goto Loop;
+	      }
+	      else if(strcmp(*av, "threadsort") == 0){
+	            if(--ac){
+	                threadsort = *++av;
+	                COM_THREAD_SORT_KEY = cpystr(threadsort);
+	            }
+	            else{
+	                display_args_err(_(args_err_missing_thread_sort), NULL, 1);
+	              ++usage;
+	          }
+	          goto Loop;
 	      }
 	      else if(strcmp(*av, "url") == 0){
 		  if(args->action == aaFolder && !args->data.folder){

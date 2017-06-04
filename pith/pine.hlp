@@ -4259,6 +4259,7 @@ There are also additional details on
 <li><a href="h_config_signature_file">OPTION: <!--#echo var="VAR_signature-file"--></a>
 <li><a href="h_config_smtp_server">OPTION: <!--#echo var="VAR_smtp-server"--></a>
 <li><a href="h_config_sort_key">OPTION: <!--#echo var="VAR_sort-key"--></a>
+<li><a href="h_config_thread_sort_key">OPTION: <!--#echo var="VAR_thread-sort-key"--></a>
 <li><a href="h_config_speller">OPTION: <!--#echo var="VAR_speller"--></a>
 <li><a href="h_config_aspell_dictionary">OPTION: <!--#echo var="VAR_aspell-dictionary-list"--></a>
 <li><a href="h_config_sshcmd">OPTION: <!--#echo var="VAR_ssh-command"--></a>
@@ -6194,6 +6195,163 @@ recipients.
 
 The <EM>Cc</EM> sort option arranges messages in the MESSAGE&nbsp;INDEX by
 the names of the carbon copy addresses of the message.
+
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+======= h_thread_index_sort_arrival =======
+<HTML>
+<HEAD>
+<TITLE>SORT OPTION: Arrival</TITLE>
+</HEAD>
+<BODY>
+<H1>SORT OPTION: Arrival</H1>
+
+The <EM>Arrival</EM> sort option arranges threads according to the last 
+time that a message was added to it. In this order the last thread 
+contains the most recent message in the folder.
+
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+======= h_thread_index_sort_date =======
+<HTML>
+<HEAD>
+<TITLE>SORT OPTION: Date</TITLE>
+</HEAD>
+<BODY>
+<H1>SORT OPTION: Date</H1>
+
+The <EM>Date</EM> sort option in the THREAD&nbsp;INDEX screen sorts
+threads by the date in which messages were sent. The thread containing the
+last message in this order is displayed last.
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+======= h_thread_index_sort_subj =======
+<HTML>
+<HEAD>
+<TITLE>SORT OPTION: Subject</TITLE>
+</HEAD>
+<BODY>
+<H1>SORT OPTION: Subject</H1>
+
+The <EM>Subject</EM> sort option has not been defined yet.
+
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+======= h_thread_index_sort_ordsubj =======
+<HTML>
+<HEAD>
+<TITLE>SORT OPTION: OrderedSubject</TITLE>
+</HEAD>
+<BODY>
+<H1>SORT OPTION: OrderedSubject</H1>
+
+The <EM>OrderedSubject</EM> sort option in the THREAD&nbsp;INDEX screen is
+the same as sorting by <A HREF="h_thread_index_sort_subj">Subject</A>.
+
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+======= h_thread_index_sort_thread =======
+<HTML>
+<HEAD>
+<TITLE>SORT OPTION: Thread</TITLE>
+</HEAD>
+<BODY>
+<H1>SORT OPTION: Thread</H1>
+
+The <EM>Thread</EM> sort option in the THREAD&nbsp;INDEX screen sorts all 
+messages by the proposed algorithm by Crispin and Murchison. In this 
+method of sorting once threads have been isolated they are sorted by the 
+date of their parents, or if that is missing, the first message in that 
+thread.
+
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+======= h_thread_index_sort_from =======
+<HTML>
+<HEAD>
+<TITLE>SORT OPTION: From</TITLE>
+</HEAD>
+<BODY>
+<H1>SORT OPTION: From</H1>
+
+The <EM>From</EM> sort option has not been defined yet.
+
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+======= h_thread_index_sort_size =======
+<HTML>
+<HEAD>
+<TITLE>SORT OPTION: Size</TITLE>
+</HEAD>
+<BODY>
+<H1>SORT OPTION: Size</H1>
+
+The <EM>Size</EM> sort option sorts threads by their size (the number
+of messages in the thread). This could be used to find conversations
+where no reply has been sent by any of the participants in the thread
+(e.g. those whose length is equal to one). Longer threads appear
+below shorter ones.
+
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+======= h_thread_index_sort_score =======
+<HTML>
+<HEAD>
+<TITLE>SORT OPTION: Score</TITLE>
+</HEAD>
+<BODY>
+<H1>SORT OPTION: Score</H1>
+
+The <EM>Score</EM> sort option means that threads are sorted according to 
+the maximum score of a message in that thread. A thread all of whose 
+messages contain a smaller score than a message in some other thread is 
+placed in an earlier place in the list of messages for that folder; that 
+is, threads with the highest scores appear at the bottom of the index 
+list.
+
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+======= h_thread_index_sort_to =======
+<HTML>
+<HEAD>
+<TITLE>SORT OPTION: To</TITLE>
+</HEAD>
+<BODY>
+<H1>SORT OPTION: To</H1>
+
+The <EM>To</EM> sort option has not been defined yet.
+
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+======= h_thread_index_sort_cc =======
+<HTML>
+<HEAD>
+<TITLE>SORT OPTION: Cc</TITLE>
+</HEAD>
+<BODY>
+<H1>SORT OPTION: Cc</H1>
+
+The <EM>Cc</EM> sort option has not been defined yet.
 
 <P>
 &lt;End of help on this topic&gt;
@@ -19713,6 +19871,14 @@ The progression of sizes used looks like:
 <P>
 </DD>
 
+<DT>SIZETHREAD</DT>
+<DD>
+This token represents the total size of the thread for a collapsed thread
+or the size of the branch for an expanded thread. The field is omitted for
+messages that are not top of threads nor branches and it defaults to
+the SIZE token when your folders is not sorted by thread.
+</DD>
+
 <DT>SIZENARROW</DT>
 <DD>
 This token represents the total size, in bytes, of the message.
@@ -23393,6 +23559,45 @@ However, if you have manually sorted the folder with the
 Sort
 (<!--chtml if pinemode="function_key"-->F7<!--chtml else-->$<!--chtml endif-->)
 command, then it will not be re-sorted until the next time it is opened.
+
+<P>
+<UL>   
+<LI><A HREF="h_finding_help">Finding more information and requesting help</A>
+</UL><P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+====== h_config_thread_sort_key =====
+<HTML>
+<HEAD>
+<TITLE>OPTION: <!--#echo var="VAR_thread-sort-key--></TITLE>
+</HEAD>
+<BODY>
+<H1>OPTION: <!--#echo var="VAR_thread-sort-key--></TITLE></H1>
+
+This option determines the order in which threads will be displayed. You 
+can choose from the options listed below. Each folder is sorted in one of 
+the sort orders displayed below first, then the thread containing the last 
+message of that sorted list is put at the end of the index. All messages 
+of that thread are &quot;removed&quot; from the sorted list and the 
+process is repeated with the remaining messages in that list.
+
+<P>
+<UL>
+ <LI> <A HREF="h_thread_index_sort_arrival">Arrival</A>
+ <LI> <A HREF="h_thread_index_sort_date">Date</A>
+<!-- <LI> <A HREF="h_thread_index_sort_subj">Subject</A>
+ <LI> <A HREF="h_thread_index_sort_ordsubj">OrderedSubj</A>-->
+ <LI> <A HREF="h_thread_index_sort_thread">Thread</A>
+<!-- <LI> <A HREF="h_thread_index_sort_from">From</A> -->
+ <LI> <A HREF="h_thread_index_sort_size">Size</A> 
+ <LI> <A HREF="h_thread_index_sort_score">Score</A>
+<!-- <LI> <A HREF="h_thread_index_sort_to">To</A>
+ <LI> <A HREF="h_thread_index_sort_cc">Cc</A>-->
+</UL>
+
+<P> Each type of sort may also be reversed. Normal default is by
+&quot;Thread&quot;.
 
 <P>
 <UL>   
@@ -32350,6 +32555,23 @@ Reply Use, Forward Use, and Compose Use.
 <UL>   
 <LI><A HREF="h_finding_help">Finding more information and requesting help</A>
 </UL><P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+====== h_config_enhanced_thread =====
+<HTML>
+<HEAD>
+<TITLE>FEATURE: <!--#echo var="FEAT_enhanced-fancy-thread-support"--></TITLE>
+</HEAD>
+<BODY>
+<H1>FEATURE: <!--#echo var="FEAT_enhanced-fancy-thread-support"--></H1>
+
+If this option is set certain commands in Pine will operate in loose
+threads too. For example, the command ^R marks a thread deleted, but if
+this feature is set, it will remove all threads that share the same missing
+parent with this thread.
+
+<P>
 &lt;End of help on this topic&gt;
 </BODY>
 </HTML>
