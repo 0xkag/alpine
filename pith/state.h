@@ -254,6 +254,8 @@ struct pine {
     SPEC_COLOR_S *hdr_colors;		/* list of configed colors for view */
     SPEC_COLOR_S *index_token_colors;	/* list of configed colors for index */
 
+    char	*prefix;		/* prefix for fillpara */
+    char	**list_qstr;		/* list of known quote strings */
     short	 init_context;
 
     struct { 

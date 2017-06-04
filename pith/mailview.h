@@ -142,6 +142,7 @@ COLOR_PAIR *hdr_color(char *, char *, SPEC_COLOR_S *);
 char	   *display_parameters(PARAMETER *);
 char	   *pine_fetch_header(MAILSTREAM *, long, char *, char **, long);
 int         color_signature(long, char *, LT_INS_S **, void *);
+int	    select_quote(long, char *, LT_INS_S **, void *);
 int	    scroll_handle_start_color(char *, size_t, int *);
 int	    scroll_handle_end_color(char *, size_t, int *, int);
 int         width_at_this_position(unsigned char *, unsigned long);

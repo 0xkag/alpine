@@ -251,10 +251,16 @@ extern	int forwword(int, int);
 extern	int fillpara(int, int);
 extern	int fillbuf(int, int);
 extern	int inword(void);
-extern	int quote_match(UCS *, LINE *, UCS *, size_t);
+extern	int quote_match(char **, LINE *, char *, size_t, int);
+extern	void flatten_qstring(QSTRING_S *, char *, int);
+extern	void free_qs(QSTRING_S **);
+extern	QSTRING_S *do_quote_match (char **, char *, char *, char *, char *, int, int);
+extern	QSTRING_S *do_raw_quote_match(char **, char *, char *, char *, QSTRING_S **, QSTRING_S **);
+extern  int indent_match(char **, LINE *, char *, int, int);
 extern	int ucs4_isalnum(UCS);
 extern	int ucs4_isalpha(UCS);
 extern	int ucs4_isspace(UCS);
 extern	int ucs4_ispunct(UCS);
 
 #endif	/* EFUNC_H */
+

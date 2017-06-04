@@ -204,7 +204,15 @@ char	   *pcpine_help_scroll(char *);
 int	    pcpine_view_cursor(int, long);
 #endif
 
+static char *prefix;
+#define NO_FLOWED  0x0000
+#define IS_FLOWED  0x0001
+#define DELETEQUO  0x0010
+#define COLORAQUO  0x0100
+#define RAWSTRING  0x1000
 
+int         is_word (char *, int, int);
+int         is_mailbox(char *, int, int);
 
 /*----------------------------------------------------------------------
      Format a buffer with the text of the current message for browser
@@ -296,6 +304,17 @@ mail_view_screen(struct pine *ps)
 	}
 	else
 	  ps->unseen_in_view = !mc->seen;
+
+	prefix = reply_quote_str(env);
+	/* Make sure the prefix is not only made of spaces, so that we do not
+	 * paint the screen incorrectly
+	 */
+	if (prefix && *prefix){
+	   int i;
+	   for (i = 0; isspace((unsigned char) prefix[i]); i++);
+	   if (i == strlen(prefix))
+	     fs_give((void **)&prefix);
+	}
 
 	init_handles(&handles);
 
@@ -483,6 +502,8 @@ mail_view_screen(struct pine *ps)
 
     strcpy(ps->screen_name, "unknown");
 
+    if (prefix && *prefix)
+       fs_give((void **)&prefix);
     if(we_cancel)
       cancel_busy_cue(-1);
 
