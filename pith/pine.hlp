@@ -140,7 +140,7 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 202 2017-01-01 12:49:25
+Alpine Commit 211 2017-05-04 22:18:31
 ============= h_news =================
 <HTML>
 <HEAD>
@@ -175,6 +175,17 @@ Apache web server.
 
 Version <!--#echo var="ALPINE_VERSION"--> (<!--#echo var="ALPINE_REVISION"-->)
 addresses bugs found in previous releases and has a few additions as well.
+
+<P>
+Bugs that have been addressed include:
+<UL>
+   <LI> Crash when attempting to bounce a message due to lack of space in
+        allocated space for key menu array. Reported by David Sewell.
+</UL>
+
+<P>
+Version 2.21 addresses bugs found in previous releases and has several 
+additions as well.
 
 <P>
 Additions include:
@@ -334,9 +345,9 @@ Additions include:
        fits in the title.
 
   <LI> The feature <a href="h_config_scramble_message_id">FEATURE: <!--#echo var="FEAT_scramble-message-id"--></a>
-       will also scramble the name, version and operative system in the message-id header. 
-       Based on a contribution by Dennis Davis, which is itself based on a contribution by 
-       Mark Hills.
+       will also scramble the name, version and operating system in the 
+       message-id header. Based on a contribution by Dennis Davis, which 
+       is itself based on a contribution by Mark Hills.
 
   <LI> Change in logic in imap_set_password function to make Alpine ask if
        a user wants to save a password before reading the password file.
@@ -1062,7 +1073,7 @@ Changes included:
 Details on changes in previous (prerelease) versions of Alpine
 may be found at the following URL:
 <P>
-<CENTER><SAMP><A HREF="http://patches.freeiz.com/alpine/release/">http://patches.freeiz.com/alpine/release/</A></SAMP></CENTER>
+<CENTER><SAMP><A HREF="http://alpine.freeiz.com/alpine/release/">http://alpine.freeiz.com/alpine/release/</A></SAMP></CENTER>
 <P>
 
 <HR WIDTH="75%"><P>
@@ -1080,7 +1091,7 @@ accessible via the &quot;?&quot; key (or Ctrl-G in text-input contexts).
 The most current source of information about Alpine,
 including new version availability, is the web page at
 <P>
-<CENTER><SAMP><A HREF="http://patches.freeiz.com/alpine/">http://patches.freeiz.com/alpine/</A></SAMP></CENTER>
+<CENTER><SAMP><A HREF="http://alpine.freeiz.com/alpine/">http://alpine.freeiz.com/alpine/</A></SAMP></CENTER>
 </DD>
 </DL>
 
@@ -1927,7 +1938,7 @@ on Alpine configuration.<P>
   <LI> The main site for Alpine contains information on configuring and solving problems
        with Alpine, it can be found at
 
-<CENTER><A HREF="http://patches.freeiz.com/alpine/">http://patches.freeiz.com/alpine/</A></CENTER>  
+<CENTER><A HREF="http://alpine.freeiz.com/alpine/">http://alpine.freeiz.com/alpine/</A></CENTER>  
 
   <LI> The Alpine Information Center (maintained by the University of
 	   Washington) World Wide Web site contains, among other things
@@ -2299,7 +2310,7 @@ project, credits, and legal notices.
 Alpine releases are available via the world wide web at
 <P>
 <CENTER><SAMP><A 
-HREF="http://patches.freeiz.com/alpine/release/">http://patches.freeiz.com/alpine/release/</A></SAMP
+HREF="http://alpine.freeiz.com/alpine/release/">http://alpine.freeiz.com/alpine/release/</A></SAMP
 ></CENTER>
 <P>
 
