@@ -1260,7 +1260,8 @@ status_symbol_for_thread(MAILSTREAM *stream, PINETHRD_S *thrd, IndexColType type
 /*
  * Symbol is * if some message in thread is important,
  * + if some message is to us,
- * - if mark-for-cc and some message is cc to us, else blank.
+ * - if mark-for-cc and some message is cc to us, 
+ * . if mark-for-group and some message is to us in a group, else blank.
  */
 char
 to_us_symbol_for_thread(MAILSTREAM *stream, PINETHRD_S *thrd, int consider_flagged)
@@ -1280,7 +1281,8 @@ to_us_symbol_for_thread(MAILSTREAM *stream, PINETHRD_S *thrd, int consider_flagg
 	  to_us = to_us_symbol_for_thread(stream, nthrd, consider_flagged);
     }
 
-    if(((consider_flagged && to_us != '*') || (!consider_flagged && to_us != '+'))
+    if(((consider_flagged && to_us != '*')
+	|| (!consider_flagged && to_us != '+' && to_us != '.'))
        && (branch = get_branch(stream, thrd))){
 	bthrd = fetch_thread(stream, thrd->branch);
 	if(bthrd)
@@ -1288,26 +1290,28 @@ to_us_symbol_for_thread(MAILSTREAM *stream, PINETHRD_S *thrd, int consider_flagg
 
 	/* use branch to_us symbol if it has higher priority than what we have so far */
 	if(to_us == ' '){
-	    if(branch_to_us == '-' || branch_to_us == '+' || branch_to_us == '*')
+	    if(branch_to_us == '-' || branch_to_us == '+' 
+		|| branch_to_us == '.' || branch_to_us == '*')
 	      to_us = branch_to_us;
 	}
 	else if(to_us == '-'){
-	    if(branch_to_us == '+' || branch_to_us == '*')
+	    if(branch_to_us == '+' || branch_to_us == '.' || branch_to_us == '*')
 	      to_us = branch_to_us;
 	}
-	else if(to_us == '+'){
+	else if(to_us == '+' || to_us == '.'){
 	    if(branch_to_us == '*')
 	      to_us = branch_to_us;
 	}
     }
 
-    if((consider_flagged && to_us != '*') || (!consider_flagged && to_us != '+')){
+    if((consider_flagged && to_us != '*') 
+		|| (!consider_flagged && to_us != '+' && to_us != '.')){
 	if(consider_flagged && thrd && thrd->rawno > 0L
 	   && stream && thrd->rawno <= stream->nmsgs
 	   && (mc = mail_elt(stream, thrd->rawno))
 	   && FLAG_MATCH(F_FLAG, mc, stream))
 	  to_us = '*';
-	else if(to_us != '+' && !IS_NEWS(stream)){
+	else if(to_us != '+' && to_us != '.' && !IS_NEWS(stream)){
 	    INDEXDATA_S   idata;
 	    MESSAGECACHE *mc;
 	    ADDRESS      *addr;
@@ -1328,10 +1332,16 @@ to_us_symbol_for_thread(MAILSTREAM *stream, PINETHRD_S *thrd, int consider_flagg
 	    for(addr = fetch_to(&idata); addr; addr = addr->next)
 	      if(address_is_us(addr, ps_global)){
 		  to_us = '+';
+
+		  if(to_us == '+'
+			&& F_ON(F_MARK_FOR_GROUP,ps_global) &&
+			(addr->next || addr != fetch_to(&idata)))
+		     to_us = '.';
+
 		  break;
 	      }
 	    
-	    if(to_us != '+' && !idata.bogus && resent_to_us(&idata))
+	    if(to_us == ' ' && !idata.bogus && resent_to_us(&idata))
 	      to_us = '+';
 
 	    if(to_us == ' ' && F_ON(F_MARK_FOR_CC,ps_global))

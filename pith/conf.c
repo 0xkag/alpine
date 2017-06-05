@@ -3059,6 +3059,8 @@ feature_list(int index)
 	 F_ENABLE_SPACE_AS_TAB, h_config_cruise_mode, PREF_INDX, 0},
 	{"enable-cruise-mode-delete", "Enable Cruise Mode With Deleting",
 	 F_ENABLE_TAB_DELETES, h_config_cruise_mode_delete, PREF_INDX, 0},
+	{"mark-for-me-in-group", "Mark for Group Message to Me",
+	 F_MARK_FOR_GROUP, h_config_mark_for_group, PREF_INDX, 1},
 	{"mark-for-cc", "Mark for CC",
 	 F_MARK_FOR_CC, h_config_mark_for_cc, PREF_INDX, 1},
 	{"next-thread-without-confirm", "Read Next Thread Without Confirming",
@@ -7213,6 +7215,7 @@ toggle_feature(struct pine *ps, struct variable *var, FEATURE_S *f,
 	break;
 
       case F_MARK_FOR_CC :
+      case F_MARK_FOR_GROUP :
 	clear_index_cache(ps->mail_stream, 0);
 	if(THREADING() && sp_viewing_a_thread(ps->mail_stream))
 	  unview_thread(ps, ps->mail_stream, ps->msgmap);
