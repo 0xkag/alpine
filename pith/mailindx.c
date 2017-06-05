@@ -459,7 +459,7 @@ free_hdrtok(HEADER_TOK_S **hdrtok)
 static INDEX_PARSE_T itokens[] = {
     {"STATUS",		iStatus,	FOR_INDEX},
     {"MSGNO",		iMessNo,	FOR_INDEX},
-    {e"DATE",		iDate,		FOR_INDEX|FOR_REPLY_INTRO|FOR_TEMPLATE|FOR_RULE|FOR_SAVE},
+    {"DATE",		iDate,		FOR_INDEX|FOR_REPLY_INTRO|FOR_TEMPLATE|FOR_RULE|FOR_SAVE},
     {"FROMORTO",	iFromTo,	FOR_INDEX},
     {"FROMORTONOTNEWS",	iFromToNotNews,	FOR_INDEX},
     {"SIZE",		iSize,		FOR_INDEX},
