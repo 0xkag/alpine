@@ -52,6 +52,7 @@ static char rcsid[] = "$Id: send.c 1142 2008-08-13 17:22:21Z hubert@u.washington
 #include "../pith/news.h"
 #include "../pith/detoken.h"
 #include "../pith/util.h"
+#include "../pith/url.h"
 #include "../pith/init.h"
 #include "../pith/mailcmd.h"
 #include "../pith/ablookup.h"
@@ -281,12 +282,15 @@ compose_mail(char *given_to, char *fcc_arg, ACTION_S *role_arg,
     char	  *fcc_to_free,
 		  *fcc      = NULL,
 		  *lcc      = NULL,
-		  *sig      = NULL;
+		  *sig      = NULL,
+		  *mlist_to = NULL;
     int		   fcc_is_sticky = 0,
 		   to_is_sticky = 0,
                    intrptd = 0,
                    postponed = 0,
-		   form = 0;
+		   form = 0,
+		   to_sender = 0,
+		   m_list = 0;
 
     dprint((1,
                  "\n\n    ---- COMPOSE SCREEN (not in pico yet) ----\n"));
@@ -338,6 +342,8 @@ compose_mail(char *given_to, char *fcc_arg, ACTION_S *role_arg,
  	char    *postpnd  = "Postponed";
  	char    *formltr  = "FormLetter";
  	char    *roles    = "setRole";
+	char	*sender	  = "To Sender";
+	char	*mlist	  = "Mail List";
 	HelpType help     = h_composer_browse;
 	ESCKEY_S compose_style[6];
 	unsigned which_help;
@@ -374,6 +380,38 @@ compose_mail(char *given_to, char *fcc_arg, ACTION_S *role_arg,
 	compose_style[ekey_num].rval    = 'r';
 	compose_style[ekey_num].name    = "R";
 	compose_style[ekey_num++].label = roles;
+
+	if(ps_global->mail_stream){
+	  MSGNO_S *msgmap = ps_global->msgmap;
+	  if(msgmap){
+	    char *h, *b, **req;
+	    int len;
+	    unsigned long msgno = mn_m2raw(msgmap, mn_get_cur(msgmap));
+
+	    if(msgno > 0L){
+	      compose_style[ekey_num].ch      = 's';
+	      compose_style[ekey_num].rval    = 's';
+	      compose_style[ekey_num].name    = "S";
+	      compose_style[ekey_num++].label = sender;
+
+	      req = fs_get(2*sizeof(char *));
+	      req[0] = cpystr("List-Post");
+	      req[1] = NULL;
+	      h = pine_fetchheader_lines(ps_global->mail_stream, msgno, NULL, req);
+	      if(h != NULL){
+	        if((b = mail_addr_scan(h, &len)) != NULL){
+		  compose_style[ekey_num].ch      = 'm';
+		  compose_style[ekey_num].rval    = 'm';
+		  compose_style[ekey_num].name    = "M";
+		  compose_style[ekey_num++].label = mlist;
+		  mlist_to = cpystr(b);
+		  mlist_to[len] = '\0';
+	        }
+	        fs_give((void **)&h);
+	      }
+	    }
+	  }
+	}
 
  	compose_style[ekey_num].ch    = -1;
 
@@ -429,7 +467,7 @@ compose_mail(char *given_to, char *fcc_arg, ACTION_S *role_arg,
 
  	chosen_task = radio_buttons(prompt, -FOOTER_ROWS(ps_global),
  				    compose_style, 'n', 'x', help, RB_NORM);
-	intrptd = postponed = form = 0;
+	intrptd = postponed = form = to_sender = m_list = 0;
 
 	switch(chosen_task){
 	  case 'i':
@@ -462,7 +500,15 @@ compose_mail(char *given_to, char *fcc_arg, ACTION_S *role_arg,
 	      }
 	    }
 	    break;
-	  
+
+	  case 's':
+	    to_sender = 1;
+	    break;
+
+	  case 'm':
+	    m_list = 1;
+	    break;
+
 	  case 'f':
 	    form = 1;
 	    break;
@@ -620,6 +666,30 @@ compose_mail(char *given_to, char *fcc_arg, ACTION_S *role_arg,
         /*=================  Compose new message ===============*/
         body         = mail_newbody();
         outgoing     = mail_newenvelope();
+
+	if(to_sender){
+	  if(ps_global->mail_stream){
+	    MSGNO_S *msgmap = ps_global->msgmap;
+	    if(msgmap){
+	      ENVELOPE *env;
+	      unsigned long msgno = mn_m2raw(msgmap, mn_get_cur(msgmap));
+
+	      env = pine_mail_fetchstructure(ps_global->mail_stream, 
+						msgno, NULL);
+	      if(env == NULL)
+                q_status_message1(SM_ORDER,3,4,
+			_("Error fetching message %s"), long2string(msgno));  
+              else
+		outgoing->to = copyaddr(env->from);
+	    }
+	  }
+	  else
+	    q_status_message(SM_ORDER, 3, 4, 
+			_("No folder opened, failed to get sender"));
+	}
+
+	if(m_list)
+	  rfc822_parse_adrlist(&outgoing->to, mlist_to, ps_global->maildomain);
 
         if(given_to)
 	  rfc822_parse_adrlist(&outgoing->to, given_to, ps_global->maildomain);
