@@ -142,13 +142,13 @@
 #define DF_USE_ONLY_DOMAIN_NAME "no"
 
 /* Interactive, filewise spell checker */
-#define DF_VAR_SPELLER "/usr/bin/hunspell"
+#define DF_VAR_SPELLER "/usr/bin/aspell --dont-backup --mode=email check"
 
 /* Define enable dmalloc debugging */
 /* #undef ENABLE_DMALLOC */
 
 /* Enable LDAP query support */
-#define ENABLE_LDAP /**/
+/* #undef ENABLE_LDAP */
 
 /* Define to 1 if translation of program messages to the user's native
    language is requested. */
@@ -429,7 +429,7 @@
 #define HAVE_UNAME 1
 
 /* Define to 1 if the system has the type `union wait'. */
-#define HAVE_UNION_WAIT 1
+/* #undef HAVE_UNION_WAIT */
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
@@ -517,7 +517,7 @@
 #define PACKAGE_NAME "alpine"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "alpine 2.21.9"
+#define PACKAGE_STRING "alpine 2.21.99"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "alpine"
@@ -526,10 +526,10 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.21.9"
+#define PACKAGE_VERSION "2.21.99"
 
 /* Password cache file (recommended if S/MIME is enabled and configured) */
-#define PASSFILE "ALPINE.PWD"
+#define PASSFILE ".pine-passfile"
 
 /* Program users use to change their password */
 #define PASSWD_PROG "/usr/bin/passwd"
@@ -590,7 +590,7 @@
 #define SMIME_SSLCERTS "/etc/ssl/certs"
 
 /* Simple spell checker: reads stdin, emits misspellings on stdout */
-#define SPELLER "/usr/bin/hunspell -l"
+#define SPELLER "/usr/bin/aspell --dont-backup --mode=email list"
 
 /* SSL Supports TLSV1.2 */
 #define SSL_SUPPORTS_TLSV1_2 1
@@ -602,16 +602,16 @@
 #define STDC_HEADERS 1
 
 /* System pinerc */
-#define SYSTEM_PINERC "/usr/local/lib/pine.conf"
+#define SYSTEM_PINERC "/data/root/lib/pine.conf"
 
 /* System fixed pinerc */
-#define SYSTEM_PINERC_FIXED "/usr/local/lib/pine.conf.fixed"
+#define SYSTEM_PINERC_FIXED "/data/root/lib/pine.conf.fixed"
 
 /* Local Support Info File */
-#define SYSTEM_PINE_INFO_PATH "/usr/local/lib/pine.info"
+#define SYSTEM_PINE_INFO_PATH "/data/root/lib/pine.info"
 
 /* Pine-Centric Host Specifier */
-#define SYSTYPE "LSU"
+#define SYSTYPE "DEB"
 
 /* Define if system supports SYSV signal interface */
 /* #undef SYSV_SIGNALS */
@@ -638,7 +638,7 @@
 /* #undef USE_QUOTAS */
 
 /* Version number of package */
-#define VERSION "2.21.9"
+#define VERSION "2.21.99"
 
 /* Windows is just too different */
 /* #undef _WINDOWS */

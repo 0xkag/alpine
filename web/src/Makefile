@@ -86,8 +86,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-build_triplet = x86_64-suse-linux-gnu
-host_triplet = x86_64-suse-linux-gnu
+build_triplet = i686-pc-linux-gnu
+host_triplet = i686-pc-linux-gnu
 subdir = web/src
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/mkinstalldirs
@@ -128,37 +128,37 @@ am__can_run_installinfo = \
   esac
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-ACLOCAL = ${SHELL} /run/media/chappa/Work/alpine/alpinegit/missing aclocal-1.13
-ALPINE_DATESTAMP = Mon Dec  4 16:02:35 MST 2017
-ALPINE_HOSTSTAMP = jctgjb2
+ACLOCAL = ${SHELL} /home/kgeorge/wc/alpine/missing aclocal-1.13
+ALPINE_DATESTAMP = Mon Dec 18 22:34:16 EST 2017
+ALPINE_HOSTSTAMP = patton.tcpsoft.net
 AMTAR = $${TAR-tar}
 AM_CFLAGS =  -g -pthread
 AM_DEFAULT_VERBOSITY = 1
 AM_LDFLAGS = 
 AR = /usr/bin/ar
-AUTOCONF = ${SHELL} /run/media/chappa/Work/alpine/alpinegit/missing autoconf
-AUTOHEADER = ${SHELL} /run/media/chappa/Work/alpine/alpinegit/missing autoheader
-AUTOMAKE = ${SHELL} /run/media/chappa/Work/alpine/alpinegit/missing automake-1.13
+AUTOCONF = ${SHELL} /home/kgeorge/wc/alpine/missing autoconf
+AUTOHEADER = ${SHELL} /home/kgeorge/wc/alpine/missing autoheader
+AUTOMAKE = ${SHELL} /home/kgeorge/wc/alpine/missing automake-1.13
 AWK = gawk
 BUILD_EXEEXT = 
 BUILD_OBJEXT = 
-CC = gcc -std=gnu99
+CC = gcc
 CCDEPMODE = depmode=gcc3
 CC_FOR_BUILD = gcc
-CFLAGS = -g
+CFLAGS = -g -O2 -DOPENSSL_1_1_0 -DOPENSSL_API_COMPAT=0x10100000L
 CFLAGS_FOR_BUILD = -g -O2
-CP = /usr/bin/cp
+CP = /bin/cp
 CPP = gcc -E
 CPPFLAGS = -I/usr/include/openssl 
 CPPFLAGS_FOR_BUILD = 
 CPP_FOR_BUILD = gcc -E
 CYGPATH_W = echo
-C_CLIENT_AUTHS = gss 
-C_CLIENT_CFLAGS = EXTRACFLAGS=" -DTLSV1_2 -I/usr/include/openssl  -g"
-C_CLIENT_GCCOPTLEVEL = GCCOPTLEVEL="-O0"
-C_CLIENT_LDFLAGS = EXTRALDFLAGS=" -L/usr/lib   -ltcl8.6 -lgssapi_krb5 -lpam -lldap -lssl -lcrypto -ldl  -ltinfo -llber -lpam -lkrb5"
+C_CLIENT_AUTHS =  
+C_CLIENT_CFLAGS = EXTRACFLAGS=" -DTLSV1_2 -I/usr/include/openssl  -g -O2 -DOPENSSL_1_1_0 -DOPENSSL_API_COMPAT=0x10100000L"
+C_CLIENT_GCCOPTLEVEL = 
+C_CLIENT_LDFLAGS = EXTRALDFLAGS=" -L/usr/lib   -ltcl8.6 -lpam -lssl -lcrypto -ldl  -ltinfo -lpam"
 C_CLIENT_SPECIALS = SSLINCLUDE=/usr/include/openssl SSLLIB=/usr/lib SSLDIR=/etc/ssl SSLCERTS=/etc/ssl/certs SSLKEYS=/etc/ssl/private 
-C_CLIENT_TARGET = lsu
+C_CLIENT_TARGET = ldb
 C_CLIENT_WITH_IPV6 = touch imap/ip6
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
@@ -168,12 +168,12 @@ DUMPBIN =
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
-EGREP = /usr/bin/grep -E
+EGREP = /bin/grep -E
 EXEEXT = 
-FGREP = /usr/bin/grep -F
-GMSGFMT = /usr/bin/msgfmt
-GMSGFMT_015 = /usr/bin/msgfmt
-GREP = /usr/bin/grep
+FGREP = /bin/grep -F
+GMSGFMT = :
+GMSGFMT_015 = :
+GREP = /bin/grep
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -181,31 +181,31 @@ INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 INTLLIBS = 
 INTL_MACOSX_LIBS = 
-ISPELLPROG = hunspell
-LD = /usr/x86_64-suse-linux/bin/ld -m elf_x86_64
+ISPELLPROG = aspell
+LD = /usr/bin/ld
 LDFLAGS = -L/usr/lib 
 LDFLAGS_FOR_BUILD = 
 LIBICONV = -liconv
 LIBINTL = 
 LIBOBJS = 
-LIBS =  -ltcl8.6 -lgssapi_krb5 -lpam -lldap -lssl -lcrypto -ldl  -ltinfo -llber -lpam -lkrb5
+LIBS =  -ltcl8.6 -lpam -lssl -lcrypto -ldl  -ltinfo -lpam
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIBTOOL_DEPS = ./ltmain.sh
 LIPO = 
-LN = /usr/bin/ln
+LN = /bin/ln
 LN_S = ln -s
-LS = /usr/bin/ls
+LS = /bin/ls
 LTLIBICONV = -liconv
 LTLIBINTL = 
 LTLIBOBJS = 
 MAINT = #
 MAKE = /usr/bin/make
-MAKEINFO = ${SHELL} /run/media/chappa/Work/alpine/alpinegit/missing makeinfo
+MAKEINFO = ${SHELL} /home/kgeorge/wc/alpine/missing makeinfo
 MANIFEST_TOOL = :
-MKDIR_P = /usr/bin/mkdir -p
-MSGFMT = /usr/bin/msgfmt
-MSGFMT_015 = /usr/bin/msgfmt
-MSGMERGE = /usr/bin/msgmerge
+MKDIR_P = /bin/mkdir -p
+MSGFMT = :
+MSGFMT_015 = :
+MSGMERGE = :
 NM = /usr/bin/nm -B
 NMEDIT = 
 NPA_PROG = 
@@ -216,80 +216,80 @@ OTOOL64 =
 PACKAGE = alpine
 PACKAGE_BUGREPORT = chappa@washington.edu
 PACKAGE_NAME = alpine
-PACKAGE_STRING = alpine 2.21.9
+PACKAGE_STRING = alpine 2.21.99
 PACKAGE_TARNAME = alpine
 PACKAGE_URL = 
-PACKAGE_VERSION = 2.21.9
+PACKAGE_VERSION = 2.21.99
 PATH_SEPARATOR = :
 POSUB = po
-PTHREAD_CC = gcc -std=gnu99
+PTHREAD_CC = gcc
 PTHREAD_CFLAGS = -pthread
 PTHREAD_LIBS = 
 PWPROG = /usr/bin/passwd
 RANLIB = ranlib
 REGEX_BUILD = 
-RM = /usr/bin/rm
-SED = /usr/bin/sed
+RM = /bin/rm
+SED = /bin/sed
 SENDMAIL = /usr/sbin/sendmail
 SET_MAKE = 
-SHELL = /bin/sh
-SPELLPROG = hunspell
+SHELL = /bin/bash
+SPELLPROG = aspell
 STRIP = strip
 USE_NLS = yes
-VERSION = 2.21.9
+VERSION = 2.21.99
 WEB_BINDIR = 
 WEB_BUILD = 
 WEB_PUBCOOKIE_BUILD = 
 WEB_PUBCOOKIE_LIB = 
 WEB_PUBCOOKIE_LINK = 
-XGETTEXT = /usr/bin/xgettext
-XGETTEXT_015 = /usr/bin/xgettext
-abs_builddir = /run/media/chappa/Work/alpine/alpinegit/web/src
-abs_srcdir = /run/media/chappa/Work/alpine/alpinegit/web/src
-abs_top_builddir = /run/media/chappa/Work/alpine/alpinegit
-abs_top_srcdir = /run/media/chappa/Work/alpine/alpinegit
+XGETTEXT = :
+XGETTEXT_015 = :
+abs_builddir = /home/kgeorge/wc/alpine/web/src
+abs_srcdir = /home/kgeorge/wc/alpine/web/src
+abs_top_builddir = /home/kgeorge/wc/alpine
+abs_top_srcdir = /home/kgeorge/wc/alpine
 ac_ct_AR = ar
 ac_ct_CC = gcc
 ac_ct_CC_FOR_BUILD = gcc
 ac_ct_DUMPBIN = 
 acx_pthread_config = 
-alpine_interactive_spellcheck = /usr/bin/hunspell
-alpine_simple_spellcheck = /usr/bin/hunspell -l
+alpine_interactive_spellcheck = /usr/bin/aspell --dont-backup --mode=email check
+alpine_simple_spellcheck = /usr/bin/aspell --dont-backup --mode=email list
 am__include = include
 am__leading_dot = .
 am__quote = 
 am__tar = $${TAR-tar} chof - "$$tardir"
 am__untar = $${TAR-tar} xf -
 bindir = ${exec_prefix}/bin
-build = x86_64-suse-linux-gnu
+build = i686-pc-linux-gnu
 build_alias = 
-build_cpu = x86_64
+build_cpu = i686
 build_os = linux-gnu
-build_vendor = suse
+build_vendor = pc
 builddir = .
 datadir = ${datarootdir}
 datarootdir = ${prefix}/share
 docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
 dvidir = ${docdir}
 exec_prefix = ${prefix}
-host = x86_64-suse-linux-gnu
+host = i686-pc-linux-gnu
 host_alias = 
-host_cpu = x86_64
+host_cpu = i686
 host_os = linux-gnu
-host_vendor = suse
+host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /run/media/chappa/Work/alpine/alpinegit/install-sh
-libdir = ${exec_prefix}/lib64
-libexecdir = ${exec_prefix}/lib
+install_sh = ${SHELL} /home/kgeorge/wc/alpine/install-sh
+libdir = ${exec_prefix}/lib
+libexecdir = ${exec_prefix}/libexec
 localedir = ${datadir}/locale
 localstatedir = ${prefix}/var
 mandir = ${datarootdir}/man
 mkdir_p = $(MKDIR_P)
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /usr/local
+prefix = /data/root
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
@@ -491,15 +491,15 @@ uninstall-am:
 
 
 all:
-	cd /run/media/chappa/Work/alpine/alpinegit/web/src/cgi.tcl-1.10 && ./configure --prefix=/run/media/chappa/Work/alpine/alpinegit/web/lib
+	cd /home/kgeorge/wc/alpine/web/src/cgi.tcl-1.10 && ./configure --prefix=/home/kgeorge/wc/alpine/web/lib
 
 install:
-	cd /run/media/chappa/Work/alpine/alpinegit/web/src/alpined.d && make install
-	cd /run/media/chappa/Work/alpine/alpinegit/web/src/cgi.tcl-1.10 && make install SCRIPTDIR=/run/media/chappa/Work/alpine/alpinegit/web/lib
-	cd /run/media/chappa/Work/alpine/alpinegit/web/lib && tclsh ./pkgcreate
-	if test -x pubcookie/wp_uidmapper ; then $(LN) -f pubcookie/wp_uidmapper /run/media/chappa/Work/alpine/alpinegit/web/bin ; fi
-	if test -x pubcookie/wp_tclsh ; then $(LN) -f pubcookie/wp_tclsh /run/media/chappa/Work/alpine/alpinegit/web/bin ; fi
-	if test -x pubcookie/wp_gssapi_proxy ; then $(LN) -f pubcookie/wp_gssapi_proxy /run/media/chappa/Work/alpine/alpinegit/web/bin ; fi
+	cd /home/kgeorge/wc/alpine/web/src/alpined.d && make install
+	cd /home/kgeorge/wc/alpine/web/src/cgi.tcl-1.10 && make install SCRIPTDIR=/home/kgeorge/wc/alpine/web/lib
+	cd /home/kgeorge/wc/alpine/web/lib && tclsh ./pkgcreate
+	if test -x pubcookie/wp_uidmapper ; then $(LN) -f pubcookie/wp_uidmapper /home/kgeorge/wc/alpine/web/bin ; fi
+	if test -x pubcookie/wp_tclsh ; then $(LN) -f pubcookie/wp_tclsh /home/kgeorge/wc/alpine/web/bin ; fi
+	if test -x pubcookie/wp_gssapi_proxy ; then $(LN) -f pubcookie/wp_gssapi_proxy /home/kgeorge/wc/alpine/web/bin ; fi
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
