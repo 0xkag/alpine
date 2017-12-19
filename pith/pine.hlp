@@ -140,7 +140,7 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 211 2017-05-04 22:18:31
+Alpine Commit 240 2017-12-09 16:20:34
 ============= h_news =================
 <HTML>
 <HEAD>
@@ -177,10 +177,61 @@ Version <!--#echo var="ALPINE_VERSION"--> (<!--#echo var="ALPINE_REVISION"-->)
 addresses bugs found in previous releases and has a few additions as well.
 
 <P>
+Additions include:
+
+<UL>
+<LI> PC-Alpine builds with LibreSSL and supports S/MIME.
+
+<LI> NTLM authentication support with the ntlm library, in Unix systems.
+Based on code provided by Maciej W. Rozycki.
+
+<LI> Add -dict option to PC-Pico, which allows users to choose a dictionary
+when spelling. Sample usage: -dict "en_US, de_DE, fr_FR".
+
+<LI> Improvements to the configure stage of compilation. Some of
+these contributed by Helmut Grohne. See
+<A href="https://bugs.debian.org/876164">Bug 876164</A> in Debian.
+
+<LI> Add &quot;remove password&quot; command to the management screen for the 
+password file encryption key. This allows users to use their password file
+without entering a master password.
+
+</UL>
+
+<P>
 Bugs that have been addressed include:
 <UL>
    <LI> Crash when attempting to bounce a message due to lack of space in
         allocated space for key menu array. Reported by David Sewell.
+
+   <LI> Crash when a CA certificate failed to load, and user attempted to
+        view certificate information of other certificate authorities.
+
+   <LI> Deactivate some color code from Pico (as standalone editor in the
+        windows version) until I find a way to activate it again. This is 
+        not critical and it is not something that PC-Pico must have (some 
+        of it already exists in other ways, like color support, what does 
+        not exist is the more complex code that Unix-Pico has with color 
+        codes for specific colors.)
+
+   <LI> Update build.bat file to add /DWINVER=0x0501 so that Alpine can 
+        build when using Visual Studio 2017. Fix contributed by 
+        Ulf-Dietrich Braunmann.
+
+   <LI> When the locale is not set up to UTF-8, alpine might determine the 
+        width of a character incorrectly. Reported by Alexandre Fedotov.
+
+   <LI> When colors are edited from the main setup configuration screen, some
+        color settings are not updated until Alpine is restarted. Reported by
+        Andrew Hill.
+
+   <LI> If the first part of a message is multipart/alternative, and the 
+        first part of this is also a multipart type, then Alpine might 
+        fail to select the first text part when replying to a message. 
+        Reported by Lucio Chiappetti.
+
+   <LI> TLS 1.2 works does not work if Alpine is compiled with openssl &gt;= 1.1.0.
+        Reported and patched by Kyle George.
 </UL>
 
 <P>
@@ -1073,7 +1124,7 @@ Changes included:
 Details on changes in previous (prerelease) versions of Alpine
 may be found at the following URL:
 <P>
-<CENTER><SAMP><A HREF="http://alpine.freeiz.com/alpine/release/">http://alpine.freeiz.com/alpine/release/</A></SAMP></CENTER>
+<CENTER><SAMP><A HREF="http://repo.or.cz/alpine.git">http://repo.or.cz/alpine.git</A></SAMP></CENTER>
 <P>
 
 <HR WIDTH="75%"><P>
@@ -1091,7 +1142,7 @@ accessible via the &quot;?&quot; key (or Ctrl-G in text-input contexts).
 The most current source of information about Alpine,
 including new version availability, is the web page at
 <P>
-<CENTER><SAMP><A HREF="http://alpine.freeiz.com/alpine/">http://alpine.freeiz.com/alpine/</A></SAMP></CENTER>
+<CENTER><SAMP><A HREF="http://repo.or.cz/alpine.git">http://repo.or.cz/alpine.git</A></SAMP></CENTER>
 </DD>
 </DL>
 
@@ -1934,12 +1985,12 @@ listing of changes in Alpine <!--#echo var="ALPINE_VERSION"-->
 <B>especially</B> if a &quot;problem&quot; you are encountering is actually 
 a change in the way an aspect of Alpine works.  There, you will also find notes 
 on Alpine configuration.<P>
-
+<!--
   <LI> The main site for Alpine contains information on configuring and solving problems
        with Alpine, it can be found at
 
 <CENTER><A HREF="http://alpine.freeiz.com/alpine/">http://alpine.freeiz.com/alpine/</A></CENTER>  
-
+-->
   <LI> The Alpine Information Center (maintained by the University of
 	   Washington) World Wide Web site contains, among other things
 	   <UL>
@@ -2310,7 +2361,7 @@ project, credits, and legal notices.
 Alpine releases are available via the world wide web at
 <P>
 <CENTER><SAMP><A 
-HREF="http://alpine.freeiz.com/alpine/release/">http://alpine.freeiz.com/alpine/release/</A></SAMP
+HREF="http://repo.or.cz/alpine.git">http://repo.or.cz/alpine.git</A></SAMP
 ></CENTER>
 <P>
 
@@ -17502,9 +17553,12 @@ folder is one of your incoming folders, it may be the nickname you've given
 the folder.
 Here are a couple samples of specific folder names:
 <P>
-<CENTER><SAMP>{monet.art.example.com}mail/art-class</SAMP></CENTER>
+<CENTER><SAMP>{monet.art.example.com/user=vincent}mail/art-class</SAMP></CENTER>
 <P>
-<CENTER><SAMP>{news.example.com/nntp}#news.comp.mail.pine</SAMP></CENTER>
+<CENTER><SAMP>{news.example.com/nntp/user=peter}#news.comp.mail.pine</SAMP></CENTER>
+<P>
+Observe that in order for an external folder (IMAP, POP, News) to be a match,
+you must also add the /user= option in the definition of the incoming folder.
 <P>
 The easiest way to fill in the &quot;Folder List&quot; field is to use
 the &quot;T&quot; command that is available when the &quot;Folder List&quot; line is
@@ -31630,11 +31684,11 @@ When this feature is set (the default) Alpine will select possible web hostnames
 from the displayed text and display them in boldface for selection.  
 This can be useful when you receive messages referencing World Wide Web 
 sites without the use of complete URLs; for example, specifying only 
-&quot;www.patches.freeiz.com/alpine/&quot; (which will <B>not</B> become a 
+&quot;www.some.site.com&quot; (which will <B>not</B> become a 
 selectable 
 item by setting <A HREF="h_config_enable_view_url">&quot;<!--#echo var="FEAT_enable-msg-view-urls"-->&quot;</A>) 
 rather than explicitly
-&quot;http://www.patches.freeiz.com/alpine/&quot;.  
+&quot;http://www.some.site.com&quot;.  
 <P>
 The first available hostname is displayed in inverse.  This is the
 &quot;selected&quot; hostname.  Pressing RETURN will cause Alpine to display
@@ -36556,14 +36610,16 @@ message to you and on how the list works.)
 
 S/MIME is a standard for the public key encryption and signing of email.
 UNIX Alpine contains a basic implementation of S/MIME based on
-the <A HREF="http://www.openssl.org/">OpenSSL</A> libraries.
+the <A HREF="http://www.openssl.org/">OpenSSL</A> libraries. The
+same support can be provided using the 
+<A HREF="http://www.libressl.org/">LibreSSL</A> libraries. The
+support for S/MIME in PC-Alpine is fully based on the LibreSSL libraries.
 To check if this version of Alpine supports S/MIME look at
 <A HREF="X-Alpine-Config:">Supported Options in this Alpine</A> and look
 for &quot;S/MIME&quot; under the &quot;Encryption&quot; heading.
 <P>
 Some limitations:
 <UL>
-   <LI> There is no PC-Alpine implementation.
    <LI> There is no provision for checking for CRLs
 	(Certificate Revocation Lists) in Alpine.
    <LI> This built-in S/MIME implementation is not compatible with and does not help with PGP.
@@ -36612,6 +36668,10 @@ home directory.
 The directory name is
 <P>
 <CENTER><SAMP>.alpine-smime</SAMP></CENTER>
+<P>
+For PC-Alpine, the equivalent directory is called 
+<CENTER><SAMP>alpine-smime</SAMP></CENTER>
+and is also located under your home directory.
 <P>
 Within that directory are three subdirectories.
 Each of the three subdirectories contains files with PEM-encoded contents,
@@ -36721,7 +36781,6 @@ as soon as you import them.
 <BODY>
 <H1>S/MIME OPTION: <!--#echo var="VAR_smime-public-cert-directory"--></H1>
 
-UNIX Alpine only.
 <P>
 If the option
 <A HREF="h_config_smime_pubcertcon"><!--#echo var="VAR_smime-public-cert-container"--></A>
@@ -36780,7 +36839,6 @@ D6sOwOLJZkLY8FRsfk63K+2EMzA2+qAzMKupgeTLqXIf
 <BODY>
 <H1>OPTION: <!--#echo var="VAR_smime-public-cert-container"--></H1>
 
-UNIX Alpine only.
 <P>
 If this option is set it will be used instead of
 <A HREF="h_config_smime_pubcertdir"><!--#echo var="VAR_smime-public-cert-directory"--></A>.
@@ -36818,7 +36876,6 @@ Use the Setup/SMIME screen to modify this variable.
 <BODY>
 <H1>OPTION: <!--#echo var="VAR_smime-private-key-directory"--></H1>
 
-UNIX Alpine only.
 <P>
 In order to sign outgoing S/MIME messages you will need a
 personal digital ID certificate.
@@ -36885,7 +36942,6 @@ m+4TJybNGNfAgOctSkEyY/OCb49fRRQTCBZVIhzLGGmpYmkO55HbIA==
 <BODY>
 <H1>OPTION: <!--#echo var="VAR_smime-private-key-container"--></H1>
 
-UNIX Alpine only.
 <P>
 If this option is set it will be used instead of
 <A HREF="h_config_smime_privkeydir"><!--#echo var="VAR_smime-private-key-directory"--></A>.
@@ -36923,7 +36979,6 @@ Use the Setup/SMIME screen to modify this variable.
 <BODY>
 <H1>S/MIME OPTION: <!--#echo var="VAR_smime-cacert-directory"--></H1>
 
-UNIX Alpine only.
 <P>
 If the option
 <A HREF="h_config_smime_cacertcon"><!--#echo var="VAR_smime-cacert-container"--></A>
@@ -36965,7 +37020,6 @@ certificates for particular email addresses
 <BODY>
 <H1>S/MIME OPTION: <!--#echo var="VAR_smime-cacert-container"--></H1>
 
-UNIX Alpine only.
 <P>
 If this option is set it will be used instead of
 <A HREF="h_config_smime_cacertdir"><!--#echo var="VAR_smime-cacert-directory"--></A>.
@@ -37003,7 +37057,6 @@ Use the Setup/SMIME screen to modify this variable.
 <BODY>
 <H1>S/MIME FEATURE: <!--#echo var="FEAT_smime-sign-by-default"--></H1>
 
-UNIX Alpine only.
 <P>
 This feature only has an effect if your version of Alpine includes
 support for S/MIME.
@@ -37034,7 +37087,6 @@ certificate).
 <BODY>
 <H1>S/MIME FEATURE: <!--#echo var="FEAT_smime-use-store-only"--></H1>
 
-UNIX Alpine only.
 <P>
 This feature only has an effect if your version of Alpine includes
 support for S/MIME.
@@ -37080,7 +37132,6 @@ might not trust those that came with the message that you are validating.
 <BODY>
 <H1>S/MIME FEATURE: <!--#echo var="FEAT_publiccerts-in-keychain"--></H1>
 
-UNIX Alpine only.
 <P>
 If this feature is set the Mac OS X default keychain will be used as the place
 to store public certificates instead of a
@@ -37106,7 +37157,6 @@ or a
 <BODY>
 <H1>S/MIME FEATURE: <!--#echo var="FEAT_smime-dont-do-smime"--></H1>
 
-UNIX Alpine only.
 <P>
 Setting this feature turns off all of Alpine's S/MIME support.
 You might want to set this if you are having trouble due to the S/MIME support.
@@ -37130,7 +37180,6 @@ You might want to set this if you are having trouble due to the S/MIME support.
 <BODY>
 <H1>S/MIME FEATURE: <!--#echo var="FEAT_smime-encrypt-by-default"--></H1>
 
-UNIX Alpine only.
 <P>
 This feature only has an effect if your version of Alpine includes
 support for S/MIME.
@@ -37161,7 +37210,6 @@ for the recipient).
 <BODY>
 <H1>S/MIME FEATURE: <!--#echo var="FEAT_smime-remember-passphrase"--></H1>
 
-UNIX Alpine only.
 <P>
 This feature only has an effect if your version of Alpine includes
 support for S/MIME.
@@ -37187,7 +37235,6 @@ once during an Alpine session.
 <BODY>
 <H1>S/MIME: Transfer Public Certs to Container</H1>
 
-UNIX Alpine only.
 <P>
 The Transfer command will copy the public certificates in your configured
 <A HREF="h_config_smime_pubcertdir"><!--#echo var="VAR_smime-public-cert-directory"--></A>
@@ -37216,7 +37263,6 @@ Warning: Any previous contents in the container will be lost.
 <BODY>
 <H1>S/MIME: Transfer Public Certs to Directory</H1>
 
-UNIX Alpine only.
 <P>
 The Transfer command will copy the public certificates in your configured
 <A HREF="h_config_smime_pubcertcon"><!--#echo var="VAR_smime-public-cert-container"--></A>
@@ -37243,7 +37289,6 @@ directory.
 <BODY>
 <H1>S/MIME: Transfer Private Keys to Container</H1>
 
-UNIX Alpine only.
 <P>
 The Transfer command will copy the private keys in your configured
 <A HREF="h_config_smime_privkeydir"><!--#echo var="VAR_smime-private-key-directory"--></A>.
@@ -37272,7 +37317,6 @@ Warning: Any previous contents in the container will be lost.
 <BODY>
 <H1>S/MIME: Transfer Private Keys to Directory</H1>
 
-UNIX Alpine only.
 <P>
 The Transfer command will copy the private keys in your configured
 <A HREF="h_config_smime_privkeydir"><!--#echo var="VAR_smime-private-key-container"--></A>.
@@ -37299,7 +37343,6 @@ directory.
 <BODY>
 <H1>S/MIME: Transfer CA Certs to Container</H1>
 
-UNIX Alpine only.
 <P>
 The Transfer command will copy the CA certificates in your configured
 <A HREF="h_config_smime_cacertdir"><!--#echo var="VAR_smime-cacert-directory"--></A>
@@ -37328,7 +37371,6 @@ Warning: Any previous contents in the container will be lost.
 <BODY>
 <H1>S/MIME: Transfer CA Certs to Directory</H1>
 
-UNIX Alpine only.
 <P>
 The Transfer command will copy the CA certificates in your configured
 <A HREF="h_config_smime_cacertcon"><!--#echo var="VAR_smime-cacert-container"--></A>.
@@ -37383,7 +37425,6 @@ feature
 <BODY>
 <H1>S/MIME: Transfer Public Certs to Keychain</H1>
 
-UNIX Alpine only.
 <P>
 The Transfer command will copy the public certificates in your configured
 <A HREF="h_config_smime_pubcertcon"><!--#echo var="VAR_smime-public-cert-container"--></A>
@@ -37409,7 +37450,6 @@ the Keychain to store your public certs.
 <BODY>
 <H1>S/MIME: Manage Public Certificates</H1>
 
-UNIX Alpine only.
 <P>
 This menu item allows you to manage your public certificates, this
 may include your own public certificate, but it normally includes
@@ -37448,7 +37488,6 @@ import a command to this collection.
 <BODY>
 <H1>S/MIME: Manage Private Keys</H1>
 
-UNIX Alpine only.
 <P>
 This option allows you to manage your private key. Normally a person has only
 one key, in the same way that a person only has one valid passport, or ID card,
@@ -37485,7 +37524,6 @@ import a command to this collection.
 <BODY>
 <H1>S/MIME: Manage Certificate Authorities</H1>
 
-UNIX Alpine only.
 <P>
 This collection contains certificates that are needed to validate the 
 certificate of another person, and therefore contains certificates that 
@@ -37516,19 +37554,35 @@ import a command to this collection.
 <BODY>
 <H1>S/MIME: Manage Password File Certificates</H1>
 
-UNIX Alpine only.
 <P>
 This option allows you to manage the certificates that are used to
 encrypt and decrypt your password file. This is useful in case you
 want to change the certificates used to encrypt your password file.
 <P>
-In order to avoid unauthorized use of this option, you are asked to
-enter the password of the current private key used to encrypt your
-password file.
+Depending on the version of Alpine that you used for the first time
+to set this up, you might have had to enter a password to enter this
+screen. In the case that you did not enter a password to enter this
+screen, you should know two things that are important:
+<UL>
+<LI> If anyone takes control of your computer (for example, if you 
+left it unattended) then that person can add a password to your
+password file and make it unreadable to you in the future.
+<LI> If anyone can access your computer (this includes remote access)
+then that person can steal your password file and decrypt it without
+your help. This gives access to that person to the same services you
+have access and such person can use your name to access that service.
+In particular, that person can try to hack into your service provider
+with your name on it, or that person could try to send spam with
+your name.
+</UL>
+<P> Needless to say, this is not advisable. You should keep your
+password file protected. In order to do so, all you need to do is use
+the &quot;Create Key&quot; command to create a key. Once you do this,
+Alpine will use that key, encrypted with the password used to create that
+key, to protect your password file.
 <P>
-Once you have entered your password for the current key, you enter a
-screen where you can import your new key, and see the information on your
-current key.
+In this screen you can import a new key to encrypt your password file, 
+and read cryptographic information on your current key.
 <P>
 To import a new key press &quot;RETURN&quot; and enter the location of
 the new key. You will be asked to enter the password of the new key. If
@@ -37548,6 +37602,12 @@ certificates are saved, and the old keys are permanently deleted.
 Alpine does not create a backup of your password file, or your old keys
 that will be replaced. If you need to keep old copies, you will have to do
 this operation outside Alpine.
+<P>
+Observe that you can use this screen to remove the password for the key.
+As explained earlier, this is not advisable, but you can always restore the
+password to encrypt your password file by creating a new key.
+<P>
+Be safe and keep your password file encrypted with a password.
 <UL>   
 <LI><A HREF="h_mainhelp_smime">General S/MIME help</A>
 </UL><P>
@@ -37566,7 +37626,6 @@ this operation outside Alpine.
 <BODY>
 <H1>S/MIME: Certificate Information Screen</H1>
 
-UNIX Alpine only.
 <P>
 The CERTIFICATE INFORMATION screen shows you information contained in a certificate
 such as its owner, e-mail address, issuer, and interval of validity, 
@@ -37603,7 +37662,6 @@ and private information about your key, with the <B>B</B> and
 <BODY>
 <H1>S/MIME: Commands that Manage Public Certificates</H1>
 
-UNIX Alpine only.
 <P>
 This screen allows you to manage your public certificates. 
 <P>
@@ -37654,7 +37712,6 @@ All commands provide feedback to let you know about their success or failure.
 <BODY>
 <H1>S/MIME: Commands that Manage Private Keys</H1>
 
-UNIX Alpine only.
 <P>
 This screen allows you to manage your private key.
 <P>
@@ -37701,7 +37758,6 @@ All commands provide feedback to let you know about their success or failure.
 <BODY>
 <H1>S/MIME: Commands that Manage Certificate Authorities</H1>
 
-UNIX Alpine only.
 <P>
 This screen allows you to manage your collection of certificates that you
 trust. 

@@ -454,13 +454,13 @@
 #define PACKAGE_NAME "alpine"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "alpine 2.21.1"
+#define PACKAGE_STRING "alpine 2.21.99"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "alpine"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.21.1"
+#define PACKAGE_VERSION "2.21.99"
 
 /* Program users use to change their password */
 /* #undef PASSWD_PROG */
@@ -531,6 +531,28 @@
 /* File name separator as string constant */
 #define S_FILESEP "\\"
 
+/* Enable S/MIME if LibreSSL */
+#ifdef ENABLE_WINDOWS_LIBRESSL
+#define SMIME
+/* Default configuration value */
+#define DF_PRIVATEKEY_DIR "alpine-smime\\private"
+
+/* Default configuration value */
+#define DF_PUBLICCERT_DIR "alpine-smime\\public"
+
+/* Name of default public container */
+#define DF_CACERT_DIR "alpine-smime\\ca"
+
+/* Name of default public container */
+#define DF_PUBLIC_CONTAINER "PublicContainer"
+
+/* Name of default private container */
+#define DF_PRIVATE_CONTAINER "PrivateContainer"
+
+/* Name of default certificate authority container */
+#define DF_CA_CONTAINER "CAContainer"
+#endif /* ENABLE_WINDOWS_LIBRESSL */
+
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 /* #define TIME_WITH_SYS_TIME */
 
@@ -552,7 +574,7 @@
 #define UTF8_INTERNAL
 
 /* Version number of package */
-#define VERSION "2.21.1"
+#define VERSION "2.21.99"
 
 /* Windows is just too different */
 #ifndef _WINDOWS

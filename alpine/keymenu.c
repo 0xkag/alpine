@@ -850,8 +850,8 @@ struct key att_view_keys[] =
 	NULL_MENU,
 	NULL_MENU,
 #ifdef SMIME
-	{"^D","Decrypt", {MC_DECRYPT,1,{ctrl('d')},KS_NONE}},
-	{"^E","Security", {MC_SECURITY,1,{ctrl('e')},KS_NONE}},
+	{"^D","Decrypt", {MC_DECRYPT,1,{ctrl('d')}},KS_NONE},
+	{"^E","Security", {MC_SECURITY,1,{ctrl('e')}},KS_NONE},
 #else
 	NULL_MENU,
 	NULL_MENU,
@@ -917,8 +917,8 @@ struct key view_keys[] =
 	RCOMPOSE_MENU,
 	{"A",N_("TogglePreferPlain"),{MC_TOGGLE,1,{'a'}},KS_NONE},
 #ifdef SMIME
-	{"^D","Decrypt", {MC_DECRYPT,1,{ctrl('d')},KS_NONE}},
-	{"^E","Security", {MC_SECURITY,1,{ctrl('e')},KS_NONE}},
+	{"^D","Decrypt", {MC_DECRYPT,1,{ctrl('d')}},KS_NONE},
+	{"^E","Security", {MC_SECURITY,1,{ctrl('e')}},KS_NONE},
 #else
 	NULL_MENU,
 	NULL_MENU,
@@ -2751,7 +2751,22 @@ INST_KEY_MENU(config_smime_manage_certs_work_keymenu, config_smime_manage_certs_
 
 struct key config_smime_view_cert[] = 
        {HELP_MENU,
-	OTHER_MENU,
+	NULL_MENU,
+	EXIT_SETUP_MENU,
+	{"V", "[" N_("View Info") "]", {MC_CHOICE,3,{'v',ctrl('M'),ctrl('J')}}, KS_NONE},
+	{"D", N_("Delete pwd"), {MC_DELETE,1,{'d'}},KS_NONE},
+	NULL_MENU,
+	NULL_MENU,
+	NULL_MENU,
+	NULL_MENU,
+	NULL_MENU,
+	NULL_MENU,
+	NULL_MENU};
+INST_KEY_MENU(config_smime_manage_view_cert_keymenu, config_smime_view_cert);
+
+struct key config_smime_view_cert_no_delete[] = 
+       {HELP_MENU,
+	NULL_MENU,
 	EXIT_SETUP_MENU,
 	{"V", "[" N_("View Info") "]", {MC_CHOICE,3,{'v',ctrl('M'),ctrl('J')}}, KS_NONE},
 	NULL_MENU,
@@ -2762,7 +2777,7 @@ struct key config_smime_view_cert[] =
 	NULL_MENU,
 	NULL_MENU,
 	NULL_MENU};
-INST_KEY_MENU(config_smime_manage_view_cert_keymenu, config_smime_view_cert);
+INST_KEY_MENU(config_smime_manage_view_cert_keymenu_no_delete, config_smime_view_cert_no_delete);
 
 struct key smime_certificate_info_keys[] =
        {HELP_MENU,

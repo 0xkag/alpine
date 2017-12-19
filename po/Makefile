@@ -11,7 +11,7 @@
 # Origin: gettext-0.16
 
 PACKAGE = alpine
-VERSION = 2.21.1
+VERSION = 2.21.9
 PACKAGE_BUGREPORT = chappa@washington.edu
 
 SHELL = /bin/sh
@@ -21,7 +21,7 @@ srcdir = .
 top_srcdir = ..
 
 
-prefix = /data/root
+prefix = /usr/local
 exec_prefix = ${prefix}
 datarootdir = ${prefix}/share
 datadir = ${datarootdir}
@@ -34,29 +34,29 @@ INSTALL_DATA = ${INSTALL} -m 644
 # We use $(mkdir_p).
 # In automake <= 1.9.x, $(mkdir_p) is defined either as "mkdir -p --" or as
 # "$(mkinstalldirs)" or as "$(install_sh) -d". For these automake versions,
-# ${SHELL} /home/kgeorge/wc/alpine/install-sh does not start with $(SHELL), so we add it.
+# ${SHELL} /run/media/chappa/Work/alpine/alpinegit/install-sh does not start with $(SHELL), so we add it.
 # In automake >= 1.10, $(MKDIR_P) is derived from ${MKDIR_P}, which is defined
 # either as "/path/to/mkdir -p" or ".../install-sh -c -d". For these automake
 # versions, $(mkinstalldirs) and $(install_sh) are unused.
-mkinstalldirs = $(SHELL) ${SHELL} /home/kgeorge/wc/alpine/install-sh -d
-install_sh = $(SHELL) ${SHELL} /home/kgeorge/wc/alpine/install-sh
-MKDIR_P = /bin/mkdir -p
+mkinstalldirs = $(SHELL) ${SHELL} /run/media/chappa/Work/alpine/alpinegit/install-sh -d
+install_sh = $(SHELL) ${SHELL} /run/media/chappa/Work/alpine/alpinegit/install-sh
+MKDIR_P = /usr/bin/mkdir -p
 mkdir_p = $(MKDIR_P)
 
-GMSGFMT_ = :
-GMSGFMT_no = :
-GMSGFMT_yes = :
+GMSGFMT_ = /usr/bin/msgfmt
+GMSGFMT_no = /usr/bin/msgfmt
+GMSGFMT_yes = /usr/bin/msgfmt
 GMSGFMT = $(GMSGFMT_$(USE_MSGCTXT))
-MSGFMT_ = :
-MSGFMT_no = :
-MSGFMT_yes = :
+MSGFMT_ = /usr/bin/msgfmt
+MSGFMT_no = /usr/bin/msgfmt
+MSGFMT_yes = /usr/bin/msgfmt
 MSGFMT = $(MSGFMT_$(USE_MSGCTXT))
-XGETTEXT_ = :
-XGETTEXT_no = :
-XGETTEXT_yes = :
+XGETTEXT_ = /usr/bin/xgettext
+XGETTEXT_no = /usr/bin/xgettext
+XGETTEXT_yes = /usr/bin/xgettext
 XGETTEXT = $(XGETTEXT_$(USE_MSGCTXT))
 MSGMERGE = msgmerge
-MSGMERGE_UPDATE = : --update
+MSGMERGE_UPDATE = /usr/bin/msgmerge --update
 MSGINIT = msginit
 MSGCONV = msgconv
 MSGFILTER = msgfilter

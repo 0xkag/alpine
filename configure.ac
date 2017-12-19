@@ -15,10 +15,10 @@ dnl  */
 
 AC_PREREQ([2.69])
 
-AC_REVISION([Rev:21 by chappa@washington.edu])
+AC_REVISION([Rev:26 by chappa@washington.edu])
 
 dnl Alpine Version Number is in $srcdir/VERSION
-AC_INIT([alpine],[m4_normalize(m4_include(VERSION))],[chappa@washington.edu])
+AC_INIT([alpine],[m4_esyscmd(tr -d \\n < VERSION)],[chappa@washington.edu])
 
 AC_CONFIG_SRCDIR([include/system.h])
 AC_CONFIG_HEADERS([include/config.h])
@@ -31,7 +31,7 @@ AC_CANONICAL_HOST
 
 AC_LANG(C)
 
-AC_MSG_NOTICE([Configuring for $PACKAGE_STRING ($host))])
+AC_MSG_NOTICE([Configuring for $PACKAGE_STRING ($host)])
 
 # start out with intent to build Web Alpine
 WEB_BUILD=web/src/alpined.d
@@ -39,12 +39,12 @@ WEB_BUILD=web/src/alpined.d
 dnl CHECK PROGRAMS
 
 AC_PROG_CC
+AX_PROG_CC_FOR_BUILD
 AC_PROG_CC_STDC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_LN_S
 AC_PROG_AWK
-AC_PROG_RANLIB
 LT_INIT
 AC_SUBST([LIBTOOL_DEPS])
 
@@ -84,6 +84,27 @@ AC_ARG_WITH(dmalloc-dir,
 if test x$enable_dmalloc = "xyes" ; then
   AC_DEFINE(ENABLE_DMALLOC, 1, [Define enable dmalloc debugging])
 fi
+
+dnl set date and hostname
+ALPINE_datestamp=`date`
+AC_ARG_WITH(date-stamp,
+  AS_HELP_STRING([--with-date-stamp=DATE],[Set this as the date this program was built. Default: output of `date`]),
+  [ 
+    if test "x$withval" != "xno" ; then
+     ALPINE_datestamp=$withval
+    fi
+  ])
+AC_SUBST([ALPINE_DATESTAMP], $ALPINE_datestamp)
+
+ALPINE_hoststamp=`hostname`
+AC_ARG_WITH(host-stamp,
+  AS_HELP_STRING([--with-host-stamp=HOST],[Set name of computer for compilation. Default: output of `hostname`]),
+  [ 
+    if test "x$withval" != "xno" ; then
+      ALPINE_hoststamp="$withval"
+    fi
+  ])
+AC_SUBST([ALPINE_HOSTSTAMP], $ALPINE_hoststamp)
 
 dnl set ps command, this test is fragile, but it should mostly work
 ALPINE_psefcmd="/bin/ps auxww"
@@ -979,13 +1000,23 @@ if test "x$with_ldap" = "xno" ; then
 else
   dnl Do stuff to figure out where OpenLDAP is
 
+  case $host in
+    *-*-freebsd*)
+	alpine_LDAPDIR="/usr/local"
+	alpine_LDAPINCLUDE="${LDAPDIR}/include"
+	alpine_LDAPLIB="${LDAPDIR}/lib"
+        ;;
+  esac;
+
   alpine_with_ldap=yes
+
   AC_ARG_WITH(ldap-dir,
     AS_HELP_STRING([--with-ldap-dir=DIR],[Root of LDAP lib/include path]),
     [
       if test "x$withval" != "xno" ; then 
-	CPPFLAGS="$CPPFLAGS -I${withval}/include"
-	LDFLAGS="$LDFLAGS -L${withval}/lib"
+	alpine_LDAPDIR="${withval}"
+	alpine_LDAPINCLUDE="${LDAPDIR}/include"
+	alpine_LDAPLIB="${LDAPDIR}/lib"
       fi
     ])
 
@@ -993,7 +1024,7 @@ else
     AS_HELP_STRING([--with-ldap-include-dir=DIR],[Directory containing LDAP include files]),
     [
       if test "x$withval" != "xno" ; then
-	CPPFLAGS="$CPPFLAGS -I$withval"
+	alpine_LDAPINCLUDE="$withval"
       fi
     ])
 
@@ -1001,9 +1032,16 @@ else
     AS_HELP_STRING([--with-ldap-lib-dir=DIR],[LDAP library path]),
     [
       if test "x$withval" != "xno" ; then
-	LDFLAGS="$LDFLAGS -L$withval"
+	alpine_LDAPLIB="${withval}"
       fi
     ])
+
+   if test -n "$alpine_LDAPINCLUDE" ; then
+	CPPFLAGS="$CPPFLAGS -I${alpine_LDAPINCLUDE}/include"
+   fi
+   if test -n "$alpine_LDAPLIB" ; then
+	LDFLAGS="$LDFLAGS -L${alpine_LDAPLIB}/lib"
+   fi
 fi
 
 dnl Include SMIME?
@@ -1365,22 +1403,18 @@ fi
 dnl Check if openssl = LibreSSL
 if test "x$alpine_SSLTYPE" != "xnone" ; then
   AC_MSG_CHECKING([if OpenSSL is LibreSSL])
-  AC_RUN_IFELSE(
-	[AC_LANG_SOURCE([[
+  AC_TRY_COMPILE([
 #include <stdio.h>
 #include <stdlib.h>
 #if HAVE_STDINT_H
 #include <stdint.h>
 #endif /* HAVE_STDINT_H */
 #include <openssl/ssl.h>
-int main(void) {
-
-	if (LIBRESSL_VERSION_NUMBER >= 0x20000000L)
-		exit(0);
-
-	exit(2);
-}
-	]])],
+	],[
+#if OPENSSL_VERSION_NUMBER < 0x20000000L
+#error
+#endif
+	],
 	[ AC_MSG_RESULT(yes)
 	  alpine_SSLPROVIDER="libressl"
 	],
@@ -1392,22 +1426,18 @@ fi
 dnl Check Openssl/LibreSSL version first
 if test "x$alpine_SSLTYPE" != "xnone" -a "x$alpine_SSLPROVIDER" != "xlibressl" ; then
   AC_MSG_CHECKING([Openssl library version >= 1.0.0c])
-  AC_RUN_IFELSE(
-	[AC_LANG_SOURCE([[
+  AC_TRY_COMPILE([
 #include <stdio.h>
 #include <stdlib.h>
 #if HAVE_STDINT_H
 #include <stdint.h>
 #endif /* HAVE_STDINT_H */
 #include <openssl/ssl.h>
-int main(void) {
-
-	if (OPENSSL_VERSION_NUMBER >= 0x1000003fL)
-		exit(0);
-
-	exit(2);
-}
-	]])],
+	],[
+#if OPENSSL_VERSION_NUMBER < 0x1000003fL
+#error
+#endif
+	],
 	[ AC_MSG_RESULT(yes) 
 	  alpine_SSLPROVIDER="openssl"
 	],
@@ -1423,22 +1453,18 @@ fi
 dnl Now check if we are working with version 1.1.0 of openssl
 if test "x$alpine_SSLTYPE" != "xnone" -a "x$alpine_SSLPROVIDER" != "xlibressl" ; then
   AC_MSG_CHECKING([Openssl library version >= 1.1.0])
-  AC_RUN_IFELSE(
-	[AC_LANG_SOURCE([[
+  AC_TRY_COMPILE([
 #include <stdio.h>
 #include <stdlib.h>
 #if HAVE_STDINT_H
 #include <stdint.h>
 #endif /* HAVE_STDINT_H */
 #include <openssl/ssl.h>
-int main(void) {
-
-	if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
-		exit(0);
-
-	exit(2);
-}
-	]])],
+	],[
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#error
+#endif
+	],
 	[ AC_MSG_RESULT(yes)
 	  alpine_SSLVERSION="new"
 	  CFLAGS="$CFLAGS -DOPENSSL_1_1_0 -DOPENSSL_API_COMPAT=0x10100000L"
@@ -1481,6 +1507,7 @@ if test "x$alpine_SSLTYPE" != "xnone" ; then
         AC_SEARCH_LIBS(TLS_client_method,ssl,, [ alpine_SSLTYPE="none"])
         AC_SEARCH_LIBS(DTLS_client_method,ssl,,[ alpine_SSLTYPE="none"])
 	if test "x$alpine_SSLTYPE" != "xnone" ; then
+	  alpine_c_client_cflags="$alpine_c_client_cflags -DTLSV1_2"
 	  AC_DEFINE([SSL_SUPPORTS_TLSV1_2], [1], [SSL Supports TLSV1.2])
 	fi
     fi
@@ -1584,6 +1611,38 @@ if test "x$alpine_GSSTYPE" != "xnone" ; then
   fi
 fi
 
+dnl Include NTLM?
+AC_ARG_WITH(ntlm,
+  AC_HELP_STRING([--without-ntlm],[Disable NTLM client support]),
+  [with_ntlm=$withval])
+
+dnl provide NTLM support?
+if test "x$with_ntlm" = "xno" ; then
+  alpine_NTLM="none"
+else
+  alpine_NTLM=
+
+  AC_SEARCH_LIBS(buildSmbNtlmAuthRequest, ntlm, 
+     [
+        AC_CHECK_HEADER([ntlm.h],
+	[
+	    extra_auth_ntlm=ntl
+	    AC_MSG_NOTICE([including NTLM support])
+	],
+	[
+	    alpine_NTLM="none"
+	    alpine_ntlm_none_reason="header file ntlm.h not found"
+	])
+     ],
+     [
+	alpine_NTLM="none"
+	alpine_ntlm_none_reason="ntlm library not found"
+     ])
+  if test -n "$alpine_ntlm_none_reason" ; then
+     AC_MSG_NOTICE([NOT including NTLM Support: $alpine_ntlm_none_reason])
+  fi
+fi
+
 dnl check for tcl libraries for Web Alpine (HACKY)
 if test -n "$WEB_BUILD" ; then
 TCL_VERSIONS_DOT="tcl8.6 tcl8.5 tcl8.4 tcl8.3"
@@ -1608,16 +1667,13 @@ TCL_VERSIONS="${TCL_VERSIONS_DOT} ${TCL_VERSIONS_NODOT} tcl"
       [
 	for base in /usr /usr/local ; do
 	 for dir in ${TCL_VERSIONS} ; do
-	  AC_CHECK_FILE([$base/include/$dir/tcl.h],
-	    [
-	      found=yes
-	    ])
-	  if test "$found" = "yes" ; then
+	  if test -f $base/include/$dir/tcl.h ; then
 	    CPPFLAGS="$CPPFLAGS -I$base/include/$dir"
+	    found=yes
 	    break
 	  fi
 	 done
-	 if test "$found" = "yes" ; then
+	 if test "x$found" = "xyes" ; then
 	    break
 	 fi
 	done
@@ -1985,9 +2041,16 @@ else
   fi
 fi
 
+extra_auth_gss=
 if test "x$alpine_GSSTYPE" != "xnone" ; then
-  c_client_specials="${c_client_specials}EXTRAAUTHENTICATORS=gss "
+  extra_auth_gss=gss
   AC_MSG_NOTICE([* * * Including Kerberos5 functionality])
+fi
+
+extra_auth_ntlm=
+if test "x$alpine_NTLM" != "xnone" ; then
+  extra_auth_ntlm=ntl
+  AC_MSG_NOTICE([* * * Including NTLM Authenticator])
 fi
 
 if test -n "$CPPFLAGS" ; then
@@ -2015,6 +2078,9 @@ fi
 if test -n "$alpine_c_client_gccoptlevel" ; then
   AC_SUBST(C_CLIENT_GCCOPTLEVEL, GCCOPTLEVEL=\"$alpine_c_client_gccoptlevel\")
 fi
+
+c_client_auths="$extra_auth_gss $extra_auth_ntlm"
+AC_SUBST([C_CLIENT_AUTHS], $c_client_auths)
 
 AC_SUBST([C_CLIENT_SPECIALS], $c_client_specials)
 
