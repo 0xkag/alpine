@@ -21,7 +21,7 @@ srcdir = .
 top_srcdir = ..
 
 
-prefix = /data/root
+prefix = /home/kgeorge/.root
 exec_prefix = ${prefix}
 datarootdir = ${prefix}/share
 datadir = ${datarootdir}

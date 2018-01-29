@@ -602,13 +602,13 @@
 #define STDC_HEADERS 1
 
 /* System pinerc */
-#define SYSTEM_PINERC "/data/root/lib/pine.conf"
+#define SYSTEM_PINERC "/home/kgeorge/.root/lib/pine.conf"
 
 /* System fixed pinerc */
-#define SYSTEM_PINERC_FIXED "/data/root/lib/pine.conf.fixed"
+#define SYSTEM_PINERC_FIXED "/home/kgeorge/.root/lib/pine.conf.fixed"
 
 /* Local Support Info File */
-#define SYSTEM_PINE_INFO_PATH "/data/root/lib/pine.info"
+#define SYSTEM_PINE_INFO_PATH "/home/kgeorge/.root/lib/pine.info"
 
 /* Pine-Centric Host Specifier */
 #define SYSTYPE "DEB"

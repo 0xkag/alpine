@@ -118,7 +118,7 @@ am__can_run_installinfo = \
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = ${SHELL} /home/kgeorge/wc/alpine/missing aclocal-1.13
-ALPINE_DATESTAMP = Sun Jan 28 22:35:57 EST 2018
+ALPINE_DATESTAMP = Sun Jan 28 22:37:48 EST 2018
 ALPINE_HOSTSTAMP = patton.tcpsoft.net
 AMTAR = $${TAR-tar}
 AM_CFLAGS =  -g -pthread
@@ -138,14 +138,14 @@ CFLAGS = -g -O2 -DOPENSSL_1_1_0 -DOPENSSL_API_COMPAT=0x10100000L
 CFLAGS_FOR_BUILD = -g -O2
 CP = /bin/cp
 CPP = gcc -E
-CPPFLAGS = -I/usr/include/openssl -I/data/root/include
+CPPFLAGS = -I/usr/include/openssl 
 CPPFLAGS_FOR_BUILD = 
 CPP_FOR_BUILD = gcc -E
 CYGPATH_W = echo
 C_CLIENT_AUTHS =  
-C_CLIENT_CFLAGS = EXTRACFLAGS=" -DTLSV1_2 -I/usr/include/openssl -I/data/root/include -g -O2 -DOPENSSL_1_1_0 -DOPENSSL_API_COMPAT=0x10100000L"
+C_CLIENT_CFLAGS = EXTRACFLAGS=" -DTLSV1_2 -I/usr/include/openssl  -g -O2 -DOPENSSL_1_1_0 -DOPENSSL_API_COMPAT=0x10100000L"
 C_CLIENT_GCCOPTLEVEL = 
-C_CLIENT_LDFLAGS = EXTRALDFLAGS=" -L/usr/lib -L/data/root/lib  -ltcl8.6 -lpam -lssl -lcrypto -ldl  -ltinfo -lpam"
+C_CLIENT_LDFLAGS = EXTRALDFLAGS=" -L/usr/lib   -ltcl8.6 -lpam -lssl -lcrypto -ldl  -ltinfo -lpam"
 C_CLIENT_SPECIALS = SSLINCLUDE=/usr/include/openssl SSLLIB=/usr/lib SSLDIR=/etc/ssl SSLCERTS=/etc/ssl/certs SSLKEYS=/etc/ssl/private 
 C_CLIENT_TARGET = ldb
 C_CLIENT_WITH_IPV6 = touch imap/ip6
@@ -172,7 +172,7 @@ INTLLIBS =
 INTL_MACOSX_LIBS = 
 ISPELLPROG = aspell
 LD = /usr/bin/ld
-LDFLAGS = -L/usr/lib -L/data/root/lib
+LDFLAGS = -L/usr/lib 
 LDFLAGS_FOR_BUILD = 
 LIBICONV = -liconv
 LIBINTL = 
@@ -278,7 +278,7 @@ mandir = ${datarootdir}/man
 mkdir_p = $(MKDIR_P)
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /data/root
+prefix = /home/kgeorge/.root
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
