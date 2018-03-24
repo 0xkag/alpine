@@ -15,7 +15,7 @@
 
 
 # ========================================================================
-# Copyright 2013-2017 Eduardo Chappa
+# Copyright 2013-2018 Eduardo Chappa
 # Copyright 2006 University of Washington
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -185,7 +185,7 @@ ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = ${SHELL} /home/kgeorge/wc/alpine/missing aclocal-1.13
-ALPINE_DATESTAMP = Sun Jan 28 22:37:48 EST 2018
+ALPINE_DATESTAMP = Fri Mar 23 23:22:59 EDT 2018
 ALPINE_HOSTSTAMP = patton.tcpsoft.net
 AMTAR = $${TAR-tar}
 AM_CFLAGS =  -g -pthread
@@ -272,10 +272,10 @@ OTOOL64 =
 PACKAGE = alpine
 PACKAGE_BUGREPORT = chappa@washington.edu
 PACKAGE_NAME = alpine
-PACKAGE_STRING = alpine 2.21.99
+PACKAGE_STRING = alpine 2.21.999
 PACKAGE_TARNAME = alpine
 PACKAGE_URL = 
-PACKAGE_VERSION = 2.21.99
+PACKAGE_VERSION = 2.21.999
 PATH_SEPARATOR = :
 POSUB = po
 PTHREAD_CC = gcc
@@ -292,7 +292,7 @@ SHELL = /bin/bash
 SPELLPROG = aspell
 STRIP = strip
 USE_NLS = yes
-VERSION = 2.21.99
+VERSION = 2.21.999
 WEB_BINDIR = 
 WEB_BUILD = 
 WEB_PUBCOOKIE_BUILD = 

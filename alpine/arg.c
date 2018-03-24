@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: arg.c 900 2008-01-05 01:13:26Z hubert@u.washington.e
 
 /*
  * ========================================================================
- * Copyright 2013-2017 Eduardo Chappa
+ * Copyright 2013-2018 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -992,7 +992,8 @@ process_debug_str(char *debug_str)
 		else if(struncmp(*p, "flush", 5) == 0){
 		    ps_global->debug_flush = 1;
 		}
-		else if(struncmp(*p, "tcp", 3) == 0){
+		else if(struncmp(*p, "tcp", 3) == 0 
+			|| struncmp(*p, "tcpdebug", 8) == 0){
 		    ps_global->debug_tcp = 1;
 		}
 		else if(struncmp(*p, "verbose", 7) == 0){

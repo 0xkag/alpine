@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: mimedesc.c 1142 2008-08-13 17:22:21Z hubert@u.washin
 
 /*
  * ========================================================================
- * Copyright 2013-2017 Eduardo Chappa
+ * Copyright 2013-2018 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -252,7 +252,8 @@ describe_mime(struct mail_bodystruct *body, char *prefix, int num,
 	 * be expensive to test...
 	 */
 	if((body->type == TYPETEXT && !named)
-	   || MIME_VCARD(body->type,body->subtype)){
+	   || MIME_VCARD(body->type,body->subtype)
+	   || MIME_VCALENDAR(body->type, body->subtype)){
 	    a->test_deferred = 1;
 	    a->can_display = MCD_INTERNAL;
 	}
@@ -264,7 +265,8 @@ describe_mime(struct mail_bodystruct *body, char *prefix, int num,
 	/*
 	 * Deferred means we can display it
 	 */
-	a->shown = ((a->can_display & MCD_INTERNAL)
+	a->shown = MIME_VCALENDAR(body->type, body->subtype)
+		   || ((a->can_display & MCD_INTERNAL)
 		    && !MIME_VCARD(body->type,body->subtype)
 		    && (!named || multalt
 			|| (body->type == TYPETEXT && num == 1
