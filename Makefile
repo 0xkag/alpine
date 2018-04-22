@@ -242,7 +242,7 @@ am__distuninstallcheck_listfiles = $(distuninstallcheck_listfiles) \
   | sed 's|^\./|$(prefix)/|' | grep -v '$(infodir)/dir$$'
 distcleancheck_listfiles = find . -type f -print
 ACLOCAL = ${SHELL} /home/kgeorge/wc/alpine/missing aclocal-1.13
-ALPINE_DATESTAMP = Fri Mar 23 23:22:59 EDT 2018
+ALPINE_DATESTAMP = Sun Apr 22 11:43:43 EDT 2018
 ALPINE_HOSTSTAMP = patton.tcpsoft.net
 AMTAR = $${TAR-tar}
 AM_CFLAGS =  -g -pthread
