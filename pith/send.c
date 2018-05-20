@@ -1237,10 +1237,12 @@ pine_new_env(ENVELOPE *outgoing, char **fccp, char ***tobufpp, PINEFIELD *custom
     for(i=0; i < stdcnt; i++, pf++){
 
         pf->name        = cpystr(pf_template[i].name);
-	if(i == N_SENDER && F_ON(F_USE_SENDER_NOT_X, ps_global))
+	if(i == N_SENDER && F_ON(F_USE_SENDER_NOT_X, ps_global)){
 	  /* slide string over so it is Sender instead of X-X-Sender */
-	  for(p=pf->name; *(p+1); p++)
-	    *p = *(p+4);
+	  for(p=pf->name+4; *p != '\0'; p++)
+	    *(p-4) = *p;
+	  *(p-4) = '\0';
+	}
 
         pf->type        = pf_template[i].type;
 	pf->canedit     = pf_template[i].canedit;

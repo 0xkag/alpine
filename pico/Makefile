@@ -242,7 +242,7 @@ am__relativize = \
   done; \
   reldir="$$dir2"
 ACLOCAL = ${SHELL} /home/kgeorge/wc/alpine/missing aclocal-1.13
-ALPINE_DATESTAMP = Sun Apr 22 11:43:43 EDT 2018
+ALPINE_DATESTAMP = Sat May 19 23:52:26 EDT 2018
 ALPINE_HOSTSTAMP = patton.tcpsoft.net
 AMTAR = $${TAR-tar}
 AM_CFLAGS =  -g -pthread
