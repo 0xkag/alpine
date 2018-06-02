@@ -75,7 +75,7 @@ static void           setup_storage_locations(void);
 static int            copy_container_to_dir(WhichCerts which);
 static int	      do_fiddle_smime_message(BODY *b, long msgno, char *section);
 void		      setup_privatekey_storage(void);
-int		      smime_extract_and_save_cert(PKCS7 *p7, int check_cert);
+int		      smime_extract_and_save_cert(PKCS7 *p7);
 int		      same_cert(X509 *, X509 *);
 #ifdef PASSFILE
 int		      load_key_and_cert(char *pathkeydir, char *pathcertdir, char **keyfile, char **certfile, EVP_PKEY **pkey, X509 **pcert);
@@ -1023,7 +1023,8 @@ forget_private_keys(void)
  * directory where the .pinerc is located, since according to documentation,
  * the .alpine-smime directories are subdirectories of the home directory
  */
-int smime_path(char *rpath, char *fpath, size_t len)
+int
+smime_path(char *rpath, char *fpath, size_t len)
 {
     *fpath = '\0';
     if(rpath && *rpath){
@@ -1234,7 +1235,8 @@ smime_deinit(void)
 }
 
 /* we renew the store when it has changed */
-void renew_store(void)
+void
+renew_store(void)
 {
     if(ps_global->smime->inited){
        if(s_cert_store != NULL)
@@ -1277,7 +1279,8 @@ smime_init(void)
 /* validate a certificate. Return value : 0 for no error, -1 for error.
  * In the latter case, set the openssl smime error in *error.
  */
-int smime_validate_cert(X509 *cert, long *error)
+int
+smime_validate_cert(X509 *cert, long *error)
 {
    X509_STORE_CTX *csc;
 
@@ -1430,8 +1433,6 @@ setup_privatekey_storage(void)
     }
     setup_certs_backup_by_type(Private);
 }
-
-
 
 static void
 setup_storage_locations(void)
@@ -2731,7 +2732,8 @@ get_pkcs7_from_part(long msgno,const char *section)
     return p7;
 }
 
-int same_cert(X509 *x, X509 *cert)
+int
+same_cert(X509 *x, X509 *cert)
 {
    char    bufcert[256],  bufx[256];
    int rv = 0;
@@ -2745,42 +2747,56 @@ int same_cert(X509 *x, X509 *cert)
 }
 
 
-/* extract and save certificates from a PKCS7 package. The ctype variable
- * tells us if we want to extract it to a public/ or a ca/ directory. The
- * later makes sense only for recoverable errors (errors that can be fixed
- * by saving to the ca/ directory before we verify the signature).
+/* extract and save certificates from a PKCS7 package.
  * Return value:
- *	0 - no errors (in public/) no need to try again, 
- *          or validated self signed certificate (in ca/)
- *    < 0 - certificate error is not recoverable, don't even think about it.
+ *	0 - no errors. Either the certificate was in public/
+ *	    or we could save it there.
+ *    < 0 - the certificate was not in public/ and the user
+ *	    did not save it there.
  */
 
-int smime_extract_and_save_cert(PKCS7 *p7, int check_cert)
+int
+smime_extract_and_save_cert(PKCS7 *p7)
 {
     STACK_OF(X509) *signers;
     X509 *x, *cert;
     char **email;
-    int i, j;
+    int i, j, rv, already_saved;
     long error;
 
+    /* any signers for this message? */
     if((signers = PKCS7_get0_signers(p7, NULL, 0)) == NULL)
       return -1;
 
+    rv = 0;
     for(i = 0; i < sk_X509_num(signers); i++){
 	if((x = sk_X509_value(signers,i)) == NULL)
 	    continue;
 
 	if((email = get_x509_subject_email(x)) != NULL){
 	  for(j = 0; email[j] != NULL; j++){
-	     if((cert = get_cert_for(email[j], Public, 1)) == NULL 
-		  || same_cert(x, cert) == 0){
-		if(check_cert == 0
-		   || smime_validate_cert(x, &error) == 0
-		   || (*pith_smime_confirm_save)(email[j]) == 1)
-		  save_cert_for(email[j], x, Public);
+	     already_saved = 0;
+			/* check if we have the certificate for this address */
+	     cert = get_cert_for(email[j], Public, 1);
+			/* if we have one, check if it is the one packaged */
+	     if(cert != NULL){
+		already_saved = same_cert(x, cert);
+		X509_free(cert);
 	     }
+
+			/* if not saved, try to save it */
+	     if(already_saved == 0
+		  && (*pith_smime_confirm_save)(email[j]) == 1)
+		save_cert_for(email[j], x, Public);
+
+			/* check if it got saved */
+	     cert = get_cert_for(email[j], Public, 1);
+			/* if saved, all is good */
 	     if(cert != NULL)
 		X509_free(cert);
+	     else	/* else, we do not have this certificate saved */
+		rv += -1;
+
 	     fs_give((void **) &email[j]);
 	  }
 	  fs_give((void **) email);
@@ -2788,7 +2804,7 @@ int smime_extract_and_save_cert(PKCS7 *p7, int check_cert)
     }
     sk_X509_free(signers);
 
-    return 0;
+    return rv;
 }
 
 /*
@@ -3035,7 +3051,6 @@ do_detached_signature_verify(BODY *b, long msgno, char *section)
     PART    *p;
     int	     result, modified_the_body = 0;
     int      flag;	/* 1 silent, 0 not silent */
-    int      saved = 0;
     unsigned long mimelen, bodylen;
     char     newSec[100], *mimetext, *bodytext;
     char    *what_we_did;
@@ -3079,9 +3094,7 @@ do_detached_signature_verify(BODY *b, long msgno, char *section)
       BIO_write(in, mimetext, mimelen);
     BIO_write(in, bodytext, bodylen);
 
-    saved = smime_extract_and_save_cert(p7, F_ON(F_USE_CERT_STORE_ONLY, ps_global));
-    if(saved < 0 && F_ON(F_USE_CERT_STORE_ONLY, ps_global))
-       return modified_the_body;
+    smime_extract_and_save_cert(p7);
 
     if((result = do_signature_verify(p7, in, NULL, 1)) == 0){
       flag = (mimelen == 0 || !IS_REMOTE(ps_global->mail_stream->mailbox))
@@ -3271,7 +3284,7 @@ decrypt_file(char *fp, int *rv, PERSONAL_CERT *pc)
     len = BIO_get_mem_data(out, &tmp);
     text = fs_get((len+1)*sizeof(char));
     strncpy(text, tmp, len);
-    text[len-1] = '\0';
+    text[len] = '\0';
     BIO_free(out);
   } else
     q_status_message1(SM_ORDER, 1, 1, _("Error decrypting: %s"),

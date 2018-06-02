@@ -140,7 +140,7 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 268 2018-05-02 20:16:40
+Alpine Commit 277 2018-05-20 14:52:22
 ============= h_news =================
 <HTML>
 <HEAD>
@@ -196,6 +196,16 @@ these contributed by Helmut Grohne. See
 password file encryption key. This allows users to use their password file
 without entering a master password.
 
+<LI> Add the &quot;g&quot; option to the select command that works in IMAP 
+servers that implement the X-GM-EXT-1 capability (such as the one offered 
+by Gmail.) This allows users to do selection in Alpine as if they were 
+doing a search in the web interface for Gmail.
+
+<LI> New variable close-connection-timeout, which tells Alpine to close
+a connection that is having problems being kept alive after the number
+of seconds configured in this variable, if the connection has not
+recovered. The default is 0, which means to keep the connection alive
+and wait for the connection to recover.
 </UL>
 
 <P>
@@ -236,6 +246,14 @@ Bugs that have been addressed include:
    <LI> If the directory where Alpine saves the certificates if empty,
         alpine would not create a self-signed certificate to encrypt the 
         password file.
+
+   <LI> S/MIME: The list of public certificates is freed before it is 
+        reused when a signature fails to verify. This causes Alpine to 
+        crash. Patch submitted by Linus Torvalds.
+
+   <LI> S/MIME: A message could fail to verify its signature even if the
+        certificate was saved when the message was open. Based on a report 
+        by David Woodhouse to the RedHat bugzilla system.
 </UL>
 
 <P>
@@ -38507,6 +38525,9 @@ attachment, or ^C to cancel.
 ========== h_select_by_num ==========
 Enter a list of message numbers (or number ranges), or ^C to cancel. "end" 
 is the last message. "." is the current message. Example: 1-.,7-9,11,19,35-end
+========== h_select_by_gm_content ==========
+Enter your search key in the same way that you would enter a search
+key in the web interface for Gmail.
 ========== h_select_by_thrdnum ==========
 Enter a list of message numbers (or number ranges), or ^C to cancel. "end" 
 is the last message. "." is the current message. Example: 1-.,7-9,11,19,35-end
