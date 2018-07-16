@@ -1199,6 +1199,8 @@ main(int argc, char **argv)
 		q_status_message1(SM_ORDER, 3, 4,
 		    _("Unable to open folder \"%s\""), args.data.folder);
 
+		fs_give((void **) &args.data.folder);
+
 		goodnight_gracey(pine_state, -1);
 	    }
 	}
@@ -1313,6 +1315,9 @@ main(int argc, char **argv)
 	   && (folder_exists(NULL, int_mail) & FEX_ISFILE))
 	  q_status_message(SM_ORDER | SM_DING, 4, 5, 
 		       _("Use Compose command to continue interrupted message."));
+
+	if(args.action == aaFolder && args.data.folder)
+	  fs_give((void **) &args.data.folder);
 
 #if defined(USE_QUOTAS)
 	{
@@ -3560,7 +3565,7 @@ free_alpine_module_globals(void)
     free_passfile_cache();
 #endif
     free_message_queue();
-    free_mailcmd_globals();
+    free_titlebar_globals();
 }
 
 #ifdef	WIN32

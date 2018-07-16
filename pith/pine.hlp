@@ -140,7 +140,7 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 277 2018-05-20 14:52:22
+Alpine Commit 298 2018-07-10 17:38:37
 ============= h_news =================
 <HTML>
 <HEAD>
@@ -206,11 +206,20 @@ a connection that is having problems being kept alive after the number
 of seconds configured in this variable, if the connection has not
 recovered. The default is 0, which means to keep the connection alive
 and wait for the connection to recover.
+
+<LI> When a message is of type multipart/mixed, and its first part is
+multipart/signed, Alpine will include the text of the original message
+in a reply message, instead of including a multipart attachment.
+Suggested by Barry Landy.
 </UL>
 
 <P>
 Bugs that have been addressed include:
 <UL>
+   <LI> Width of characters is not always determined correctly when wcwidth
+        is used. Revert to using code for the Windows operating system. 
+        Reported by Andrew Ho.
+
    <LI> Crash when attempting to bounce a message due to lack of space in
         allocated space for key menu array. Reported by David Sewell.
 
@@ -2011,7 +2020,7 @@ on Alpine configuration.<P>
   <LI> The main site for Alpine contains information on configuring and solving problems
        with Alpine, it can be found at
 
-<CENTER><A HREF="http://alpine.freeiz.com/alpine/">http://alpine.freeiz.com/alpine/</A></CENTER>  
+<CENTER><A HREF="http://alpine.x10host.com/alpine/">http://alpine.x10host.com/alpine/</A></CENTER>  
 -->
   <LI> The Alpine Information Center (maintained by the University of
 	   Washington) World Wide Web site contains, among other things

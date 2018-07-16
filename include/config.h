@@ -476,8 +476,7 @@
 /* Enable keyboard lock support */
 #define KEYBOARD_LOCK /**/
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
 
 /* Path to local inboxes for pico newmail check */
@@ -517,7 +516,7 @@
 #define PACKAGE_NAME "alpine"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "alpine 2.21.999"
+#define PACKAGE_STRING "alpine 2.21.9999"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "alpine"
@@ -526,7 +525,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.21.999"
+#define PACKAGE_VERSION "2.21.9999"
 
 /* Password cache file (recommended if S/MIME is enabled and configured) */
 #define PASSFILE ".pine-passfile"
@@ -638,7 +637,7 @@
 /* #undef USE_QUOTAS */
 
 /* Version number of package */
-#define VERSION "2.21.999"
+#define VERSION "2.21.9999"
 
 /* Windows is just too different */
 /* #undef _WINDOWS */
