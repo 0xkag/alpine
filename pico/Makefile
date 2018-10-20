@@ -253,7 +253,7 @@ am__relativize = \
   done; \
   reldir="$$dir2"
 ACLOCAL = ${SHELL} /home/kgeorge/wc/alpine/missing aclocal-1.15
-ALPINE_DATESTAMP = Sun Jul 15 22:03:37 EDT 2018
+ALPINE_DATESTAMP = Sat Oct 20 04:36:16 EDT 2018
 ALPINE_HOSTSTAMP = patton.tcpsoft.net
 AMTAR = $${TAR-tar}
 AM_CFLAGS =  -g -pthread
@@ -278,9 +278,9 @@ CPPFLAGS_FOR_BUILD =
 CPP_FOR_BUILD = gcc -E
 CYGPATH_W = echo
 C_CLIENT_AUTHS =  
-C_CLIENT_CFLAGS = EXTRACFLAGS=" -DTLSV1_2 -I/usr/include/openssl  -g -O2 -DOPENSSL_1_1_0 -DOPENSSL_API_COMPAT=0x10100000L"
+C_CLIENT_CFLAGS = EXTRACFLAGS=" -I/usr/include/openssl  -g -O2 -DOPENSSL_1_1_0 -DOPENSSL_API_COMPAT=0x10100000L"
 C_CLIENT_GCCOPTLEVEL = 
-C_CLIENT_LDFLAGS = EXTRALDFLAGS=" -L/usr/lib   -lpam -lssl -lcrypto -ldl  -ltinfo -lpam"
+C_CLIENT_LDFLAGS = EXTRALDFLAGS=" -L/usr/lib   -ltcl8.6 -lpam -lssl -lcrypto -ldl  -ltinfo -lpam"
 C_CLIENT_SPECIALS = SSLINCLUDE=/usr/include/openssl SSLLIB=/usr/lib SSLDIR=/etc/ssl SSLCERTS=/etc/ssl/certs SSLKEYS=/etc/ssl/private 
 C_CLIENT_TARGET = ldb
 C_CLIENT_WITH_IPV6 = touch imap/ip6
@@ -312,7 +312,7 @@ LDFLAGS_FOR_BUILD =
 LIBICONV = -liconv
 LIBINTL = 
 LIBOBJS = 
-LIBS =  -lpam -lssl -lcrypto -ldl  -ltinfo -lpam
+LIBS =  -ltcl8.6 -lpam -lssl -lcrypto -ldl  -ltinfo -lpam
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIBTOOL_DEPS = ./ltmain.sh
 LIPO = 

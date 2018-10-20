@@ -591,9 +591,6 @@
 /* Simple spell checker: reads stdin, emits misspellings on stdout */
 #define SPELLER "/usr/bin/aspell --dont-backup --mode=email list"
 
-/* SSL Supports TLSV1.2 */
-#define SSL_SUPPORTS_TLSV1_2 1
-
 /* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */
 /* #undef STAT_MACROS_BROKEN */
 
