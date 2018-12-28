@@ -140,7 +140,7 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 301 2018-08-15 21:08:38
+Alpine Commit 315 2018-12-16 13:42:34
 ============= h_news =================
 <HTML>
 <HEAD>
@@ -237,12 +237,30 @@ Bugs that have been addressed include:
    <LI> Crash when a CA certificate failed to load, and user attempted to
         view certificate information of other certificate authorities.
 
+   <LI> Crash in the S/MIME configuration screen when a user turned off S/MIME, and
+        then reenabled it. Also crash when attempting to enter the S/MIME 
+        configuration screen if S/MIME was turned off.
+
    <LI> Deactivate some color code from Pico (as standalone editor in the
         windows version) until I find a way to activate it again. This is 
         not critical and it is not something that PC-Pico must have (some 
         of it already exists in other ways, like color support, what does 
         not exist is the more complex code that Unix-Pico has with color 
         codes for specific colors.)
+
+   <LI> When a message is multipart, and the first part is flowed text, 
+        then forwarding the message will set the first part to be flowed, 
+        and sent that way even when the option Do Not Send Flowed Text is 
+        enabled. Reported by Holger Trapp.
+
+   <LI> When a message/rfc822 part of a message is encoded with
+        Content-Transfer-Encoding: QUOTED-PRINTABLE, Alpine will stop 
+        processing that message. Later this causes Alpine to crash because 
+        when it displays messages, it assumes that both header and body 
+        parts are processed. Reported by Mark Crispin in 2010, in the 
+        Alpine-info list (message with subject "crash bug in 
+        alpine/mailpart.c:format_msg_att()") with no example, and reported 
+        now by Holger Trapp, with an example.
 
    <LI> Update build.bat file to add /DWINVER=0x0501 so that Alpine can 
         build when using Visual Studio 2017. Fix contributed by 
