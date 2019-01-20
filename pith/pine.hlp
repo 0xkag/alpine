@@ -262,6 +262,12 @@ Bugs that have been addressed include:
         alpine/mailpart.c:format_msg_att()") with no example, and reported 
         now by Holger Trapp, with an example.
 
+   <LI> In addition to the previous report, Alpine encodes message/rfc822
+        messages as QUOTED-PRINTABLE, in contradiction with RFC 2045, 
+        when it receives a report that its encoding is 8bit. We preserve 
+        the encoding reported by the IMAP server, and do not encode in 
+        QUOTED-PRINTABLE.
+
    <LI> Update build.bat file to add /DWINVER=0x0501 so that Alpine can 
         build when using Visual Studio 2017. Fix contributed by 
         Ulf-Dietrich Braunmann.
@@ -292,6 +298,11 @@ Bugs that have been addressed include:
    <LI> S/MIME: A message could fail to verify its signature even if the
         certificate was saved when the message was open. Based on a report 
         by David Woodhouse to the RedHat bugzilla system.
+
+   <LI> When there are time changes in the clock, Alpine might go to sleep
+        for big amounts of time while displaying messages in the screen.
+        Reset sleep time to 5 seconds in case it finds it needs to sleep
+        more than 5 seconds or a negative amount of time.
 </UL>
 
 <P>
