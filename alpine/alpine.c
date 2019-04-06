@@ -278,12 +278,18 @@ main(int argc, char **argv)
 	dup2(STDIN_FD, PIPED_FD);	/* redirected stdin to new desc */
 	dup2(STDERR_FD, STDIN_FD);	/* rebind stdin to the tty	*/
 	stdin_getc = read_stdin_char;
-	if(stdin_getc && args.action == aaURL){
-	  display_args_err(
+	if(stdin_getc){
+	  if(args.action == aaURL){
+	     display_args_err(
   "Cannot read stdin when using -url\nFor mailto URLs, use \'body=\' instead", 
-	   NULL, 1);
-	  args_help();
-	  exit(-1);
+	     NULL, 1);
+	     args_help();
+	     exit(-1);
+	  } else if (args.action == aaFolder){
+	     display_args_err("Cannot take input from pipe when opening a folder", NULL, 1);
+	     args_help();
+	     exit(-1);
+	  }
 	}
     }
 
@@ -445,7 +451,7 @@ main(int argc, char **argv)
     mail_parameters(NULL, SET_SSLFAILURE, (void *) pine_sslfailure);
 
     if(init_pinerc_debugging){
-	dprint((2, init_pinerc_debugging));
+        dprint((2, "%s", init_pinerc_debugging));
 	fs_give((void **)&init_pinerc_debugging);
     }
 
@@ -650,6 +656,71 @@ main(int argc, char **argv)
 	      tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
 	      init_error(ps_global, SM_ORDER | SM_DING, 3, 5, tmp_20k_buf);
 	  }
+    }
+
+    if(ps_global->VAR_ENCRYPTION_RANGE
+	&& ps_global->VAR_ENCRYPTION_RANGE[0]){
+	char *min_s, *max_s, *s;
+	int   min_v, max_v;
+
+	if((s = strchr(ps_global->VAR_ENCRYPTION_RANGE, ',')) == NULL){
+	   snprintf(tmp_20k_buf, SIZEOF_20KBUF,
+	     _("Bad encryption range: \"%s\": resetting to default"),
+	      ps_global->VAR_ENCRYPTION_RANGE);
+	   tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+	   init_error(ps_global, SM_ORDER | SM_DING, 3, 5, tmp_20k_buf);
+	   fs_give((void **) &ps_global->VAR_ENCRYPTION_RANGE);
+	   ps_global->VAR_ENCRYPTION_RANGE = cpystr(DF_ENCRYPTION_RANGE);
+	   s = strchr(ps_global->VAR_ENCRYPTION_RANGE, ','); /* try again */
+	}
+
+	if(s == NULL){
+	   snprintf(tmp_20k_buf, SIZEOF_20KBUF,
+	     _("Bad default encryption range: \"%s\""), 
+		ps_global->VAR_ENCRYPTION_RANGE);
+	   tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+	   init_error(ps_global, SM_ORDER | SM_DING, 3, 5, tmp_20k_buf);
+	}
+	else {
+	   *s = ' ';
+	   get_pair(ps_global->VAR_ENCRYPTION_RANGE, &min_s, &max_s, 1, 0);
+	   *s = ',';
+
+	   min_v = pith_ssl_encryption_version(min_s);
+	   max_v = pith_ssl_encryption_version(max_s);
+
+	   if(min_v < 0 || max_v < 0){
+	      snprintf(tmp_20k_buf, SIZEOF_20KBUF,
+		_("Bad encryption range: \"%s\": resetting to default"),
+	           ps_global->VAR_ENCRYPTION_RANGE);
+	      tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+	      init_error(ps_global, SM_ORDER | SM_DING, 3, 5, tmp_20k_buf);
+	      min_v = max_v = 0;
+	   }
+
+	   if(min_v > max_v){
+	      int bubble;
+	      snprintf(tmp_20k_buf, SIZEOF_20KBUF,
+		_("Minimum encryption protocol (%s) bigger than maximum value (%s). Reversing..."),
+		   min_s, max_s);
+	      tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+	      init_error(ps_global, SM_ORDER | SM_DING, 3, 5, tmp_20k_buf);
+	      bubble = min_v;
+	      min_v = max_v;
+	      max_v = bubble;
+	   }
+
+	   if(max_v > 0 && max_v < (long) pith_ssl_encryption_version("tls1")){
+	      snprintf(tmp_20k_buf, SIZEOF_20KBUF,
+		_("Security alert: SSL maximum encryption version was set to SSLv3."),
+	           ps_global->VAR_ENCRYPTION_RANGE);
+	      tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+	      init_error(ps_global, SM_ORDER | SM_DING, 3, 5, tmp_20k_buf);
+	   } 
+
+	   mail_parameters(NULL, SET_ENCRYPTION_RANGE_MIN, (void *) &min_v);
+           mail_parameters(NULL, SET_ENCRYPTION_RANGE_MAX, (void *) &max_v);
+	}
     }
 
     /*

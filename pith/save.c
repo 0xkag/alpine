@@ -1573,7 +1573,7 @@ save_ex_mask_types(char *hdr, long unsigned int *len, gf_io_t pc)
     char *s = NULL;
 
     if(!struncmp(hdr, "content-type:", 13))
-      s = "Content-Type: Text/Plain; charset=US-ASCII\015\012X-";
+      s = "Content-Type: Text/Plain; charset=UTF-8\015\012X-";
     else if(!struncmp(hdr, "content-description:", 20))
       s = "Content-Description: Deleted Attachment\015\012X-";
     else if(!struncmp(hdr, "content-transfer-encoding:", 26)
@@ -1616,6 +1616,12 @@ save_ex_explain_parts(struct mail_bodystruct *body, int depth, long unsigned int
     unsigned long ilen;
     char *name = parameter_val(body->parameter, "name");
 
+    if(!name){
+      if(body->disposition.type && 
+	 !strucmp(body->disposition.type, "ATTACHMENT"))
+      name = parameter_val(body->disposition.parameter, "filename");
+    }
+
     if(body->type == TYPEMULTIPART) {   /* multipart gets special handling */
 	PART *part = body->nested.part;	/* first body part */
 
@@ -1625,7 +1631,8 @@ save_ex_explain_parts(struct mail_bodystruct *body, int depth, long unsigned int
 		    depth, depth, " ", body_type_names(body->type),
 		    MAILTMPLEN-300, body->subtype ? body->subtype : "Unknown",
 		    name ? " (Name=\"" : "",
-		    name ? name : "",
+		    name ? (char *) rfc1522_decode_to_utf8((unsigned char *)tmp_20k_buf,
+				SIZEOF_20KBUF, name) : "",
 		    name ? "\")" : "");
 	    if(!save_ex_output_line(tmp, len, pc))
 	      return(0);
@@ -1641,7 +1648,8 @@ save_ex_explain_parts(struct mail_bodystruct *body, int depth, long unsigned int
 		    body_type_names(body->type),
 		    MAILTMPLEN-300, body->subtype ? body->subtype : "Unknown",
 		    name ? " (Name=\"" : "",
-		    name ? name : "",
+		    name ? (char *) rfc1522_decode_to_utf8((unsigned char *)tmp_20k_buf,
+				SIZEOF_20KBUF, name) : "",
 		    name ? "\")" : "");
 	}
 
@@ -1664,7 +1672,8 @@ save_ex_explain_parts(struct mail_bodystruct *body, int depth, long unsigned int
 		body_type_names(body->type), 
 		MAILTMPLEN-300, body->subtype ? body->subtype : "Unknown",
 		name ? " (Name=\"" : "",
-		name ? name : "",
+		name ? (char *) rfc1522_decode_to_utf8((unsigned char *)tmp_20k_buf,
+				SIZEOF_20KBUF, name) : "",
 		name ? "\")" : "",
 		comatose((body->encoding == ENCBASE64)
 			   ? ((body->size.bytes * 3)/4)

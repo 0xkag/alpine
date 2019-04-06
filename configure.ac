@@ -15,7 +15,7 @@ dnl  */
 
 AC_PREREQ([2.69])
 
-AC_REVISION([Rev:26 by chappa@washington.edu])
+AC_REVISION([Rev:27 by chappa@washington.edu])
 
 dnl Alpine Version Number is in $srcdir/VERSION
 AC_INIT([alpine],[m4_esyscmd(tr -d \\n < VERSION)],[chappa@washington.edu])
@@ -951,6 +951,70 @@ if test "x$alpine_SSLTYPE" != "xnone" ; then
   fi
 fi
 
+if test "x$alpine_SSLTYPE" != "xnone" ; then
+  alpine_default_SSLMIN="no_min"
+  alpine_default_SSLMAX="no_max"
+  alpine_default_RANGE="${alpine_default_SSLMIN},${alpine_default_SSLMAX}"
+  alpine_ENCRYPTION="$alpine_default_SSLMIN ssl3 tls1 tls1_1 tls1_2 tls1_3 $alpine_default_SSLMAX"
+  alpine_SSLMIN="$alpine_default_SSLMIN"
+  alpine_SSLMAX="$alpine_default_SSLMAX"
+  alpine_RANGE="$alpine_default_RANGE"
+  AC_ARG_WITH(encryption-minimum-version,
+    AS_HELP_STRING([--encryption-minimum-version=VERSION],[Minimum SSL encryption version. Default: no_min]),
+    [
+      if test "x$withval" != "xno" ; then
+	alpine_SSLMIN=$withval
+      fi
+    ])
+  AC_ARG_WITH(encryption-maximum-version,
+    AS_HELP_STRING([--encryption-maximum-version=VERSION],[Maximum SSL encryption version. Default: no_max]),
+    [
+      if test "x$withval" != "xno" ; then
+	alpine_SSLMAX=$withval
+      fi
+    ])
+  alpine_RANGE="$alpine_SSLMIN $alpine_SSLMAX"
+  for range in ${alpine_RANGE} ; do
+      for encryption in ${alpine_ENCRYPTION} ; do
+	  if test "x$range" = "x$encryption" ; then
+	     if test -z $alpine_min ; then
+		alpine_min="yes"
+	     else
+		alpine_max="yes"
+	     fi
+	  fi
+      done
+  done
+
+  if test -z $alpine_max ; then
+     AC_MSG_ERROR(Unrecognized maximum encryption version: $alpine_max)
+  fi
+
+  if test -z $alpine_min ; then
+     AC_MSG_ERROR(Unrecognized minimum encryption version: $alpine_min)
+  fi
+
+  if test "x$alpine_SSLMIN" != "x$alpine_SSLMAX" ; then
+     alpine_RANGE_FEASIBLE=`echo "$alpine_ENCRYPTION" | sed "s/^.*$alpine_SSLMIN//" | grep "$alpine_SSLMAX"`
+     if test -n "$alpine_RANGE_FEASIBLE" ; then
+	alpine_RANGE="${alpine_SSLMIN},${alpine_SSLMAX}"
+     else
+        AC_MSG_WARN(Reversing order of minimum and maximum encryption)
+	alpine_RANGE="${alpine_SSLMAX},${alpine_SSLMIN}"
+     fi
+  else
+     if test "x$alpine_SSLMIN" = "x$alpine_default_SSLMIN" ; then
+	AC_MSG_WARN(Overriding maximum encryption to default)
+	alpine_SSLMAX="$alpine_default_SSLMAX"
+     fi
+     if test "x$alpine_SSLMAX" = "x$alpine_default_SSLMAX" ; then
+	AC_MSG_WARN(Overriding minimum encryption to default)
+	alpine_SSLMIN="$alpine_default_SSLMIN"
+     fi
+     alpine_RANGE="${alpine_SSLMIN},${alpine_SSLMAX}"
+  fi
+PINEVAR(encryption-range, DF_ENCRYPTION_RANGE, [$alpine_RANGE] , [Default Encryption Range])
+fi
 
 dnl Include Kerberos?
 dnl Set GSSDIR for c-client make
@@ -1058,6 +1122,16 @@ if test "x$with_tcl" = "xno" ; then
   WEB_BUILD=
   AC_MSG_NOTICE([Excluding TCL Support, and thus Web Alpine Support])
 else
+  AC_ARG_WITH(tcl-lib-dir,
+    AS_HELP_STRING([--with-tcl-lib-dir=PATH],[Specific TCL Librar dir, like \"/usr/opt/tcl86/lib\"]),
+    [
+      if test "x$withval" != "xno" ; then 
+	alpine_TCLLIBDIR=$withval
+	if test -n "$alpine_TCLLIBDIR" ; then
+           LDFLAGS="-L$alpine_TCLLIBDIR $LDFLAGS"
+	fi
+      fi
+    ])
   AC_ARG_WITH(tcl-lib,
     AS_HELP_STRING([--with-tcl-lib=LIBRARY],[Specific TCL Library, like \"tcl8.6\"]),
     [
@@ -1986,7 +2060,7 @@ else
   SSL_CERT_LINK="no"
   if test -z "`ls ${certdir} | $EGREP '^@<:@0-9A-Fa-f@:>@{8}\.@<:@0-9@:>@'`" ; then
      SSL_BUNDLE_EXISTS="no"
-     SSL_PEM="factory.pem ca-bundle.pem ca-bundle.crt"
+     SSL_PEM="factory.pem ca-bundle.pem ca-bundle.crt ca-root-nss.crt"
      for SSL_BUNDLE in $SSL_PEM
      do
        if test -f ${certdir}/${SSL_BUNDLE} ; then
