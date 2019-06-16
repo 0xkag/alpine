@@ -340,6 +340,7 @@ main(int argc, char **argv)
     mail_parameters(NULL, SET_FREESTREAMSPAREP, (void *) sp_free_callback);
     mail_parameters(NULL, SET_FREEELTSPAREP,    (void *) free_pine_elt);
     mail_parameters(NULL, SET_FREEBODYSPAREP,   (void *) free_body_sparep);
+    mail_parameters(NULL, SET_OA2CLIENTGETACCESSCODE, (void *) oauth2_get_access_code);
 
     init_pinerc(pine_state, &init_pinerc_debugging);
 
@@ -713,7 +714,7 @@ main(int argc, char **argv)
 	   if(max_v > 0 && max_v < (long) pith_ssl_encryption_version("tls1")){
 	      snprintf(tmp_20k_buf, SIZEOF_20KBUF,
 		_("Security alert: SSL maximum encryption version was set to SSLv3."),
-	           ps_global->VAR_ENCRYPTION_RANGE);
+		   ps_global->VAR_ENCRYPTION_RANGE);
 	      tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
 	      init_error(ps_global, SM_ORDER | SM_DING, 3, 5, tmp_20k_buf);
 	   } 
@@ -3210,6 +3211,7 @@ quit_screen(struct pine *pine_state)
     dprint((1, "\n\n    ---- QUIT SCREEN ----\n"));    
 
     if(F_ON(F_CHECK_MAIL_ONQUIT,ps_global)
+       && pine_state->mail_stream != NULL
        && new_mail(1, VeryBadTime, NM_STATUS_MSG | NM_DEFER_SORT) > 0
        && (quit = want_to(_("Quit even though new mail just arrived"), 'y', 0,
 			  NO_HELP, WT_NORM)) != 'y'){
