@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: imap.c 1266 2009-07-14 18:39:12Z hubert@u.washington
 
 /*
  * ========================================================================
- * Copyright 2013-2018 Eduardo Chappa
+ * Copyright 2013-2019 Eduardo Chappa
  * Copyright 2006-2009 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -591,6 +591,7 @@ mm_login_oauth2(NETMBX *mb, char *user, OAUTH2_S *login, long int trial,
 		      altuserforcache ? altuserforcache : user, hostlist,
 		      (mb->sslflag||mb->tlsflag), 0, 0, OA2NAME);
 #ifdef	LOCAL_PASSWD_CACHE
+#ifdef	PASSFILE
     /* if requested, remember it on disk for next session */
     if(save_password && F_OFF(F_DISABLE_PASSWORD_FILE_SAVING,ps_global))
 	    set_passfile_passwd_auth(ps_global->pinerc, token,
@@ -598,6 +599,7 @@ mm_login_oauth2(NETMBX *mb, char *user, OAUTH2_S *login, long int trial,
 			(mb->sslflag||mb->tlsflag),
 			(preserve_password == -1 ? 0
 			 : (preserve_password == 0 ? 2 :1)), OA2NAME);
+#endif	/* PASSFILE */
 #endif	/* LOCAL_PASSWD_CACHE */
 
     ps_global->no_newmail_check_from_optionally_enter = 0;
@@ -1495,6 +1497,7 @@ mm_login_work(NETMBX *mb, char *user, char **pwd, long int trial,
 		      altuserforcache ? altuserforcache : user, hostlist,
 		      (mb->sslflag||mb->tlsflag), 0, 0);
 #ifdef	LOCAL_PASSWD_CACHE
+#ifdef  PASSFILE
     /* if requested, remember it on disk for next session */
       if(save_password && F_OFF(F_DISABLE_PASSWORD_FILE_SAVING,ps_global))
       set_passfile_passwd(ps_global->pinerc, *pwd,
@@ -1502,6 +1505,7 @@ mm_login_work(NETMBX *mb, char *user, char **pwd, long int trial,
 			(mb->sslflag||mb->tlsflag),
 			(preserve_password == -1 ? 0
 			 : (preserve_password == 0 ? 2 :1)));
+#endif	/* PASSFILE */
 #endif	/* LOCAL_PASSWD_CACHE */
 
     ps_global->no_newmail_check_from_optionally_enter = 0;

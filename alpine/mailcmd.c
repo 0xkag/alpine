@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: mailcmd.c 1266 2009-07-14 18:39:12Z hubert@u.washing
 
 /*
  * ========================================================================
- * Copyright 2013-2018 Eduardo Chappa
+ * Copyright 2013-2019 Eduardo Chappa
  * Copyright 2006-2009 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -3557,7 +3557,7 @@ save_size_changed_prompt(long msgno, int flags)
     snprintf(prompt, sizeof(prompt),
 	     "Message to save shrank! (msg # %ld): Continue anyway ? ", msgno);
     ret = radio_buttons(prompt, -FOOTER_ROWS(ps_global), save_size_opts,
-			'n', 0, h_save_size_changed, RB_NORM);
+			'n', 0, h_save_size_changed, RB_NORM|RB_NO_NEWMAIL);
 
     switch(ret){
       case 'a':
