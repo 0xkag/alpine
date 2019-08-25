@@ -140,7 +140,7 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 360 2019-07-19 11:23:24
+Alpine Commit 365 2019-08-22 19:11:49
 ============= h_news =================
 <HTML>
 <HEAD>
@@ -242,6 +242,10 @@ submitted in 2009, but resubmitted by Erich Eckner on 2019.
 <LI> Do not use a delay when printing messages to screen when the initial
      keystroke sequence of commands is active. Based on a report from Holger
      Trapp.
+
+<LI> In PC-Alpine, when the decoded name of an attachment does not agree
+     with its encoded name, Alpine will offer to save the file using the
+     UTF8 encoded name.
 </UL>
 
 <P>
@@ -21232,14 +21236,21 @@ An example might be:
 
 <DT>TLS</DT>
 <DD>
-Normally, when a new connection is made an attempt is made to 
-negotiate a secure (encrypted) session using Transport Layer Security (TLS).
-If that fails then a non-encrypted connection will be attempted instead.
 This is a unary parameter indicating communication with the server must 
-take place over a TLS connection. If the attempt to use TLS fails then
-this parameter will cause the connection to fail instead of falling
-back to an unsecure connection. <A href="h_security_considerations">Learn more</A>
-about security considerations when you use this option.
+take place over a TLS connection. If you use this parameter, Alpine will 
+establish an insecure connection to the server, and later will attempts to 
+use a secure encrypted connection. If the attempt to use TLS fails then 
+this parameter will cause the connection to fail instead of falling back 
+to an insecure connection.
+<P>
+Use this option when you are told to use STARTTLS. If you are told to use 
+SSL or TLS on port 993, use the /ssl unary parameter instead, and not this 
+parameter. Use this parameter when establishing a connection to a server 
+on an insecure port (normally port 143 for IMAP) and then needing to 
+establish a secure connection using STARTTLS.
+
+<P><A href="h_security_considerations">Learn more</A> about security 
+considerations when you use this option.
 
 <P>
 <CENTER><SAMP>/tls</SAMP></CENTER>
