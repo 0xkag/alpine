@@ -7,8 +7,9 @@ set -u
 
 set -o pipefail
 
-urlbasehtml=http://alpine.freeiz.com/alpine/info
-urlbasepatch=http://alpine.freeiz.com/alpine/patches/alpine-2.21
+urlbase=http://alpine.x10host.com/alpine
+urlbasehtml=$urlbase/info
+urlbasepatch=$urlbase/patches/alpine-2.21
 
 for patch in \
     colortext \
@@ -25,5 +26,5 @@ do
     curl --fail -s $urlbasepatch/$patch.patch.gz | gzip -d > $patch.patch
 done
 
-curl --fail -s http://alpine.freeiz.com/alpine/info/courier.html > maildir-courier.html
+curl --fail -s $urlbase/info/courier.html > maildir-courier.html
 
