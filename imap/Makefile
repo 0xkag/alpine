@@ -266,6 +266,7 @@ EXTRALDFLAGS=
 
 EXTRASPECIALS=
 SPECIALS=
+BUNDLED=
 
 
 # Normal commands
@@ -290,12 +291,12 @@ BUILD=$(MAKE) build EXTRACFLAGS='$(EXTRACFLAGS)'\
  EXTRADRIVERS='$(EXTRADRIVERS)'\
  EXTRAAUTHENTICATORS='$(EXTRAAUTHENTICATORS)'\
  PASSWDTYPE=$(PASSWDTYPE) SSLTYPE=$(SSLTYPE) IP=$(IP)\
- EXTRASPECIALS='$(EXTRASPECIALS)'
+ EXTRASPECIALS='$(EXTRASPECIALS)' BUNDLED='$(BUNDLED)'
 
 
 # Make the IMAP Toolkit
 
-all:	c-client SPECIALS rebuild bundled
+all:	c-client SPECIALS rebuild bundled$(BUNDLED)
 
 c-client:
 	@echo Not processed yet.  In a first-time build, you must specify
@@ -352,11 +353,11 @@ gcs:	an
 	SPECIALS="SSLINCLUDE=/opt/csw/include/openssl SSLLIB=/opt/csw/lib SSLCERTS=/opt/csw/ssl/certs SSLKEYS=/opt/csw/ssl/certs"
 
 ldb:	an
-	$(BUILD) BUILDTYPE=lnp IP=$(IP6) \
+	$(BUILD) BUILDTYPE=lnp$(BUNDLED) IP=$(IP6) \
 	SPECIALS="GSSINCLUDE=/usr/include GSSLIB=/usr/lib MAILSPOOL=/var/mail"
 
 lfd:	an
-	$(BUILD) BUILDTYPE=lnp IP=$(IP6) \
+	$(BUILD) BUILDTYPE=lnp$(BUNDLED) IP=$(IP6) \
 	SPECIALS="GSSDIR=/usr/kerberos"
 
 ln8:	an
@@ -369,17 +370,17 @@ ln8:	an
 
 lr5:	an
 	$(TOUCH) ip6
-	$(BUILD) BUILDTYPE=lnp IP=$(IP6) \
+	$(BUILD) BUILDTYPE=lnp$(BUNDLED) IP=$(IP6) \
 	SPECIALS="GSSDIR=/usr/kerberos"
 
 lmd:	an
-	$(BUILD) BUILDTYPE=lnp IP=$(IP6) \
+	$(BUILD) BUILDTYPE=lnp$(BUNDLED) IP=$(IP6) \
 	SPECIALS="GSSINCLUDE=/usr/include GSSLIB=/usr/lib"
 
 # RHEL3 definitely has the IPv6 bug
 
 lrh:	lrhok an
-	$(BUILD) BUILDTYPE=lnp IP=$(IP6) \
+	$(BUILD) BUILDTYPE=lnp$(BUNDLED) IP=$(IP6) \
 	SPECIALS="GSSDIR=/usr/kerberos"
 
 lrhok:
@@ -403,7 +404,7 @@ lrhwarn:
 	@echo % make lr5
 
 lsu:	an
-	$(BUILD) BUILDTYPE=lnp IP=$(IP6) \
+	$(BUILD) BUILDTYPE=lnp$(BUNDLED) IP=$(IP6) \
 	SPECIALS="GSSDIR=/usr/kerberos"
 
 # iToy does not have Kerberos or PAM.  It doesn't have a
@@ -684,7 +685,7 @@ an ua:
 	$(TOOLS)/$@ "$(LN)" src/tmail tmail
 	$(LN) $(TOOLS)/$@ .
 
-build:	OSTYPE rebuild rebuildclean bundled
+build:	OSTYPE rebuild rebuildclean bundled$(BUNDLED)
 
 OSTYPE:
 	@$(MAKE) ip$(IP)
@@ -696,7 +697,7 @@ OSTYPE:
 	 EXTRADRIVERS='$(EXTRADRIVERS)'\
 	 EXTRAAUTHENTICATORS='$(EXTRAAUTHENTICATORS)'\
 	 PASSWDTYPE=$(PASSWDTYPE) SSLTYPE=$(SSLTYPE) IP=$(IP)\
-	 $(SPECIALS) $(EXTRASPECIALS)
+	 $(SPECIALS) $(EXTRASPECIALS) BUNDLED='$(BUNDLED)'
 	echo $(BUILDTYPE) > OSTYPE
 	$(TOUCH) rebuild
 
@@ -710,8 +711,12 @@ rebuild:
 rebuildclean:
 	$(SH) -c '$(RM) rebuild || true'
 
+bundledno:
+	@echo Not building bundled tools.
+
 bundled:
 	@echo Building bundled tools...
+	@echo BUNDLED=$(BUNDLED)
 	$(CD) mtest;$(MAKE)
 	$(CD) ipopd;$(MAKE)
 	$(CD) imapd;$(MAKE)

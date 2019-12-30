@@ -53,8 +53,6 @@ static char rcsid[] = "$Id: conf.c 1266 2009-07-14 18:39:12Z hubert@u.washington
 #include "../pico/osdep/mswin.h"
 #endif
 
-#include <openssl/ssl.h>
-
 #define	TO_BAIL_THRESHOLD	60
 
 
@@ -1681,7 +1679,9 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
 
     GLO_PRINTER			= cpystr(DF_DEFAULT_PRINTER);
     GLO_ELM_STYLE_SAVE		= cpystr(DF_ELM_STYLE_SAVE);
+#ifdef DF_ENCRYPTION_RANGE
     GLO_ENCRYPTION_RANGE	= cpystr(DF_ENCRYPTION_RANGE);
+#endif
     GLO_SAVE_BY_SENDER		= cpystr(DF_SAVE_BY_SENDER);
     GLO_HEADER_IN_REPLY		= cpystr(DF_HEADER_IN_REPLY);
     GLO_INBOX_PATH		= cpystr("inbox");
@@ -8606,38 +8606,4 @@ pcpine_general_help(titlebuf)
 }
 
 #endif	/* _WINDOWS */
-
-typedef struct ssl_versions_s {
-  char *name;
-  int   version;
-} SSL_VERSIONS_S;
-
-int
-pith_ssl_encryption_version(char *s)
-{
-  SSL_VERSIONS_S ssl_versions[] = {
-	{"no_min", 0},
-	{"ssl3",   SSL3_VERSION},
-	{"tls1",   TLS1_VERSION},
-	{"tls1_1", TLS1_1_VERSION },
-	{"tls1_2", TLS1_2_VERSION},
-#ifdef TLS1_3_VERSION
-	{"tls1_3", TLS1_3_VERSION},
-#endif /* TLS1_3_VERSION */
-	{"no_max", 0},	/* set this last in the list */
-	{ NULL, 0},
-  };
-  int i;
-
-  if(s == NULL || *s == '\0')
-    return -1;
-
-  for(i = 0; ssl_versions[i].name != NULL; i++)
-     if(strcmp(ssl_versions[i].name, s) == 0)
-        break;
-
-  if(strcmp(s, "no_max") == 0) i--;
-
-  return ssl_versions[i].name != NULL ? ssl_versions[i].version : -1;
-}
 

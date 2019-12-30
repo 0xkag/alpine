@@ -15,7 +15,7 @@ dnl  */
 
 AC_PREREQ([2.69])
 
-AC_REVISION([Rev:27 by chappa@washington.edu])
+AC_REVISION([Rev:29 by chappa@washington.edu])
 
 dnl Alpine Version Number is in $srcdir/VERSION
 AC_INIT([alpine],[m4_esyscmd(tr -d \\n < VERSION)],[chappa@washington.edu])
@@ -1174,6 +1174,16 @@ AC_ARG_WITH(c-client-target,
   ])
 
 
+dnl Do not build bundled tools (Default)
+alpine_c_client_bundled="no"
+AC_ARG_WITH(bundled-tools,
+  AS_HELP_STRING([--with-bundled-tools],[ Build additional tools (mtest, imapd, etc.) Default: --with-bundled-tools=no]),
+  [ 
+    if test "x$withval" = "xyes" ; then
+     alpine_c_client_bundled=""
+    fi
+  ])
+
 dnl Assume PAM is *not* required and only set the systems that need it.
 alpine_PAM="none"
 
@@ -1220,7 +1230,8 @@ case "$host" in
       alpine_PAM="yes"
     else
       systype="LNX"
-      AC_CHECK_LIB(pam, pam_start,
+      if test -z "$alpine_c_client_bundled" ; then
+        AC_CHECK_LIB(pam, am_start,
         [
           alpine_c_client_target="lnp"
 	  alpine_PAM="yes"
@@ -1232,6 +1243,13 @@ case "$host" in
 	    alpine_c_client_target="lnx"
 	  fi
         ])
+      else
+	  if test -f /etc/shadow ; then
+	    alpine_c_client_target="slx"
+	  else
+	    alpine_c_client_target="lnx"
+	  fi
+      fi
     fi
     ;;
   *-apple-darwin*)
@@ -1249,7 +1267,8 @@ case "$host" in
 	AC_DEFINE([APPLEKEYCHAIN], [1], [Use Apple OS X key chain for credential caching])
 	;;
     esac
-    AC_CHECK_LIB(pam, pam_start,
+    if test -z "$alpine_c_client_bundled" ; then
+      AC_CHECK_LIB(pam, pam_start,
       [
 	AC_CHECK_HEADER([security/pam_appl.h],
 	[
@@ -1270,6 +1289,9 @@ case "$host" in
       [
         alpine_c_client_target="osx"
       ])
+    else
+        alpine_c_client_target="osx"
+    fi
     ;;
   *-*-solaris*)
     if test x$GCC = "xyes" ; then
@@ -1550,7 +1572,7 @@ fi
 
 dnl Crypto support is needed 
 if test "x$alpine_SSLTYPE" != "xnone" ; then
-  if test "x$alpine_SSLVERSION" = "xold" -o "x$alpine_SSLPROVIDER" = "xlibressl" ; then
+  if test "x$alpine_SSLVERSION" = "xold" ; then
      AC_SEARCH_LIBS(SSLeay,crypto,, [ alpine_CRYPTO="none" ])
   else
      AC_SEARCH_LIBS(OpenSSL_version_num,crypto,, [ alpine_CRYPTO="none" ])
@@ -1573,7 +1595,7 @@ fi
 
 dnl provide SSL support?
 if test "x$alpine_SSLTYPE" != "xnone" ; then
-  if test "x$alpine_SSLVERSION" = "xold" -o "x$alpine_SSLPROVIDER" = "xlibressl" ; then
+  if test "x$alpine_SSLVERSION" = "xold" ; then
      AC_SEARCH_LIBS(SSL_library_init,ssl,,[ alpine_SSLTYPE="none" ])
      if test "x$alpine_SSLTYPE" = "xnone" ; then
         AC_MSG_ERROR(No library containing SSL_library_init found in your path)
@@ -1613,8 +1635,9 @@ if test "$alpine_with_ldap" = "yes" ; then
 fi
 
 dnl PAM support is needed to build c-client in some linux, and hence Alpine.
-if test "x$alpine_PAM" != "xnone" ; then
-  AC_SEARCH_LIBS(pam_start,pam,
+if test -z "$alpine_c_client_bundled" ; then
+  if test "x$alpine_PAM" != "xnone" ; then
+     AC_SEARCH_LIBS(pam_start,pam,
       [
 	LIBS="$LIBS -lpam"
 	AC_CHECK_HEADER([security/pam_appl.h],
@@ -1641,10 +1664,22 @@ if test "x$alpine_PAM" != "xnone" ; then
 	alpine_pam_none_reason="library files not found"
       ])
     if test -n "$alpine_pam_none_reason" ; then
-      AC_MSG_ERROR(No PAM support: $alpine_pam_none_reason)
+       AC_MSG_ERROR(Trying to build bundled tools but could not find libpam. Install it first and try again, or do not use --with-bundled-tools)
+    fi
   fi
 fi
 
+if test -n "$alpine_c_client_bundled" ; then
+     AC_SEARCH_LIBS(crypt,crypt,
+      [
+	LIBS="$LIBS -lcrypt"
+      ],
+      [
+       AC_MSG_ERROR([crypt library not found.])
+      ])
+fi
+
+AC_SUBST([C_CLIENT_BUNDLED], $alpine_c_client_bundled)
 
 dnl provide KRB5 support?
 if test "x$alpine_GSSTYPE" != "xnone" ; then

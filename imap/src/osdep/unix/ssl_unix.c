@@ -93,6 +93,41 @@ static long ssl_abort (SSLSTREAM *stream);
 
 static RSA *ssl_genkey (SSL_CTX_TYPE *con,int export,int keylength);
 
+typedef struct ssl_versions_s {
+        char *name;
+        int   version;
+} SSL_VERSIONS_S;
+
+int
+pith_ssl_encryption_version(char *s)
+{
+        SSL_VERSIONS_S ssl_versions[] = {
+        { "no_min", 0 },
+        { "ssl3",   SSL3_VERSION },
+        { "tls1",   TLS1_VERSION },
+        { "tls1_1", TLS1_1_VERSION },
+        { "tls1_2", TLS1_2_VERSION },
+#ifdef TLS1_3_VERSION
+        { "tls1_3", TLS1_3_VERSION },
+#endif /* TLS1_3_VERSION */
+        { "no_max", 0 },        /* set this last in the list */
+        { NULL, 0 },
+        };
+        int i;
+
+        if (s == NULL || *s == '\0')
+                return -1;
+
+        for (i = 0; ssl_versions[i].name != NULL; i++)
+                if (strcmp(ssl_versions[i].name, s) == 0)
+                        break;
+
+        if (strcmp(s, "no_max") == 0) i--;
+
+        return ssl_versions[i].name != NULL ? ssl_versions[i].version : -1;
+}
+
+
 
 /* Secure Sockets Layer network driver dispatch */
 
@@ -469,39 +504,71 @@ static int ssl_open_verify (int ok,X509_STORE_CTX *ctx)
 
 static char *ssl_validate_cert (X509 *cert,char *host)
 {
-  int i,n;
-  char *s=NULL,*t,*ret;
+  int i,j,n, m = 0;
+  char *s=NULL,*t,*ret = NIL;
   void *ext;
   GENERAL_NAME *name;
   X509_NAME *cname;
   X509_NAME_ENTRY *e;
   char    buf[256];
 				/* make sure have a certificate */
-  if (!cert) ret = "No certificate from server";
-				/* and that it has a name */
-  else if (!(cname = X509_get_subject_name(cert))) ret = "No name in certificate";
-				/* locate CN */
-  else{
-     if((e = X509_NAME_get_entry(cname, X509_NAME_entry_count(cname)-1)) != NULL){
-       X509_NAME_get_text_by_OBJ(cname, X509_NAME_ENTRY_get_object(e), buf, sizeof(buf));
-       s = (char *) buf;
-     }
-     else s = NULL;
-  }
-  if (s != NULL) {
+  if (!cert) return "No certificate from server";
+				/* Method 1: locate CN */
+#ifndef OPENSSL_1_1_0
+  if (cert->name == NIL)
+     ret = "No name in certificate";
+  else if ((s = strstr (cert->name,"/CN=")) != NIL) {
+     m++; /* count that we tried this method */
+     if (t = strchr (s += 4,'/')) *t = '\0';
 				/* host name matches pattern? */
-    ret = ssl_compare_hostnames (host,s) ? NIL :
+     ret = ssl_compare_hostnames (host,s) ? NIL :
       "Server name does not match certificate";
+     if (t) *t = '/';		/* restore smashed delimiter */
 				/* if mismatch, see if in extensions */
-    if (ret && (ext = X509_get_ext_d2i (cert,NID_subject_alt_name,NIL,NIL)) &&
+     if (ret && (ext = X509_get_ext_d2i (cert,NID_subject_alt_name,NIL,NIL)) &&
 	(n = sk_GENERAL_NAME_num (ext)))
-      /* older versions of OpenSSL use "ia5" instead of dNSName */
-      for (i = 0; ret && (i < n); i++)
-	if ((name = sk_GENERAL_NAME_value (ext,i)) &&
+       /* older versions of OpenSSL use "ia5" instead of dNSName */
+       for (i = 0; ret && (i < n); i++)
+	 if ((name = sk_GENERAL_NAME_value (ext,i)) &&
 	    (name->type = GEN_DNS) && (s = name->d.ia5->data) &&
 	    ssl_compare_hostnames (host,s)) ret = NIL;
   }
-  else ret = "Unable to locate common name in certificate";
+#endif /* OPENSSL_1_1_0 */
+				/* Method 2, use cname */
+  if(m == 0 || ret != NIL){
+     cname = X509_get_subject_name(cert);
+     for(j = 0, ret = NIL; j < X509_NAME_entry_count(cname) && ret == NIL; j++){
+        if((e = X509_NAME_get_entry(cname, j)) != NULL){
+           X509_NAME_get_text_by_OBJ(cname, X509_NAME_ENTRY_get_object(e), buf, sizeof(buf));
+           s = (char *) buf;
+        }
+        else s = NIL;
+        if (s != NIL) {
+				/* host name matches pattern? */
+	   ret = ssl_compare_hostnames (host,s) ? NIL :
+		 "Server name does not match certificate";
+				/* if mismatch, see if in extensions */
+	   if (ret && (ext = X509_get_ext_d2i (cert,NID_subject_alt_name,NIL,NIL)) &&
+		(n = sk_GENERAL_NAME_num (ext)))
+	           /* older versions of OpenSSL use "ia5" instead of dNSName */
+	      for (i = 0; ret && (i < n); i++)
+		  if ((name = sk_GENERAL_NAME_value (ext,i)) &&
+		     (name->type = GEN_DNS) && (s = name->d.ia5->data) &&
+		     ssl_compare_hostnames (host,s)) ret = NIL;
+        }
+     }
+  }
+
+  if (ret == NIL
+#ifndef OPENSSL_1_1_0
+       && !cert->name
+#endif /* OPENSSL_1_1_0 */
+       && !X509_get_subject_name(cert))
+	ret = "No name in certificate";
+
+  if (ret == NIL && s == NIL) 
+	ret = "Unable to locate common name in certificate";
+
   return ret;
 }
 
