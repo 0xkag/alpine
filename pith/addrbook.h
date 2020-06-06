@@ -2,7 +2,7 @@
  * $Id: addrbook.h 82 2006-07-12 23:36:59Z mikes@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@
 #include "adrbklib.h"
 
 
-/* exported protoypes */
+/* exported prototypes */
 void	addrbook_new_disp_form(PerAddrBook *, char **, int, int (*)(PerAddrBook *, int *));
 long	first_selectable_line(long);
 int	line_is_selectable(long);

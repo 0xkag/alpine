@@ -2,7 +2,7 @@
  * $Id: margin.h 1032 2008-04-11 00:30:04Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
 #define PITH_MARGIN_INCLUDED
 
 
-/* exported protoypes */
+/* exported prototypes */
 int	*format_view_margin(void);
 int	*non_messageview_margin(void);
 

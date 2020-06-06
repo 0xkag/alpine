@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ typedef enum {DontAskPreserve, NoPreserve, Preserve, RetNoPreserve, RetPreserve}
 typedef enum {View, MsgIndx, ThrdIndx} CmdWhere;
 
 
-/* exported protoypes */
+/* exported prototypes */
 int	    alpine_get_data_prompt(char *, char *, size_t);
 int	    alpine_get_password(char *, char *, size_t);
 int	    alpine_smime_confirm_save(char *);

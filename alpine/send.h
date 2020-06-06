@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
 #define PS_STICKY_TO		0x02
 
 
-/* exported protoypes */
+/* exported prototypes */
 void	    compose_screen(struct pine *); 
 void	    alt_compose_screen(struct pine *);
 void	    compose_mail(char *, char *, ACTION_S *, PATMT *, gf_io_t);
@@ -47,7 +47,6 @@ char	   *pine_send_status(int, char *, char *, size_t, int *);
 int	    confirm_daemon_send(void);
 int	    build_address(char *, char **,char **, BUILDER_ARG *, int *);
 void	    free_attachment_list(PATMT **);
-void        phone_home(char *);
 
 
 #endif /* PINE_SEND_INCLUDED */

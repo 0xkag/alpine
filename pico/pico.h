@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2009 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -221,7 +221,7 @@ typedef struct pico_struct {
     int   (*tty_fix)();			/* Let Pine fix tty state */
     long  (*newmail)();			/* Pine's report_new_mail */
     long  (*msgntext)();		/* callback to get msg n's text */
-    int   (*upload)();			/* callback to rcv uplaoded text */
+    int   (*upload)();			/* callback to rcv uploaded text */
     char *(*ckptdir)();			/* callback for checkpoint file dir */
     int   (*exittest)();		/* callback to verify exit request */
     char *(*canceltest)();		/* callback to verify cancel request */

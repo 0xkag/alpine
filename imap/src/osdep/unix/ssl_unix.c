@@ -75,7 +75,7 @@ typedef struct ssl_stream {
 
 /* Function prototypes */
 int ssl_disable_mask(int ssl_version, int direction);
-const SSL_METHOD *ssl_connect_mthd(int flag, int *min, int *max);
+const SSL_METHOD *ssl_connect_mthd(int flag, int *minv, int *maxv);
 static SSLSTREAM *ssl_start(TCPSTREAM *tstream,char *host,unsigned long flags);
 static char *ssl_start_work (SSLSTREAM *stream,char *host,unsigned long flags);
 static int ssl_open_verify (int ok,X509_STORE_CTX *ctx);
@@ -163,9 +163,9 @@ void ssl_onceonlyinit (void)
     if (stat ("/dev/urandom",&sbuf)) {
       strcpy(tmp, "SSLXXXXXX");
       while ((fd = mkstemp(tmp)) < 0) sleep (1);
-      unlink (tmp);		/* don't need the file */
       fstat (fd,&sbuf);		/* get information about the file */
       close (fd);		/* flush descriptor */
+      unlink (tmp);		/* don't need the file */
 				/* not great but it'll have to do */
       sprintf (tmp + strlen (tmp),"%.80s%lx%.80s%lx%lx%lx%lx%lx",
 	       tcp_serveraddr (),(unsigned long) tcp_serverport (),
@@ -257,7 +257,7 @@ int ssl_disable_mask(int ssl_version, int direction)
 /* ssl_connect_mthd: returns a context pointer to the connection to
  * a ssl server
  */
-const SSL_METHOD *ssl_connect_mthd(int flag, int *min, int *max)
+const SSL_METHOD *ssl_connect_mthd(int flag, int *minv, int *maxv)
 {
   int client_request;
   client_request = (flag & NET_TRYTLS1) ? TLS1_VERSION
@@ -270,17 +270,17 @@ const SSL_METHOD *ssl_connect_mthd(int flag, int *min, int *max)
 #endif
 		 : 0;
 
-  *min = *(int *) mail_parameters(NULL, GET_ENCRYPTION_RANGE_MIN, NULL);
-  *max = *(int *) mail_parameters(NULL, GET_ENCRYPTION_RANGE_MAX, NULL);
+  *minv = *(int *) mail_parameters(NULL, GET_ENCRYPTION_RANGE_MIN, NULL);
+  *maxv = *(int *) mail_parameters(NULL, GET_ENCRYPTION_RANGE_MAX, NULL);
 
   /* 
    * if no special request, negotiate the maximum the client is configured
    * to negotiate
    */
   if(client_request == 0)
-    client_request = *max;
+    client_request = *maxv;
 
-  if(client_request < *min || client_request > *max)
+  if(client_request < *minv || client_request > *maxv)
     return NIL;		/* out of range? bail out */
 
   /* Some Linux distributors seem to believe that it is ok to disable some of
@@ -392,9 +392,10 @@ static char *ssl_start_work (SSLSTREAM *stream,char *host,unsigned long flags)
   BIO *bio;
   X509 *cert;
   unsigned long sl,tl;
-  int min, max;
+  int minv, maxv;
   int masklow, maskhigh;
   char *s,*t,*err,tmp[MAILTMPLEN], buf[256];
+  char *CAfile, *CApath;
   sslcertificatequery_t scq =
     (sslcertificatequery_t) mail_parameters (NIL,GET_SSLCERTIFICATEQUERY,NIL);
   sslclientcert_t scc =
@@ -403,21 +404,23 @@ static char *ssl_start_work (SSLSTREAM *stream,char *host,unsigned long flags)
     (sslclientkey_t) mail_parameters (NIL,GET_SSLCLIENTKEY,NIL);
   if (ssl_last_error) fs_give ((void **) &ssl_last_error);
   ssl_last_host = host;
-  if (!(stream->context = SSL_CTX_new (ssl_connect_mthd(flags, &min, &max))))
+  if (!(stream->context = SSL_CTX_new (ssl_connect_mthd(flags, &minv, &maxv))))
     return "SSL context failed";
   SSL_CTX_set_options (stream->context,0);
-  masklow = ssl_disable_mask(min, -1);
-  maskhigh = ssl_disable_mask(max, 1);
+  masklow = ssl_disable_mask(minv, -1);
+  maskhigh = ssl_disable_mask(maxv, 1);
   SSL_CTX_set_options(stream->context, masklow|maskhigh);
 				/* disable certificate validation? */
   if (flags & NET_NOVALIDATECERT)
     SSL_CTX_set_verify (stream->context,SSL_VERIFY_NONE,NIL);
   else SSL_CTX_set_verify (stream->context,SSL_VERIFY_PEER,ssl_open_verify);
-				/* set default paths to CAs... */
+				/* if a non-standard path desired */
+  CAfile = (char *) mail_parameters (NIL,GET_SSLCAFILE,NIL);
+  CApath = (char *) mail_parameters (NIL,GET_SSLCAPATH,NIL);
+  if (CAfile != NIL || CApath != NIL)
+    SSL_CTX_load_verify_locations (stream->context, CAfile, CApath);
+  else				/* set default paths to CAs... */
   SSL_CTX_set_default_verify_paths (stream->context);
-				/* ...unless a non-standard path desired */
-  if ((s = (char *) mail_parameters (NIL,GET_SSLCAPATH,NIL)) != NULL)
-    SSL_CTX_load_verify_locations (stream->context,NIL,s);
 				/* want to send client certificate? */
   if (scc && (s = (*scc) ()) && (sl = strlen (s))) {
     if ((cert = PEM_read_bio_X509 (bio = BIO_new_mem_buf (s,sl),NIL,NIL,NIL)) != NULL) {
@@ -636,20 +639,18 @@ char *ssl_getsize (SSLSTREAM *stream, unsigned long size)
 {
   char *ret = NIL;
   unsigned long got = 0L, need = size, n;
-  int done = 0;
   
-  while(!done){
+  do {
      if(!ssl_getdata (stream)) return ret;      /* return what we have */
      n = stream->ictr < need ? stream->ictr : need;
-     fs_resize((void **) &ret, got + n + 1);
+     fs_resize((void **) &ret, (got + n + 1)*sizeof(char));
      memcpy(ret + got, stream->iptr, n);
      ret[got+n] = '\0';
      got  += n;   
      need -= n;
      stream->iptr += n;
      stream->ictr -= n;
-     if(need == 0L) done++;
-  }
+  } while (need > 0);
 
   return ret;
 }

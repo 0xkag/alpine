@@ -2,7 +2,7 @@
  * $Id: rfc2231.h 761 2007-10-23 22:35:18Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
 #include "../pith/store.h"
 
 
-/* exported protoypes */
+/* exported prototypes */
 char	   *rfc2231_get_param(PARAMETER *, char *, char **, char **);
 int	    rfc2231_output(STORE_S *, char *, char *, char *, char *);
 PARMLIST_S *rfc2231_newparmlist(PARAMETER *);

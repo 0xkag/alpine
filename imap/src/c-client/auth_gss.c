@@ -1,4 +1,5 @@
 /* ========================================================================
+ * Copyright 2020 Eduardo Chappa
  * Copyright 1988-2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,8 +29,8 @@
 
 
 long auth_gssapi_valid (void);
-long auth_gssapi_client (authchallenge_t challenger,authrespond_t responder,
-			 char *service,NETMBX *mb,void *stream,
+long auth_gssapi_client (authchallenge_t challenger,authrespond_t responder, char *base,
+			 char *service,NETMBX *mb,void *stream, unsigned long port,
 			 unsigned long *trial,char *user);
 long auth_gssapi_client_work (authchallenge_t challenger,gss_buffer_desc chal,
 			      authrespond_t responder,char *service,NETMBX *mb,
@@ -88,8 +89,9 @@ long auth_gssapi_valid (void)
  * Returns: T if success, NIL otherwise, number of trials incremented if retry
  */
 
-long auth_gssapi_client (authchallenge_t challenger,authrespond_t responder,
-			 char *service,NETMBX *mb,void *stream,
+long auth_gssapi_client (authchallenge_t challenger,authrespond_t 
+responder,char *base,
+			 char *service,NETMBX *mb,void *stream,unsigned long port,
 			 unsigned long *trial,char *user)
 {
   gss_buffer_desc chal;
@@ -100,12 +102,12 @@ long auth_gssapi_client (authchallenge_t challenger,authrespond_t responder,
   if ((chal.value = (*challenger) (stream,(unsigned long *) &chal.length)) != NULL) {
     if (chal.length) {		/* abort if challenge non-empty */
       mm_log ("Server bug: non-empty initial GSSAPI challenge",WARN);
-      (*responder) (stream,NIL,0);
+      (*responder) (stream,NIL,NIL,0);
       ret = LONGT;		/* will get a BAD response back */
     }
     else if (mb->authuser[0] && strcmp (mb->authuser,myusername ())) {
       mm_log ("Can't use Kerberos: invalid /authuser",WARN);
-      (*responder) (stream,NIL,0);
+      (*responder) (stream,NIL,NIL,0);
       ret = LONGT;		/* will get a BAD response back */
     }
     else ret = auth_gssapi_client_work (challenger,chal,responder,service,mb,
@@ -147,7 +149,7 @@ long auth_gssapi_client_work (authchallenge_t challenger,gss_buffer_desc chal,
   if (gss_import_name (&smn,&buf,GSS_C_NT_HOSTBASED_SERVICE,&crname) !=
        GSS_S_COMPLETE) {
     mm_log ("Can't import Kerberos service name",WARN);
-    (*responder) (stream,NIL,0);
+    (*responder) (stream,NIL,NIL,0);
   }
   else {
     data = (*bn) (BLOCK_SENSITIVE,NIL);
@@ -162,7 +164,7 @@ long auth_gssapi_client_work (authchallenge_t challenger,gss_buffer_desc chal,
     while (smj == GSS_S_CONTINUE_NEEDED) {
       if (chal.value) fs_give ((void **) &chal.value);
 				/* send response, get next challenge */
-      i = (*responder) (stream,resp.value,resp.length) &&
+      i = (*responder) (stream,NIL,resp.value,resp.length) &&
 	(chal.value = (*challenger) (stream,(unsigned long *) &chal.length));
       gss_release_buffer (&smn,&resp);
       if (i) {			/* negotiate continuation with KDC */
@@ -183,7 +185,7 @@ long auth_gssapi_client_work (authchallenge_t challenger,gss_buffer_desc chal,
       }
       else {			/* error in continuation */
 	mm_log ("Error in negotiating Kerberos continuation",WARN);
-	(*responder) (stream,NIL,0);
+	(*responder) (stream,NIL,NIL,0);
 				/* don't need context any more */
 	gss_delete_sec_context (&smn,&ctx,NIL);
 	break;
@@ -194,7 +196,7 @@ long auth_gssapi_client_work (authchallenge_t challenger,gss_buffer_desc chal,
     case GSS_S_COMPLETE:
       if (chal.value) fs_give ((void **) &chal.value);
 				/* get prot mechanisms and max size */
-      if ((*responder) (stream,resp.value ? resp.value : "",resp.length) &&
+      if ((*responder) (stream,NIL,resp.value ? resp.value : "",resp.length) &&
 	  (chal.value = (*challenger) (stream,(unsigned long *)&chal.length))&&
 	  (gss_unwrap (&smn,ctx,&chal,&resp,&conf,&qop) == GSS_S_COMPLETE) &&
 	  (resp.length >= 4) && (*((char *) resp.value) & AUTH_GSSAPI_P_NONE)){
@@ -209,7 +211,7 @@ long auth_gssapi_client_work (authchallenge_t challenger,gss_buffer_desc chal,
 				/* successful negotiation */
 	switch (smj = gss_wrap (&smn,ctx,NIL,qop,&buf,&conf,&resp)) {
 	case GSS_S_COMPLETE:
-	  if ((*responder) (stream,resp.value,resp.length)) ret = T;
+	  if ((*responder) (stream,NIL,resp.value,resp.length)) ret = T;
 	  gss_release_buffer (&smn,&resp);
 	  break;
 	default:
@@ -232,7 +234,7 @@ long auth_gssapi_client_work (authchallenge_t challenger,gss_buffer_desc chal,
 	    gss_release_buffer (&dsmn,&resp);
 	  }
 	  while (dsmj == GSS_S_CONTINUE_NEEDED);
-	  (*responder) (stream,NIL,0);
+	  (*responder) (stream,NIL,NIL,0);
 	}
       }
 				/* flush final challenge */
@@ -251,7 +253,7 @@ long auth_gssapi_client_work (authchallenge_t challenger,gss_buffer_desc chal,
 	sprintf (tmp,"Kerberos credentials expired (try running kinit) for %s",
 		 mb->host);
 	mm_log (tmp,WARN);
-	(*responder) (stream,NIL,0);
+	(*responder) (stream,NIL,NIL,0);
       }
       break;
     case GSS_S_FAILURE:
@@ -266,7 +268,7 @@ long auth_gssapi_client_work (authchallenge_t challenger,gss_buffer_desc chal,
 					 stream,user,NIL);
 	  break;		/* done */
 	}
-	else (*responder) (stream,NIL,0);
+	else (*responder) (stream,NIL,NIL,0);
       case GSS_S_CONTINUE_NEEDED:
 	sprintf (tmp,kerberos_try_kinit (smn) ?
 		 "Kerberos error: %.80s (try running kinit) for %.80s" :
@@ -297,7 +299,7 @@ long auth_gssapi_client_work (authchallenge_t challenger,gss_buffer_desc chal,
 	gss_release_buffer (&dsmn,&resp);
       }
       while (dsmj == GSS_S_CONTINUE_NEEDED);
-      (*responder) (stream,NIL,0);
+      (*responder) (stream,NIL,NIL,0);
       break;
     }
 				/* finished with credentials name */

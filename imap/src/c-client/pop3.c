@@ -1,4 +1,5 @@
 /* ========================================================================
+ * Copyright 2020 Eduardo Chappa
  * Copyright 2008-2011 Mark Crispin   
  * ========================================================================
  */
@@ -90,7 +91,7 @@ MAILSTREAM *pop3_open (MAILSTREAM *stream);
 long pop3_capa (MAILSTREAM *stream,long flags);
 long pop3_auth (MAILSTREAM *stream,NETMBX *mb,char *pwd,char *usr);
 void *pop3_challenge (void *stream,unsigned long *len);
-long pop3_response (void *stream,char *s,unsigned long size);
+long pop3_response (void *stream,char *base,char *s,unsigned long size);
 void pop3_close (MAILSTREAM *stream,long options);
 void pop3_fetchfast (MAILSTREAM *stream,char *sequence,long flags);
 char *pop3_header (MAILSTREAM *stream,unsigned long msgno,unsigned long *size,
@@ -419,13 +420,13 @@ MAILSTREAM *pop3_open (MAILSTREAM *stream)
 	       (long) mail_parameters (NIL,GET_TRUSTDNS,NIL) ?
 	       net_host (LOCAL->netstream) : mb.host,
 	       net_port (LOCAL->netstream));
-      if (mb.tlsflag) strcat (tmp,"/tls");
+      if (mb.tlsflag) strcat (tmp,"/starttls");
       if (mb.tlssslv23) strcat (tmp,"/tls-sslv23");
       if (mb.tls1) strcat (tmp,"/tls1");
       if (mb.tls1_1) strcat (tmp,"/tls1_1");
       if (mb.tls1_2) strcat (tmp,"/tls1_2");
       if (mb.tls1_3) strcat (tmp,"/tls1_3");
-      if (mb.notlsflag) strcat (tmp,"/notls");
+      if (mb.notlsflag) strcat (tmp,"/nostarttls");
       if (mb.sslflag) strcat (tmp,"/ssl");
       if (mb.novalidate) strcat (tmp,"/novalidate-cert");
       if ((LOCAL->loser = mb.loser) != 0) strcat (tmp,"/loser");
@@ -554,7 +555,7 @@ long pop3_capa (MAILSTREAM *stream,long flags)
 long pop3_auth (MAILSTREAM *stream,NETMBX *mb,char *pwd,char *usr)
 {
   unsigned long i,trial,auths = 0, authsaved;
-  char *t, *app_pwd = NIL;
+  char *t, *app_pwd = NIL, *base;
   AUTHENTICATOR *at, *atsaved;
   long ret = NIL;
   long flags = (stream->secure ? AU_SECURE : NIL) |
@@ -577,7 +578,7 @@ long pop3_auth (MAILSTREAM *stream,NETMBX *mb,char *pwd,char *usr)
     }
     pop3_capa (stream,flags);	/* get capabilities now that TLS in effect */
   }
-  else if (mb->tlsflag) {	/* user specified /tls but can't do it */
+  else if (mb->tlsflag) {	/* user specified /starttls but can't do it */
     mm_log ("Unable to negotiate TLS with this server",ERROR);
     return NIL;
   }
@@ -634,12 +635,18 @@ long pop3_auth (MAILSTREAM *stream,NETMBX *mb,char *pwd,char *usr)
 	  mm_log (pwd,WARN);
 	  fs_give ((void **) &t);
 	}
+	if(at->flags & AU_SINGLE){
+	  sprintf(pwd, "AUTH %s", at->name);
+	  base = (char *) pwd;
+	} else base = NIL;
 	LOCAL->saslcancel = NIL;
-	if (pop3_send (stream,"AUTH",at->name)) {
+	if ((at->flags & AU_SINGLE) || pop3_send (stream,"AUTH",at->name)) {
+				/* record that we are trying this authentication */
+	  if ((at->flags & AU_SINGLE) && stream && stream->debug) mm_dlog(base);
 				/* hide client authentication responses */
 	  if (!(at->flags & AU_SECURE)) LOCAL->sensitive = T;
-	  if ((*at->client) (pop3_challenge,pop3_response,"pop",mb,stream,
-			     &trial,usr) && LOCAL->response) {
+	  if ((*at->client) (pop3_challenge,pop3_response,base,"pop",mb,stream,
+			     net_port(LOCAL->netstream),&trial,usr) && LOCAL->response) {
 	    if (*LOCAL->response == '+') ret = LONGT;
 				/* if main program requested cancellation */
 	    else if (!trial) mm_log ("POP3 Authentication cancelled",ERROR);
@@ -734,15 +741,26 @@ void *pop3_challenge (void *s,unsigned long *len)
  * Returns: T if successful, else NIL
  */
 
-long pop3_response (void *s,char *response,unsigned long size)
+long pop3_response (void *s,char *base,char *response,unsigned long size)
 {
   MAILSTREAM *stream = (MAILSTREAM *) s;
   unsigned long i,j,ret;
   char *t,*u;
   if (response) {		/* make CRLFless BASE64 string */
     if (size) {
-      for (t = (char *) rfc822_binary ((void *) response,size,&i),u = t,j = 0;
-	   j < i; j++) if (t[j] > ' ') *u++ = t[j];
+      if(base){
+        char *s, *v;
+
+        v = (char *) rfc822_binary ((void *) response,size,&i);
+        t  = fs_get((strlen(base) + strlen(v) + 1 + 2)*sizeof(char));
+        for(s = base, u = t; *s; s++) *u++ = *s;
+        *u++ = ' ';
+        for (s = v,j = 0; j < i; j++) if (s[j] > ' ') *u++ = s[j];
+        fs_give((void **) &v);
+      } else {
+        for (t = (char *) rfc822_binary ((void *) response,size,&i),u = t,j = 0;
+           j < i; j++) if (t[j] > ' ') *u++ = t[j];
+      }
       *u = '\0';		/* tie off string for mm_dlog() */
       if (stream->debug) mail_dlog (t,LOCAL->sensitive);
 				/* append CRLF */
@@ -753,7 +771,7 @@ long pop3_response (void *s,char *response,unsigned long size)
     else ret = net_sout (LOCAL->netstream,"\015\012",2);
   }
   else {			/* abort requested */
-    ret = net_sout (LOCAL->netstream,"*\015\012",3);
+    ret = base ? NIL : net_sout (LOCAL->netstream,"*\015\012",3);
     LOCAL->saslcancel = T;	/* mark protocol-requested SASL cancel */
   }
   pop3_reply (stream);		/* get response */

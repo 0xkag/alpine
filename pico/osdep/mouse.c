@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: mouse.c 769 2007-10-24 00:15:40Z hubert@u.washington
 /*
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -263,7 +263,7 @@ mouseexist(void)
 }
 
 /* 
- * checkmouse - Check mouse and return maped command.
+ * checkmouse - Check mouse and return mapped command.
  *
  *	EXPORTED to pico.
  *      NOTE: "down", "xxx", and "yyy" aren't used under windows.
@@ -299,7 +299,7 @@ checkmouse (unsigned long *ch, int ddd, int xxx, int yyy)
     
     /* 
      * If there is a tracking function it gets all the mouse events
-     * reguardless of where they occur.
+     * regardless of where they occur.
      */
     if (mtrack != NULL) {
 	r = mtrack (mouse.event, mrow, mcol, mouse.button, mouse.keys);

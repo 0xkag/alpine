@@ -2,7 +2,7 @@
  * $Id: radio.h 1025 2008-04-08 22:59:38Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,7 +70,7 @@ typedef struct esckey {
 #define	WT_SEQ_SENSITIVE 0x02 		/* Sensitive to seq # changes  */
 
 
-/* exported protoypes */
+/* exported prototypes */
 int	want_to(char *, int, int, HelpType, int);
 int	one_try_want_to(char *, int, int, HelpType, int);
 int	radio_buttons(char *, int, ESCKEY_S *, int, int, HelpType, int);

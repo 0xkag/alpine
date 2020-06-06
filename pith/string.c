@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: string.c 910 2008-01-14 22:28:38Z hubert@u.washingto
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -546,7 +546,7 @@ srchstr(char *haystack, char *needle)
           ss -- The string to search for, the smaller string
 
    Search for last occurrence of ss in the is, and return a pointer
-   into the string is when it is found. The search is case indepedent.
+   into the string is when it is found. The search is case independent.
   ----*/
 
 char *	    
@@ -1119,7 +1119,7 @@ The following date formats are accepted:
   DD MM WKDAY YY MM HH:MM:SS ZZ
 
 All leading, intervening and trailing spaces tabs and commas are ignored.
-The prefered formats are the first or second ones.  If a field is unparsable
+The preferred formats are the first or second ones.  If a field is unparsable
 it's value is left as -1. 
 
   ----*/
@@ -1249,7 +1249,7 @@ parse_date(char *given_date, struct date *d)
         while(*p && (*p == '-' || *p == ',' || isspace((unsigned char)*p)))
           p++;
     } else {
-        /* Something wierd, skip it and try to resynch */
+        /* Something weird, skip it and try to resynch */
         while(*p && !isspace((unsigned char)*p) && *p != ',' && *p != '-')
           p++;
         while(*p && (isspace((unsigned char)*p) || *p == ',' || *p == '-'))
@@ -2845,7 +2845,7 @@ copy_quoted_string_asis(char *src)
 
 /*
  * isxpair -- return true if the first two chars in string are
- *	      hexidecimal characters
+ *	      hexadecimal characters
  */
 int
 isxpair(char *s)

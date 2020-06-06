@@ -2,7 +2,7 @@
  * $Id: text.h 768 2007-10-24 00:10:03Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,7 @@ typedef struct del_q_s {
 } DELQ_S;
 
 
-/* exported protoypes */
+/* exported prototypes */
 int	decode_text(ATTACH_S *, long, gf_io_t, HANDLE_S **, DetachErrStyle, int);
 int	translate_utf8_to_2022_jp(long, char *, LT_INS_S **, void *);
 int	delete_quotes(long, char *, LT_INS_S **, void *);

@@ -2,7 +2,7 @@
  * $Id: init.h 900 2008-01-05 01:13:26Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@
 #define	LEGAL_NOTICE \
    "For Copyright information press \"?\""
 
-/* exported protoypes */
+/* exported prototypes */
 int               init_username(struct pine *);
 int               init_userdir(struct pine *);
 int               init_hostname(struct pine *);  

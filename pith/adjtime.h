@@ -2,7 +2,7 @@
  * $Id: adjtime.h 761 2007-10-23 22:35:18Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ typedef struct our_time_val {
 } TIMEVAL_S;
 
 
-/* exported protoypes */
+/* exported prototypes */
 time_t        get_adj_time(void);
 time_t        get_adj_name_file_mtime(char *);
 

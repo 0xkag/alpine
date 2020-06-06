@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: mailview.c 1266 2009-07-14 18:39:12Z hubert@u.washin
 /*
  * ========================================================================
  * Copyright 2006-2009 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1303,7 +1303,7 @@ format_env_hdr(MAILSTREAM *stream, long int msgno, char *section, ENVELOPE *env,
  * occurrence of header "field".  Set "start" to that.  Set "end" to point one
  * position past all of the continuation lines that go with "field".
  * That is, if "end" is converted to a null
- * character then the string "start" will be the next occurence of header
+ * character then the string "start" will be the next occurrence of header
  * "field" including all of its continuation lines. Assume we
  * have CRLF's as end of lines.
  *
@@ -2713,7 +2713,7 @@ format_header(MAILSTREAM *stream, long int msgno, char *section, ENVELOPE *env,
 		}
 		else{
 		    /*
-		     * Go through h finding all occurences of this header
+		     * Go through h finding all occurrences of this header
 		     * and all continuation lines, and output.
 		     */
 		    for(current = h;
@@ -3562,7 +3562,7 @@ pine_rfc822_cat(char *src, const char *specials, gf_io_t pc)
 
   Result: A formatted, malloced string is returned.
 
-The resuling lines formatted are 80 columns wide.
+The resulting lines formatted are 80 columns wide.
   ----------------------------------------------------------------------*/
 void
 format_newsgroup_string(char *field_name, char *newsgrps, int flags, gf_io_t pc)

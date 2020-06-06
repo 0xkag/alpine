@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ typedef struct list_selection {
 } LIST_SEL_S;
 
 
-/* exported protoypes */
+/* exported prototypes */
 int         select_from_list_screen(LIST_SEL_S *, unsigned long, char *, char *, HelpType, char *, LIST_SEL_S *);
 
 

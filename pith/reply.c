@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: reply.c 1074 2008-06-04 00:08:43Z hubert@u.washingto
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1209,6 +1209,7 @@ reply_body(MAILSTREAM *stream, ENVELOPE *env, struct mail_bodystruct *orig_body,
 	    else if(orig_body->subtype
 		    && !strucmp(orig_body->subtype, "alternative")
 		    && orig_body->nested.part
+		    && orig_body->nested.part->next
 		    && orig_body->nested.part->next->body.type == TYPEMULTIPART
 		    && orig_body->nested.part->next->body.subtype
 		    && !strucmp(orig_body->nested.part->next->body.subtype, "MIXED"))
@@ -2972,7 +2973,7 @@ Args:  stream  -- Mail stream to fetch text from
        ret_charset -- If we translate to another charset return that
                       new charset here
 
-Returns:  true if OK, false if problem occured while filtering
+Returns:  true if OK, false if problem occurred while filtering
 
 If the text is richtext, it will be converted to plain text, since there's
 no rich text editing capabilities in Pine (yet).
@@ -3512,7 +3513,7 @@ copy_body(struct mail_bodystruct *new_body, struct mail_bodystruct *old_body)
 /*----------------------------------------------------------------------
     Copy the MIME parameter list
  
- Allocates storage for new part, and returns pointer to new paramter
+ Allocates storage for new part, and returns pointer to new parameter
 list. If old_p is NULL, NULL is returned.
  ----*/
 PARAMETER *
@@ -3593,7 +3594,7 @@ reply_in_reply_to(ENVELOPE *env)
 
   Result: Alloc'd unique string is returned
 
-Uniqueness is gaurenteed by using the host name, process id, date to the
+Uniqueness is guaranteed by using the host name, process id, date to the
 second and a single unique character
 *----------------------------------------------------------------------*/
 char *

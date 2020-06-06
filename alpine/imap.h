@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 #include "../pith/imap.h"
 
 
-/* exported protoypes */
+/* exported prototypes */
 void pine_parse_quota (MAILSTREAM *, unsigned char *, QUOTALIST *);
 QUOTALIST *pine_quotalist_copy (QUOTALIST  *);
 void   *pine_block_notify(int, void *);
@@ -31,7 +31,7 @@ char   *pine_newsrcquery(MAILSTREAM *, char *, char *);
 int     url_local_certdetails(char *);
 void    pine_sslfailure(char *, char *, unsigned long);
 void	mm_expunged_current(long unsigned int);
-char   *oauth2_get_access_code(char *, OAUTH2_S *, int *);
+char   *oauth2_get_access_code(char *, char *, OAUTH2_S *, int *);
 
 #ifdef	LOCAL_PASSWD_CACHE
 int     get_passfile_passwd(char *, char **, char *, STRLIST_S *, int);

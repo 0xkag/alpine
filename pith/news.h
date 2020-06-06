@@ -2,7 +2,7 @@
  * $Id: news.h 761 2007-10-23 22:35:18Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@
 #define	IS_NEWS(S)	((S) ? ns_test((S)->mailbox, "news") : 0)
 
 
-/* exported protoypes */
+/* exported prototypes */
 int         ns_test(char *, char *);
 int         news_in_folders(struct variable *);
 int	    news_grouper(char *, char **, char **, char **, void (*)(void));

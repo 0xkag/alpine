@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: smime.c 1176 2008-09-29 21:16:42Z hubert@u.washingto
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -302,7 +302,7 @@ setup_pwdcert(void **pwdcert)
 	     }
 	   }
 	 }
-	 if(pc->keytext != NULL)	/* we should go straigth here */
+	 if(pc->keytext != NULL)	/* we should go straight here */
 	   text = pc->keytext;
     } else if (ps_global->smime->privatetype == Keychain){
 	   pathkey[0] = '\0';	/* no apple key chain support yet */

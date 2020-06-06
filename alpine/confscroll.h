@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ extern OPT_SCREEN_S *opt_screen;
 extern EditWhich ew;
 
 
-/* exported protoypes */
+/* exported prototypes */
 int	 conf_scroll_screen(struct pine *, OPT_SCREEN_S *, CONF_S *, char *, char *, int, int *);
 void     standard_radio_setup(struct pine *, CONF_S **, struct variable *, CONF_S **);
 int      standard_radio_var(struct pine *, struct variable *);

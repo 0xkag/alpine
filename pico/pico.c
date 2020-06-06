@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: pico.c 921 2008-01-31 02:09:25Z hubert@u.washington.
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1256,7 +1256,7 @@ doubleclick = (lrow == row && lcol == col
 		       && time(0) < (lastcalled + 2));
 	lastcalled  = time(0);
 #endif
-	lheader	    = FALSE;	/* Rember mouse down position. */
+	lheader	    = FALSE;	/* Remember mouse down position. */
 	levent	    = mevent;
 	lrow	    = row;
 	lcol	    = col;

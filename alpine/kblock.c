@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: kblock.c 1025 2008-04-08 22:59:38Z hubert@u.washingt
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -112,7 +112,7 @@ lock_keyboard(void)
 
     for(i = 0; i < times; i++){
 	pw[0] = '\0';
-	while(1){			/* input pasword to use for locking */
+	while(1){			/* input password to use for locking */
 	    int rc;
 	    char prompt[50];
 

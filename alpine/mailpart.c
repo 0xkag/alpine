@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: mailpart.c 1074 2008-06-04 00:08:43Z hubert@u.washin
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -910,7 +910,7 @@ attachment_screen(struct pine *ps)
 /*----------------------------------------------------------------------
   allocate and attach a fresh attachment line struct
 
-  Args: current -- display line to attache new struct to
+  Args: current -- display line to attach new struct to
 
   Returns: newly alloc'd attachment display line
   ----*/

@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: smkeys.c 1266 2009-07-14 18:39:12Z hubert@u.washingt
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,7 @@ static char rcsid[] = "$Id: smkeys.c 1266 2009-07-14 18:39:12Z hubert@u.washingt
 #include "../pith/util.h"
 #include "../pith/mailindx.h"
 #include "../pith/readfile.h"
+#include "../pith/options.h"
 #include "smkeys.h"
 
 #ifdef APPLEKEYCHAIN
@@ -49,8 +50,6 @@ static char     *emailstrclean(char *string);
 static int       mem_add_extra_cacerts(char *contents, X509_LOOKUP *lookup);
 int		 compare_certs_by_name(const void *data1, const void *data2);
 int		 password_policy_check(char *);
-
-int  (*pith_smime_enter_password)(char *, char *, size_t);
 
 /* test if password passes a predetermined policy.
  * return value: 0 - does not pass; 1 - it passes 
@@ -877,7 +876,7 @@ load_key(PERSONAL_CERT *pc, char *pass, int flag)
 /*
  * This newer version is from Adrian Vogel. It looks for the email
  * address not only in the email address field, but also in an
- * X509v3 extension field, Subject Altenative Name.
+ * X509v3 extension field, Subject Alternative Name.
  */
 char **
 get_x509_subject_email(X509 *x)

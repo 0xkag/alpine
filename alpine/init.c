@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: init.c 101 2006-08-10 22:53:04Z mikes@u.washington.e
 /*
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ static char rcsid[] = "$Id: init.c 101 2006-08-10 22:53:04Z mikes@u.washington.e
 /* these are used to report folder directory creation problems */
 CONF_TXT_T init_md_exists[] =	"The \"%s\" subdirectory already exists, but it is not writable by Alpine so Alpine cannot run.  Please correct the permissions and restart Alpine.";
 
-CONF_TXT_T init_md_file[] =	"Alpine requires a directory called \"%s\" and usualy creates it.  You already have a regular file by that name which means Alpine cannot create the directory.  Please move or remove it and start Alpine again.";
+CONF_TXT_T init_md_file[] =	"Alpine requires a directory called \"%s\" and usually creates it.  You already have a regular file by that name which means Alpine cannot create the directory.  Please move or remove it and start Alpine again.";
 
 CONF_TXT_T init_md_create[] =	"Creating subdirectory \"%s\" where Alpine will store its mail folders.";
 
@@ -46,7 +46,6 @@ CONF_TXT_T init_md_create[] =	"Creating subdirectory \"%s\" where Alpine will st
 /*
  * Internal prototypes
  */
-void	 display_init_err(char *, int);
 char	*context_string(char *);
 int	 prune_folders(CONTEXT_S *, char *, int, char *, unsigned);
 int	 prune_move_folder(char *, char *, CONTEXT_S *);

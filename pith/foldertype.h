@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,7 +107,7 @@ typedef struct selected_s {
 
 
 /*------------------------------
-    Stucture to keep track of the various folder collections being
+    Structure to keep track of the various folder collections being
     dealt with.
   ----*/
 typedef struct context {
@@ -158,7 +158,7 @@ typedef struct context {
 			  ((X)->dir->status & CNTXT_PARTFIND) == 0)
 
 
-/* exported protoypes */
+/* exported prototypes */
 
 
 #endif /* PITH_FOLDERTYPE_INCLUDED */

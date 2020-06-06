@@ -2,7 +2,7 @@
  * $Id: color.h 768 2007-10-24 00:10:03Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,7 +96,7 @@ typedef struct spec_color_s {
 #define DEFAULT_IND_OP_BACK_RGB		"255,255,255"
 
 
-/* exported protoypes */
+/* exported prototypes */
 char	*color_embed(char *, char *);
 int	 colorcmp(char *, char *);
 int	 next_level_quote(char *, char **, int, int);

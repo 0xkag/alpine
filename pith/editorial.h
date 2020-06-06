@@ -3,7 +3,7 @@
   -----------------------------------------------------------------------*/
 
 /* ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
 #include "../pith/filter.h"
 
 
-/* exported protoypes */
+/* exported prototypes */
 char	*format_editorial(char *, int, int, HANDLE_S **, gf_io_t);
 
 

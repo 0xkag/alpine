@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: sequence.c 1012 2008-03-26 00:44:22Z hubert@u.washin
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -352,7 +352,7 @@ build_sequence(MAILSTREAM *stream, MSGNO_S *msgmap, long int *count)
   Args: map -- message number struct of to build selected messages in
 
   OK folks, here's the tradeoff: either all the functions have to
-  know if the user want's to deal with the "current" hilited message
+  know if the user wants to deal with the "current" hilited message
   or the list of currently "selected" messages, *or* we just
   wrap the call to these functions with some glue that tweeks
   what these functions see as the "current" message list, and let them

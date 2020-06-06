@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: altedit.c 854 2007-12-07 17:44:43Z hubert@u.washingt
 /*
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -574,7 +574,7 @@ child_handler(int sig)
 	 * sleep function, thus making the stack frame for the signal function
 	 * invalid, and when the ALARM handler later longjmps back into the
 	 * sleep function it does no longer have a valid stack frame.
-	 * My sugested fix is to cancel the pending alarm in the SIGCHLD
+	 * My suggested fix is to cancel the pending alarm in the SIGCHLD
 	 * handler before longjmp'ing. This shouldn't hurt as there
 	 * shouldn't be any ALARM pending at this point except possibly from
 	 * the sleep call.
@@ -586,7 +586,7 @@ child_handler(int sig)
 	 * The sleep call might have set up a signal handler which would
 	 * longjmp back into the sleep code, and that would cause a crash.
 	 */
-	signal(SIGALRM, SIG_IGN);	/* Cancel signal handeler */
+	signal(SIGALRM, SIG_IGN);	/* Cancel signal handler */
 	alarm(0);			/* might longjmp back into sleep */ 
 #endif
 	longjmp(pico_child_state, 1);

@@ -2,7 +2,7 @@
  * $Id: smkeys.h 1074 2008-06-04 00:08:43Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,7 +69,7 @@ typedef struct personal_cert {
 #define SM_NORMALCERT	0x1	/* look in normal user defined directory */
 #define SM_BACKUPCERT	0x2	/* look in backup directory */
 
-/* exported protoypes */
+/* exported prototypes */
 int	       add_certs_in_dir(X509_LOOKUP *lookup, char *path, char *ext, CertList **cdata);
 X509_STORE    *get_ca_store(void);
 void	       free_x509_store(X509_STORE **);

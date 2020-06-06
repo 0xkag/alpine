@@ -91,6 +91,8 @@ static copyuid_t mailcopyuid = NIL;
 static appenduid_t mailappenduid = NIL;
 
 static oauth2getaccesscode_t oauth2getaccesscode = NIL;
+
+static oauth2clientinfo_t oauth2clientinfo = NIL;
 				/* free elt extra stuff callback */
 static freeeltsparep_t mailfreeeltsparep = NIL;
 				/* free envelope extra stuff callback */
@@ -673,6 +675,11 @@ void *mail_parameters (MAILSTREAM *stream,long function,void *value)
   case GET_OA2CLIENTGETACCESSCODE:
     ret = (void *) oauth2getaccesscode;
     break;
+  case SET_OA2CLIENTINFO:
+    oauth2clientinfo = (oauth2clientinfo_t) value;
+  case GET_OA2CLIENTINFO:
+    ret = (void *) oauth2clientinfo;
+    break;
   default:
     if ((r = smtp_parameters (function,value)) != NULL) ret = r;
     if ((r = env_parameters (function,value)) != NULL) ret = r;
@@ -840,11 +847,11 @@ long mail_valid_net_parse_work (char *name,NETMBX *mb,char *service)
 	else if (!compare_cstring (s,"secure")) mb->secflag = T;
 	else if (!compare_cstring (s,"norsh")) mb->norsh = T;
 	else if (!compare_cstring (s,"loser")) mb->loser = T;
-	else if (!compare_cstring (s,"tls") && !mb->notlsflag)
+	else if ((!compare_cstring (s,"starttls") || !compare_cstring (s,"tls")) && !mb->notlsflag)
 	  mb->tlsflag = T;
 	else if (!compare_cstring (s,"tls-sslv23") && !mb->notlsflag)
 	  mb->tlssslv23 = mb->tlsflag = T;
-	else if (!compare_cstring (s,"notls") && !mb->tlsflag)
+	else if ((!compare_cstring (s,"notls") || !compare_cstring(s,"nostarttls")) && !mb->tlsflag)
 	  mb->notlsflag = T;
 	else if (!compare_cstring (s,"tryssl"))
 	  mb->trysslflag = mailssldriver? T : NIL;
@@ -1276,7 +1283,7 @@ MAILSTREAM *mail_open (MAILSTREAM *stream,char *name,long options)
 	if (mb.user[0]) sprintf (tmp + strlen (tmp),"/user=%.64s",mb.user);
 	if (mb.dbgflag) strcat (tmp,"/debug");
 	if (mb.secflag) strcat (tmp,"/secure");
-	if (mb.tlsflag) strcat (tmp,"/tls");
+	if (mb.tlsflag) strcat (tmp,"/starttls");
 	if (mb.notlsflag) strcat (tmp,"/notls");
 	if (mb.sslflag) strcat (tmp,"/ssl");
 	if (mb.tls1) strcat (tmp,"/tls1");
@@ -5345,7 +5352,7 @@ container_t mail_thread_prune_dummy_work (container_t msg,container_t ane)
 
 /* Test that purported mother is not a child of purported daughter
  * Accepts: mother
- *	    purported daugher
+ *	    purported daughter
  * Returns: T if circular parentage exists, else NIL
  */
 
@@ -6082,7 +6089,7 @@ void mail_free_searchpgmlist (SEARCHPGMLIST **pgl)
 
 
 /* Mail garbage collect namespace
- * Accepts: poiner to namespace
+ * Accepts: pointer to namespace
  */
 
 void mail_free_namespace (NAMESPACE **n)

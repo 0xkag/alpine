@@ -2,7 +2,7 @@
  * $Id: ldap.h 1012 2008-03-26 00:44:22Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,7 +60,7 @@ typedef struct ldap_serv {
  *
  * We may run into the problem of LDAP databases containing non-UTF-8 data
  * because they are old. They should have all UTF-8 data and that is what
- * we are assuming. If we wanted to accomodate these servers we could
+ * we are assuming. If we wanted to accommodate these servers we could
  * translate the data when we use it. LDAP data is only used in a few
  * places so it might not be too hard to fix it. There are four calls
  * into the LDAP library that produce character strings which are
@@ -165,7 +165,7 @@ extern int wp_exit;
 extern int wp_nobail;
 
 
-/* exported protoypes */
+/* exported prototypes */
 ADDRESS       *wp_lookups(char *, WP_ERR_S *, int);
 #ifdef	ENABLE_LDAP
 int            ldap_lookup_all(char *, int, int, LDAPLookupStyle, CUSTOM_FILT_S *,

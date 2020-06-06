@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: newmail.c 1266 2009-07-14 18:39:12Z hubert@u.washing
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,7 +64,7 @@ int  check_point(MAILSTREAM *, CheckPointTime, int);
 
   Limit frequency of checks because checks use some resources. That is
   they generate an IMAP packet or require locking the local mailbox.
-  (Acutally the lock isn't required, a stat will do, but the current
+  (Actually the lock isn't required, a stat will do, but the current
    c-client mail code locks before it stats.)
 
   Returns >= 0 only if there is a change in the given mail stream. Otherwise

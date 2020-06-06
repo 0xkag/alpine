@@ -2,7 +2,7 @@
  * $Id: options.h 101 2006-08-10 22:53:04Z mikes@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +59,7 @@ extern void (*pith_opt_paint_index_hline)(MAILSTREAM *, long, ICE_S *);
 
 /*
  * optional hook in mailview.c:format_message to allow for inserting an
- * [editorial commment] in message text to indicate the message contains
+ * [editorial comment] in message text to indicate the message contains
  * list-management pointers
  */
 extern int  (*pith_opt_rfc2369_editorial)(long, HANDLE_S **, int, int, gf_io_t);

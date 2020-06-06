@@ -2,7 +2,7 @@
  * $Id: remote.h 1074 2008-06-04 00:08:43Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,7 +60,7 @@
 extern char meta_prefix[];
 
 
-/* exported protoypes */
+/* exported prototypes */
 char       *read_remote_pinerc(PINERC_S *, ParsePinerc);
 REMDATA_S  *rd_create_remote(RemType, char *, char *, unsigned *, char *, char *);
 REMDATA_S  *rd_new_remdata(RemType, char *, char *);

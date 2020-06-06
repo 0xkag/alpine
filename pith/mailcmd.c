@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: mailcmd.c 1142 2008-08-13 17:22:21Z hubert@u.washing
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1554,7 +1554,7 @@ expunge_and_close(MAILSTREAM *stream, char **final_msg, long unsigned int flags)
         }
 
 	/*
-	 * Make darn sure any mm_log fallout caused above get's seen...
+	 * Make darn sure any mm_log fallout caused above gets seen...
 	 */
 	if(!no_close){
 	    flush_status_messages(1);

@@ -2,7 +2,7 @@
  * $Id: reply.h 1074 2008-06-04 00:08:43Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,7 @@
 #include "../pith/addrstring.h"
 
 
-/* exported protoypes */
+/* exported prototypes */
 int	    reply_harvest(struct pine *, long, char *, ENVELOPE *, ADDRESS **,
 			  ADDRESS **, ADDRESS **, ADDRESS **,int *);
 ADDRESS    *reply_cp_addr(struct pine *, long, char *, char *,

@@ -2,7 +2,7 @@
  * $Id: state.h 1074 2008-06-04 00:08:43Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -203,7 +203,6 @@ struct pine {
     unsigned	 force_no_prefer_plain:1;
 
     unsigned     painted_body_on_startup:1;
-    unsigned	 phone_home:1;
     unsigned     painted_footer_on_startup:1;
     unsigned     open_readonly_on_startup:1;
     unsigned     exit_if_no_pinerc:1;
@@ -256,8 +255,8 @@ struct pine {
     bitmap_t     feature_list;		/* a bitmap of all the features */
     char       **feat_list_back_compat;
 
-    SPEC_COLOR_S *hdr_colors;		/* list of configed colors for view */
-    SPEC_COLOR_S *index_token_colors;	/* list of configed colors for index */
+    SPEC_COLOR_S *hdr_colors;		/* list of configured colors for view */
+    SPEC_COLOR_S *index_token_colors;	/* list of configured colors for index */
 
     char	*prefix;		/* prefix for fillpara */
     char	**list_qstr;		/* list of known quote strings */
@@ -333,8 +332,6 @@ struct pine {
 
     int          tcp_query_timeout;
 
-    int		 sleep;
-
     int          inc_check_timeout;
     int          inc_check_interval;		/* for local and IMAP */
     int          inc_second_check_interval;	/* for other */
@@ -407,7 +404,7 @@ extern struct pine *ps_global;
 extern char         tmp_20k_buf[];
 
 
-/* exported protoypes */
+/* exported prototypes */
 struct pine  *new_pine_struct(void);
 void          free_pine_struct(struct pine **);
 void          free_pinerc_strings(struct pine **);

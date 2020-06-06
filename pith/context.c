@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: context.c 1144 2008-08-14 16:53:34Z hubert@u.washing
 /*
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ char    *context_percent_quote(char *);
  *            quote a literal '[' or ']' in a context name.
  *
  *         3) an empty view in context implies a view of '*', so that's 
- *            what get's put in the view string
+ *            what gets put in the view string
  *
  *   The 2nd,3rd,4th, and 5th args all have length at least len.
  *

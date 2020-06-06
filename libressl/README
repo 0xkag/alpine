@@ -21,10 +21,10 @@ Pros:
 Cons:
 
   * LibreSSL will check certificates not using the certificates installed 
-    in your Windows computer, but it will do so in a different location. 
-    This means that it is the responsibility of the user to update the 
-    certificates. No matter what choice is made, if certificates are not
-    updated, validation will always eventually fail. 
+    in your Windows computer, but it will use those saved in 
+    C:\libressl\ssl]certs. This means that it is the responsibility of the 
+    user to update the certificates. No matter what choice is made, if 
+    certificates are not updated, validation will always eventually fail.
 
 Default Certificates Location:
 

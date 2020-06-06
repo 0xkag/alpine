@@ -2,7 +2,7 @@
  * $Id: charset.h 765 2007-10-23 23:51:37Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ typedef struct conversion_table {
 } CONV_TABLE;
 
 
-/* Conversion table quality of tranlation */
+/* Conversion table quality of translation */
 #define	CV_NO_TRANSLATE_POSSIBLE	1	/* We don't know how to      */
 						/* translate this pair       */
 #define	CV_NO_TRANSLATE_NEEDED		2	/* Not necessary, no-op      */
@@ -44,7 +44,7 @@ typedef struct conversion_table {
 #define	CSET_MAX		64
 
 
-/* exported protoypes */
+/* exported prototypes */
 char	      *body_charset(MAILSTREAM *, long, unsigned char *);
 unsigned char *trans_euc_to_2022_jp(unsigned char *);
 unsigned char *rfc1522_decode_to_utf8(unsigned char *, size_t, char *);

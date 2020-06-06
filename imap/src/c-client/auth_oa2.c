@@ -1,5 +1,5 @@
 /* ========================================================================
- * Copyright 2018 Eduardo Chappa
+ * Copyright 2018 - 2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -11,16 +11,16 @@
  * ========================================================================
  */
 
-long auth_oauth2_client (authchallenge_t challenger,authrespond_t responder,
-			char *service,NETMBX *mb,void *stream,
+long auth_oauth2_client (authchallenge_t challenger,authrespond_t responder, char *base,
+			char *service,NETMBX *mb,void *stream, unsigned long port,
 			unsigned long *trial,char *user);
 
-void mm_login_oauth2_c_client_method (NETMBX *, char *, OAUTH2_S *, unsigned long, int *);
-
-char *oauth2_generate_state(void);
+#ifndef HTTP_OAUTH2_INCLUDED
+void mm_login_oauth2_c_client_method (NETMBX *, char *, char *, OAUTH2_S *, unsigned long, int *);
+#endif /* HTTP_OAUTH2_INCLUDED */
 
 AUTHENTICATOR auth_oa2 = {
-  AU_HIDE,			/* hidden */
+  AU_HIDE | AU_SINGLE,		/* hidden */
   OA2NAME,			/* authenticator name */
   NIL,				/* always valid */
   auth_oauth2_client,		/* client method */
@@ -31,32 +31,37 @@ AUTHENTICATOR auth_oa2 = {
 #define OAUTH2_USER	"user="
 #define OAUTH2_BEARER	"auth=Bearer "
 
+#ifndef OAUTH2_GENERATE_STATE
+#define OAUTH2_GENERATE_STATE
+char *oauth2_generate_state(void);
 /* we generate something like a guid, but not care about
  * anything, but that it is really random.
  */
 char *oauth2_generate_state(void)
 {
-  char rv[36];
+  char rv[37];
   int i;
 
   rv[0] = '\0';
   for(i = 0; i < 4; i++)
-     sprintf(rv + strlen(rv), "%x", random() % 256);
+     sprintf(rv + strlen(rv), "%x", (unsigned int) (random() % 256));
   sprintf(rv + strlen(rv), "%c", '-');
   for(i = 0; i < 2; i++)
-     sprintf(rv + strlen(rv), "%x", random() % 256);
+     sprintf(rv + strlen(rv), "%x", (unsigned int) (random() % 256));
   sprintf(rv + strlen(rv), "%c", '-');
   for(i = 0; i < 2; i++)
-     sprintf(rv + strlen(rv), "%x", random() % 256);
+     sprintf(rv + strlen(rv), "%x", (unsigned int) (random() % 256));
   sprintf(rv + strlen(rv), "%c", '-');
   for(i = 0; i < 2; i++)
-     sprintf(rv + strlen(rv), "%x", random() % 256);
+     sprintf(rv + strlen(rv), "%x", (unsigned int) (random() % 256));
   sprintf(rv + strlen(rv), "%c", '-');
   for(i = 0; i < 6; i++)
-     sprintf(rv + strlen(rv), "%x", random() % 256);
+     sprintf(rv + strlen(rv), "%x", (unsigned int) (random() % 256));
   rv[36] = '\0';
   return cpystr(rv);
 }
+#endif /* OAUTH2_GENERATE_STATE */
+
 
 
 /* Client authenticator
@@ -70,8 +75,8 @@ char *oauth2_generate_state(void)
  * Returns: T if success, NIL otherwise, number of trials incremented if retry
  */
 
-long auth_oauth2_client (authchallenge_t challenger,authrespond_t responder,
-			char *service,NETMBX *mb,void *stream,
+long auth_oauth2_client (authchallenge_t challenger,authrespond_t responder, char *base,
+			char *service,NETMBX *mb,void *stream, unsigned long port, 
 			unsigned long *trial,char *user)
 {
   char *u;
@@ -87,12 +92,14 @@ long auth_oauth2_client (authchallenge_t challenger,authrespond_t responder,
     mm_log ("SECURITY PROBLEM: insecure server advertised AUTH=XOAUTH2",WARN);
 
 				/* get initial (empty) challenge */
-  if ((challenge = (*challenger) (stream,&clen)) != NULL) {
-    fs_give ((void **) &challenge);
-    if (clen) {			/* abort if challenge non-empty */
-      mm_log ("Server bug: non-empty initial XOAUTH2 challenge",WARN);
-      (*responder) (stream,NIL,0);
-      ret = LONGT;		/* will get a BAD response back */
+  if (base || (challenge = (*challenger) (stream,&clen)) != NULL) {
+    if(base == NIL){
+	fs_give ((void **) &challenge);
+	if (clen) {		/* abort if challenge non-empty */
+	   mm_log ("Server bug: non-empty initial XOAUTH2 challenge",WARN);
+	   (*responder) (stream,NIL,NIL,0);
+	   ret = LONGT;		/* will get a BAD response back */
+	}
     }
 
     /* 
@@ -145,7 +152,7 @@ long auth_oauth2_client (authchallenge_t challenger,authrespond_t responder,
        if(oauth2.param[OA2_RefreshToken].value)
 	 RefreshToken = cpystr(oauth2.param[OA2_RefreshToken].value);
 
-       mm_login_oauth2_c_client_method (mb, user, &oauth2, *trial, &tryanother);
+       mm_login_oauth2_c_client_method (mb, user, OA2NAME, &oauth2, *trial, &tryanother);
 
        /* 
         * if we got an access token from the c_client_method call, 
@@ -162,8 +169,8 @@ long auth_oauth2_client (authchallenge_t challenger,authrespond_t responder,
     }
 
     /* empty challenge or user requested abort or client does not have info */
-    if(!oauth2.access_token) {
-      (*responder) (stream,NIL,0);
+    if(tryanother || !oauth2.access_token) {
+       if (!base) (*responder) (stream,base,NIL,0);
       *trial = 0;		/* cancel subsequent attempts */
       ret = LONGT;		/* will get a BAD response back */
     }
@@ -179,7 +186,7 @@ long auth_oauth2_client (authchallenge_t challenger,authrespond_t responder,
       for (u = oauth2.access_token; *u; *t++ = *u++);
       *t++ = '\001';		/* delimiting ^A */
       *t++ = '\001';		/* delimiting ^A */
-      if ((*responder) (stream,response,rlen)) {
+      if ((*responder) (stream,base,response,rlen)) {
 	if ((challenge = (*challenger) (stream,&clen)) != NULL)
 	  fs_give ((void **) &challenge);
 	else {
@@ -202,11 +209,13 @@ long auth_oauth2_client (authchallenge_t challenger,authrespond_t responder,
       fs_give ((void **) &response);
     }
   }
-  if (!ret || !oauth2.name || tryanother) 
+  if (!ret || !oauth2.name)
       *trial = 65535; 			/* don't retry if bad protocol */
   return ret;
 }
 
+#ifndef HTTP_OAUTH2_INCLUDED
+#define HTTP_OAUTH2_INCLUDED
 /* 
  * The code above is enough to implement XOAUTH2, all one needs is the username
  * and access token and give it to the function above. However, normal users cannot
@@ -219,7 +228,7 @@ long auth_oauth2_client (authchallenge_t challenger,authrespond_t responder,
 #include "json.h"
 
 void 
-mm_login_oauth2_c_client_method (NETMBX *mb, char *user, 
+mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
 			OAUTH2_S *oauth2, unsigned long trial, int *tryanother)
 {
    int i;
@@ -227,15 +236,18 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user,
    OAUTH2_SERVER_METHOD_S RefreshMethod;
    char *s = NULL;
    JSON_S *json = NULL;
+   int status = 0;
 
-   if(oauth2->param[OA2_Id].value == NULL 
-      || oauth2->param[OA2_Secret].value == NULL){
-    /*
-     * We need to implement client-side entering client_id and
-     * client_secret, and other parameters. In the mean time, bail out.
-     */
-     return;
+   if(oauth2->param[OA2_Id].value == NULL || oauth2->param[OA2_Secret].value == NULL){
+     oauth2clientinfo_t ogci =
+		(oauth2clientinfo_t) mail_parameters (NIL, GET_OA2CLIENTINFO, NIL);
+
+     if(ogci) (*ogci)(oauth2->name, &oauth2->param[OA2_Id].value,
+				&oauth2->param[OA2_Secret].value);
    }
+
+   if(oauth2->param[OA2_Id].value == NULL || oauth2->param[OA2_Secret].value == NULL)
+      return;
 
    /* first check if we have a refresh token, and in that case use it */
    if(oauth2->param[OA2_RefreshToken].value){
@@ -249,14 +261,16 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user,
      params[i].name = params[i].value = NULL;
 
      if(strcmp(RefreshMethod.name, "POST") == 0)
-	s = http_post_param(RefreshMethod.urlserver, params);
+	s = http_post_param(RefreshMethod.urlserver, params, &status);
      else if(strcmp(RefreshMethod.name, "POST2") == 0)
-	s = http_post_param2(RefreshMethod.urlserver, params);
+	s = http_post_param2(RefreshMethod.urlserver, params, &status);
+
+     if(status != 200 && s)
+	fs_give((void **) &s); 		/* at this moment, ignore the error */
 
      if(s){
-	unsigned char *t, *u;
-	if((t = strstr(s, "\r\n\r\n")) && (u = strchr(t, '{')))
-	   json = json_parse(&u);
+	unsigned char *u = s;
+	json = json_parse(&u);
 	fs_give((void **) &s);
      }
 
@@ -268,17 +282,8 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user,
 	   oauth2->access_token = cpystr((char *) jx->value);
 
 	jx = json_body_value(json, "expires_in");
-	if(jx){
-	   if(jx->jtype == JString){
-	      unsigned long *l = fs_get(sizeof(unsigned long));
-	      *l = atol((char *) jx->value);
-	      fs_give(&jx->value);
-	      jx->value = (void *) l;
-	      jx->jtype = JLong;
-	   }
-	   if(jx->jtype == JLong)
-	      oauth2->expiration   = time(0) + *(unsigned long *) jx->value;
-	}
+	if(jx && jx->jtype == JString)
+	   oauth2->expiration = time(0) + atol((char *) jx->value);
 
 	json_free(&json);
      }
@@ -304,7 +309,7 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user,
 	(oauth2getaccesscode_t) mail_parameters (NIL, GET_OA2CLIENTGETACCESSCODE, NIL);
 
 	if(ogac)
-	  oauth2->param[OA2_Code].value = (*ogac)(url, oauth2, tryanother);
+	  oauth2->param[OA2_Code].value = (*ogac)(url, method, oauth2, tryanother);
      }
 
      if(oauth2->param[OA2_Code].value){
@@ -317,14 +322,16 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user,
         params[i].name = params[i].value = NULL;
 
         if(strcmp(RefreshMethod.name, "POST") == 0)
-	   s = http_post_param(RefreshMethod.urlserver, params);
+	   s = http_post_param(RefreshMethod.urlserver, params, &status);
 	else if(strcmp(RefreshMethod.name, "POST2") == 0)
-	   s = http_post_param2(RefreshMethod.urlserver, params);
+	   s = http_post_param2(RefreshMethod.urlserver, paramsm &status);
+
+	if(status != 200 && s)
+	   fs_give((void **) &s); 		/* at this moment, ignore the error */
 
         if(s){
-	   unsigned char *t, *u;
-	   if((t = strstr(s, "\r\n\r\n")) && (u = strchr(t, '{')))
-		json = json_parse(&u);
+	   unsigned char *u = s;
+	   json = json_parse(&u);
 	   fs_give((void **) &s);
         }
 
@@ -340,20 +347,13 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user,
 	      oauth2->access_token = cpystr((char *) jx->value);
 
 	   jx = json_body_value(json, "expires_in");
-	   if(jx){
-	      if(jx->jtype == JString){
-		unsigned long *l = fs_get(sizeof(unsigned long));
-		*l = atol((char *) jx->value);
-		fs_give(&jx->value);
-		jx->value = (void *) l;
-		jx->jtype = JLong;
-	      }
-	      if(jx->jtype == JLong)
-	         oauth2->expiration = time(0) + *(unsigned long *) jx->value;
-	   }
+	   if(jx && jx->jtype == JString)
+	      oauth2->expiration = time(0) + atol((char *) jx->value);
+
 	   json_free(&json);
 	}
      }
      return;
    }
 }
+#endif /* HTTP_OAUTH2_INCLUDED */

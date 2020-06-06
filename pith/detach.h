@@ -2,7 +2,7 @@
  * $Id: detach.h 1025 2008-04-08 22:59:38Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +59,7 @@ extern FETCH_READC_S *g_fr_desc;
 #define DT_NOINTR      (long) 0x20000
 #define DT_BINARY      (long) 0x40000
 
-/* exported protoypes */
+/* exported prototypes */
 char	   *detach_raw(MAILSTREAM *, long, char *, gf_io_t, int);
 char	   *detach(MAILSTREAM *, long, char *, long, long *, gf_io_t, FILTLIST_S *, long);
 int	    valid_filter_command(char **);

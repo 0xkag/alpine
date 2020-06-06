@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: mailindx.c 1142 2008-08-13 17:22:21Z hubert@u.washin
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -421,7 +421,7 @@ index_lister(struct pine *state, CONTEXT_S *cntxt, char *folder, MAILSTREAM *str
         }
 
 	/*
-	 * events may have occured that require us to shift from
+	 * events may have occurred that require us to shift from
 	 * mode to another...
 	 */
 	style = THRD_INDX()
@@ -2519,7 +2519,7 @@ pine_imap_envelope(MAILSTREAM *stream, long unsigned int rawno, ENVELOPE *env)
 
 
 /*----------------------------------------------------------------------
-     Scroll to specified postion.
+     Scroll to specified position.
 
 
   Args: pos - position to scroll to.
@@ -2633,8 +2633,8 @@ index_scroll_down(long int scroll_count)
     }
 
     /*
-     * If not multiple selection, see if selected message visable.  if not
-     * set it to last visable message. 
+     * If not multiple selection, see if selected message visible.  if not
+     * set it to last visible message. 
      */
     if(mn_total_cur(current_index_state->msgmap) == 1L) {
 	j = 0L;
@@ -2706,8 +2706,8 @@ index_scroll_up(long int scroll_count)
 
     
     /*
-     * If not multiple selection, see if selected message visable.  if not
-     * set it to last visable message. 
+     * If not multiple selection, see if selected message visible.  if not
+     * set it to last visible message. 
      */
     if(mn_total_cur(current_index_state->msgmap) == 1L) {
 	j = 0L;

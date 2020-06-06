@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: mailview.c 1266 2009-07-14 18:39:12Z hubert@u.washin
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,7 +175,6 @@ int	    url_launch_too_long(int);
 char	   *url_external_handler(HANDLE_S *, int);
 void	    url_mailto_addr(ADDRESS **, char *);
 int	    ical_send_reply(char *);
-int	    url_local_phone_home(char *);
 int	    url_local_imap(char *);
 int	    url_local_nntp(char *);
 int	    url_local_news(char *);
@@ -1643,7 +1642,6 @@ url_local_handler(char *s)
 #endif
 	{"news:", 5, url_local_news},
 	{"x-alpine-ical:", 14, ical_send_reply},
-	{"x-alpine-phone-home:", 20, url_local_phone_home},
 	{"x-alpine-gripe:", 15, gripe_gripe_to},
 	{"x-alpine-help:", 14, url_local_helper},
 	{"x-pine-help:", 12, url_local_helper},
@@ -2209,14 +2207,6 @@ ical_send_reply(char *url)
 }
 
 
-int
-url_local_phone_home(char *URL)
-{
-   phone_home(URL + strlen("x-alpine-phone-home:"));
-   return(2);
-}
-
-
 /*
  * Format editorial comment referencing screen offering
  * List-* header supplied commands
@@ -2331,7 +2321,8 @@ scrolltool(SCROLL_S *sparms)
     UCS              ch;
     int              result, done, cmd, found_on, found_on_index,
 		     first_view, force, scroll_lines, km_size,
-		     cursor_row, cursor_col, km_popped;
+		     cursor_row, cursor_col, km_popped,
+		     nrows, ncols;
     char            *utf8str;
     long             jn;
     struct key_menu *km;
@@ -2345,7 +2336,8 @@ scrolltool(SCROLL_S *sparms)
     ps_global->mangled_header = 1;
     ps_global->mangled_footer = 1;
     ps_global->mangled_body   = !sparms->body_valid;
-      
+    ncols		      = ps_global->ttyo ? ps_global->ttyo->screen_cols : 0;
+    nrows		      = ps_global->ttyo ? ps_global->ttyo->screen_rows : 0;
 
     what	    = sparms->keys.what;	/* which key menu to display */
     cur_top_line    = 0;
@@ -2659,6 +2651,10 @@ scrolltool(SCROLL_S *sparms)
 	if(ps_global->prev_screen == mail_view_screen)
 	  mswin_setviewinwindcallback(view_in_new_window);
 #endif
+	if(cmd == MC_RESIZE
+	   || ps_global->ttyo == NULL
+	   || (ps_global->ttyo->screen_cols == ncols
+		&& ps_global->ttyo->screen_rows == nrows))
 	ch = (sparms->quell_newmail || read_command_prep()) ? read_command(&utf8str) : NO_OP_COMMAND;
 #ifdef	MOUSE
 #ifndef	WIN32
@@ -2674,8 +2670,21 @@ scrolltool(SCROLL_S *sparms)
 	mswin_setviewinwindcallback(NULL);
 	cur_top_line = scroll_state(SS_CUR)->top_text_line;
 #endif
+	/* we need to check if there was a resize of the screen
+	 * which did not happen in this routine but during a call
+	 * to another routine from this routing, and that routine has no
+	 * way to tell us that a resize happened
+	 */
+	if(cmd != MC_RESIZE
+	   && ps_global->ttyo 
+	   && (ps_global->ttyo->screen_cols != ncols
+		|| ps_global->ttyo->screen_rows != nrows))
+	   cmd = MC_RESIZE;
+	else
+	   cmd = menu_command(ch, km);
 
-	cmd = menu_command(ch, km);
+        ncols	= ps_global->ttyo ? ps_global->ttyo->screen_cols : 0;
+        nrows	= ps_global->ttyo ? ps_global->ttyo->screen_rows : 0;
 
 	if(km_popped)
 	  switch(cmd){
@@ -3365,7 +3374,7 @@ scrolltool(SCROLL_S *sparms)
 		ClearLine(1);
 		break;
 	    }
-	    /* else no reformatting neccessary, fall thru to repaint */
+	    /* else no reformatting necessary, fall thru to repaint */
 
 
             /*-------------- refresh -------------*/
@@ -4228,7 +4237,7 @@ format_scroll_text(void)
  *              of the file is the one first in the text_lines buffer.
  *
  *   NOTE: talk about massive potential for tuning...
- *         Goes without saying this is still under constuction
+ *         Goes without saying this is still under construction
  */
 void
 ScrollFile(long int line)
@@ -4251,7 +4260,7 @@ ScrollFile(long int line)
 	 * BOGUS: this is painfully crude right now, but I just want to get
 	 * it going. 
 	 *
-	 * possibly in the near furture, an array of indexes into the 
+	 * possibly in the near future, an array of indexes into the 
 	 * file that are the offset for the beginning of each line will
 	 * speed things up.  Of course, this
 	 * will have limits, so maybe a disk file that is an array
@@ -5511,7 +5520,7 @@ mswin_readscrollbuf(n)
 
 
   Args: cmd - what type of scroll operation.
-	scroll_pos - paramter for operation.  
+	scroll_pos - parameter for operation.  
 			used as position for SCROLL_TO operation.
 
   Returns: TRUE - did the scroll operation.

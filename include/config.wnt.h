@@ -457,13 +457,13 @@
 #define PACKAGE_NAME "alpine"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "alpine 2.21.99999"
+#define PACKAGE_STRING "alpine 2.22"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "alpine"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.21.99999"
+#define PACKAGE_VERSION "2.22"
 
 /* Program users use to change their password */
 /* #undef PASSWD_PROG */
@@ -537,6 +537,9 @@
 /* Enable S/MIME if LibreSSL */
 #ifdef ENABLE_WINDOWS_LIBRESSL
 #define SMIME
+/* Location of certificates in the system */
+#define SMIME_SSLCERTS "C:\\libressl\\ssl\\certs"
+
 /* Default configuration value */
 #define DF_PRIVATEKEY_DIR "alpine-smime\\private"
 
@@ -555,6 +558,20 @@
 /* Name of default certificate authority container */
 #define DF_CA_CONTAINER "CAContainer"
 #endif /* ENABLE_WINDOWS_LIBRESSL */
+
+#if defined(ENABLE_WINDOWS_LIBRESSL) && (defined(W32BITSBUILD) || defined(WXPBUILD))
+#define WINDOWS_LIBRESSL_CERTS
+#if defined(W32BITSBUILD)
+#define DEFAULT_SSLCAPATH "certs"
+#define DEFAULT_SSLCAFILE "certs\\cert.pem"
+#endif /* W32BITSBUILD */
+#if defined(WXPBUILD)
+#define DEFAULT_SSLCAPATH "C:\\libressl\\ssl\\certs"
+#define DEFAULT_SSLCAFILE "C:\\libressl\\ssl\\certs\\cert.pem"
+#endif /* WXPBUILD */
+#else
+#undef DF_ENCRYPTION_RANGE
+#endif /* defined(ENABLE_WINDOWS_LIBRESSL) && (defined(W32BITSBUILD) || defined(WXPBUILD)) */ 
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 /* #define TIME_WITH_SYS_TIME */
@@ -577,7 +594,7 @@
 #define UTF8_INTERNAL
 
 /* Version number of package */
-#define VERSION "2.21.99999"
+#define VERSION "2.22"
 
 /* Windows is just too different */
 #ifndef _WINDOWS

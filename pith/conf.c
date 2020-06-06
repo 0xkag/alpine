@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: conf.c 1266 2009-07-14 18:39:12Z hubert@u.washington
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2009 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -306,6 +306,8 @@ CONF_TXT_T cf_text_personal_print_cat[] =	"Which category default print command 
 
 CONF_TXT_T cf_text_standard_printer[] =	"The system wide standard printers";
 
+CONF_TXT_T cf_text_xoauth2_info[] = "Your client-id and client-secret information to authenticate using XOAUTH2";
+
 CONF_TXT_T cf_text_last_time_prune_quest[] =	"Set by Alpine; controls beginning-of-month sent-mail pruning.";
 
 CONF_TXT_T cf_text_last_version_used[] =	"Set by Alpine; controls display of \"new version\" message.";
@@ -382,8 +384,6 @@ CONF_TXT_T cf_text_stat_msg_delay[] =	"The number of seconds to sleep after writ
 
 CONF_TXT_T cf_text_busy_cue_rate[] =	"Number of times per-second to update busy cue messages";
 
-CONF_TXT_T cf_text_psleep[] =	"UNIX ONLY (except MAC OSX): When an attachment is opened, this variable controls the number\n#of seconds to wait between checks if the user has ended viewing the attachment.\n#minimun value: 60 seconds, maximum value: 600 seconds (10 minutes). Default: 60 seconds";
-
 CONF_TXT_T cf_text_mailcheck[] =	"The approximate number of seconds between checks for new mail";
 
 CONF_TXT_T cf_text_mailchecknoncurr[] =	"The approximate number of seconds between checks for new mail in folders\n# other than the current folder and inbox.\n# Default is same as mail-check-interval";
@@ -409,6 +409,12 @@ CONF_TXT_T cf_text_goto_default[] =	"Sets the default folder and collection offe
 CONF_TXT_T cf_text_mailcap_path[] =	"Sets the search path for the mailcap configuration file.\n# NOTE: colon delimited under UNIX, semi-colon delimited under DOS/Windows/OS2.";
 
 CONF_TXT_T cf_text_mimetype_path[] =	"Sets the search path for the mimetypes configuration file.\n# NOTE: colon delimited under UNIX, semi-colon delimited under DOS/Windows/OS2.";
+
+#if !defined(_WINDOWS) || defined(WINDOWS_LIBRESSL_CERTS)
+CONF_TXT_T cf_text_system_certs_path[] = "Sets the path for the system ssl certificates issued by a trusted\n# certificate authority. Note that this could be a list of paths, if the same\n# pinerc is used in different systems. Alpine always chooses the first one that\n# it finds. Value must be an absolute path.";
+
+CONF_TXT_T cf_text_system_certs_file[] = "Sets the path for the system ssl file container of certificates issued by a\n# certificate authority. Note that this could be a list of container files,\n# if the same pinerc is used in different systems. Alpine always chooses the,\n# first one that it finds. Value must be an absolute path.";
+#endif
 
 CONF_TXT_T cf_text_newmail_fifo_path[] = "Sets the filename for the newmail fifo (named pipe). Unix only.";
 
@@ -701,8 +707,6 @@ static struct variable variables[] = {
 	NULL,			cf_text_stat_msg_delay},
 {"busy-cue-rate",			0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
 	NULL,			cf_text_busy_cue_rate},
-{"mailcap-check-interval",		0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
-	NULL,			cf_text_psleep},
 {"mail-check-interval",			0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
 	NULL,			cf_text_mailcheck},
 {"mail-check-interval-noncurrent",	0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
@@ -733,6 +737,12 @@ static struct variable variables[] = {
 	NULL,			cf_text_mailcap_path},
 {"mimetype-search-path",		0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
 	NULL,			cf_text_mimetype_path},
+#if !defined(_WINDOWS) || defined(WINDOWS_LIBRESSL_CERTS)
+{"system-certs-path",			0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
+	"System CACerts Dir",	cf_text_system_certs_path},
+{"system-certs-file",			0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
+	"System CACerts File",	cf_text_system_certs_file},
+#endif
 {"url-viewers",				0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
 	"URL-Viewers",		cf_text_browser},
 {"default-directories",			0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
@@ -818,8 +828,10 @@ static struct variable variables[] = {
 	NULL,			cf_text_disable_drivers},
 {"disable-these-authenticators",	0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
 	NULL,			cf_text_disable_auths},
+#ifdef DF_ENCRYPTION_RANGE
 {"encryption-protocol-range",		0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
 	NULL,			cf_text_encryption_range},
+#endif
 {"remote-abook-metafile",		0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0,
 	NULL,			cf_text_remote_abook_metafile},
 {"remote-abook-history",		0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
@@ -832,6 +844,8 @@ static struct variable variables[] = {
 	NULL,			cf_text_personal_print_command},
 {"personal-print-category",		0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0,
 	NULL,			cf_text_personal_print_cat},
+{"xoauth2-info",			0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
+	"XOAUTH2 Info",		cf_text_xoauth2_info},
 {"patterns",				1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
 	NULL,			cf_text_old_patterns},
 {"patterns-roles",			0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
@@ -1718,7 +1732,6 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
     GLO_LOCAL_FULLNAME		= cpystr(DF_LOCAL_FULLNAME);
     GLO_LOCAL_ADDRESS		= cpystr(DF_LOCAL_ADDRESS);
     GLO_OVERLAP			= cpystr(DF_OVERLAP);
-    GLO_SLEEP			= cpystr("60");
     GLO_MAXREMSTREAM		= cpystr(DF_MAXREMSTREAM);
     GLO_MARGIN			= cpystr(DF_MARGIN);
     GLO_FILLCOL			= cpystr(DF_FILLCOL);
@@ -1796,6 +1809,14 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
     GLO_WP_INDEXHEIGHT          = cpystr("24");
     GLO_WP_AGGSTATE		= cpystr("1");
     GLO_WP_STATE		= cpystr("");
+#ifdef DEFAULT_SSLCAPATH
+    GLO_SSLCAPATH		= parse_list(DEFAULT_SSLCAPATH, 1,
+					     PL_REMSURRQUOT, NULL);
+#endif /* DEFAULT_SSLCAPATH */
+#ifdef DEFAULT_SSLCAFILE
+    GLO_SSLCAFILE		= parse_list(DEFAULT_SSLCAFILE, 1,
+					     PL_REMSURRQUOT, NULL);
+#endif /* DEFAULT_SSLCAFILE */
 #ifdef	DF_VAR_SPELLER
     GLO_SPELLER			= cpystr(DF_VAR_SPELLER);
 #endif
@@ -2194,13 +2215,6 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
 	}
     }
 
-    set_current_val(&vars[V_SLEEP], TRUE, TRUE);
-    ps->sleep = i = 60;
-    if(SVAR_SLEEP(ps, i, tmp_20k_buf, SIZEOF_20KBUF))
-      init_error(ps, SM_ORDER | SM_DING, 3, 5, tmp_20k_buf);
-    else
-      ps->sleep = i;
-
     set_current_val(&vars[V_OVERLAP], TRUE, TRUE);
     ps->viewer_overlap = i = atoi(DF_OVERLAP);
     if(SVAR_OVERLAP(ps, i, tmp_20k_buf, SIZEOF_20KBUF))
@@ -2418,7 +2432,9 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
     set_current_val(&vars[V_FORCED_ABOOK_ENTRY], TRUE, TRUE);
     set_current_val(&vars[V_DISABLE_DRIVERS], TRUE, TRUE);
     set_current_val(&vars[V_DISABLE_AUTHS], TRUE, TRUE);
+#ifdef DF_ENCRYPTION_RANGE
     set_current_val(&vars[V_ENCRYPTION_RANGE], TRUE, TRUE);
+#endif
 
     set_current_val(&vars[V_VIEW_HEADERS], TRUE, TRUE);
     /* strip spaces and colons */
@@ -2445,6 +2461,10 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
     set_current_val(&vars[V_DOWNLOAD_CMD_PREFIX], TRUE, TRUE);
     set_current_val(&vars[V_MAILCAP_PATH], TRUE, TRUE);
     set_current_val(&vars[V_MIMETYPE_PATH], TRUE, TRUE);
+#if !defined(_WINDOWS) || defined(WINDOWS_LIBRESSL_CERTS)
+    set_current_val(&vars[V_SSLCAPATH], TRUE, TRUE);
+    set_current_val(&vars[V_SSLCAFILE], TRUE, TRUE);
+#endif
 #if !defined(DOS) && !defined(OS2) && !defined(LEAVEOUTFIFO)
     set_current_val(&vars[V_FIFOPATH], TRUE, TRUE);
 #endif
@@ -2572,7 +2592,7 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
 	   && strncmp(VAR_LAST_VERS_USED, ps->vers_internal, 4) >= 0)){
 	ps->show_new_version = 0;
     }
-    /* Otherwise just do lexicographic comparision... */
+    /* Otherwise just do lexicographic comparison... */
     else if(VAR_LAST_VERS_USED
 	    && strcmp(VAR_LAST_VERS_USED, ps->vers_internal) >= 0){
 	ps->show_new_version = 0;
@@ -2622,6 +2642,8 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
     if(!strucmp(VAR_ELM_STYLE_SAVE, "yes"))
       set_variable(V_SAVE_BY_SENDER, "yes", 1, 1, Main);
     obs_save_by_sender = !strucmp(VAR_SAVE_BY_SENDER, "yes");
+
+    set_current_val(&vars[V_XOAUTH2_INFO], TRUE, TRUE);
 
     set_current_pattern_vals(ps);
 
@@ -3225,11 +3247,11 @@ feature_list(int index)
 	{"disable-password-caching", NULL,
 	 F_DISABLE_PASSWORD_CACHING, h_config_disable_password_caching,
 	 PREF_MISC, 0},
-#ifdef PASSFILE
+#ifdef LOCAL_PASSWD_CACHE
 	{"disable-password-file-saving", NULL,
 	 F_DISABLE_PASSWORD_FILE_SAVING, h_config_disable_password_file_saving,
 	 PREF_MISC, 0},
-#endif /* PASSFILE */
+#endif /* LOCAL_PASSWD_CACHE */
 	{"disable-regular-expression-matching-for-alternate-addresses", NULL,
 	 F_DISABLE_REGEX, h_config_disable_regex, PREF_MISC, 0},
 	{"disable-save-input-history", NULL,
@@ -7152,6 +7174,38 @@ feature_gets_an_x(struct pine *ps, struct variable *var, FEATURE_S *feature,
 			  test_old_growth_bits(ps, feature->id)))));
 }
 
+#if !defined(_WINDOWS) || defined(WINDOWS_LIBRESSL_CERTS)
+void
+set_system_certs_path(struct pine *ps)
+{ 
+  char **l;
+
+  for (l = ps->vars[V_SSLCAPATH].current_val.l; l && *l; l++){
+      if(is_absolute_path(*l)
+	  && can_access(*l, ACCESS_EXISTS) == 0
+	  && can_access(*l, READ_ACCESS) == 0){
+           mail_parameters(NULL, SET_SSLCAPATH, (void *) *l);
+           break;
+      }
+  }
+}
+
+
+void
+set_system_certs_container(struct pine *ps)
+{ 
+  char **l;
+
+  for (l = ps->vars[V_SSLCAPATH].current_val.l; l && *l; l++){
+      if(is_absolute_path(*l)
+	  && can_access(*l, ACCESS_EXISTS) == 0
+	  && can_access(*l, READ_ACCESS) == 0){
+           mail_parameters(NULL, SET_SSLCAFILE, (void *) *l);
+           break;
+      }
+  }
+}
+#endif
 
 int
 longest_feature_comment(struct pine *ps, EditWhich ew)
@@ -7917,8 +7971,6 @@ config_help(int var, int feature)
 	return(h_config_incoming_second_interv);
       case V_INCCHECKLIST :
 	return(h_config_incoming_list);
-      case V_SLEEP :
-	return(h_config_psleep);
       case V_OVERLAP :
 	return(h_config_viewer_overlap);
       case V_MAXREMSTREAM :
@@ -7941,6 +7993,8 @@ config_help(int var, int feature)
 	return(h_config_tcp_writewarn_timeo);
       case V_TCPQUERYTIMEO :
 	return(h_config_tcp_query_timeo);
+      case V_QUITQUERYTIMEO :
+	return(h_config_quit_query_timeo);
       case V_RSHOPENTIMEO :
 	return(h_config_rsh_open_timeo);
       case V_SSHOPENTIMEO :
@@ -7981,8 +8035,10 @@ config_help(int var, int feature)
 	return(h_config_disable_drivers);
       case V_DISABLE_AUTHS :
 	return(h_config_disable_auths);
+#ifdef DF_ENCRYPTION_RANGE
       case V_ENCRYPTION_RANGE :
 	return(h_config_encryption_range);
+#endif
       case V_REMOTE_ABOOK_METADATA :
 	return(h_config_abook_metafile);
       case V_REPLY_STRING :
@@ -8047,6 +8103,12 @@ config_help(int var, int feature)
 	return(h_config_mailcap_path);
       case V_MIMETYPE_PATH :
 	return(h_config_mimetype_path);
+#if !defined(_WINDOWS) || defined(WINDOWS_LIBRESSL_CERTS)
+      case V_SSLCAPATH :
+	return(h_config_system_certs_path);
+      case V_SSLCAFILE :
+	return(h_config_system_certs_file);
+#endif
 #if !defined(DOS) && !defined(OS2) && !defined(LEAVEOUTFIFO)
       case V_FIFOPATH :
 	return(h_config_fifopath);
@@ -8362,8 +8424,6 @@ get_supported_options(void)
 #ifdef TLS1_3_VERSION
       strcat(tmp, "TLSv1.3, ");
 #endif /* TLS1_3_VERSION */
-      strcat(tmp, "DTLSv1, ");
-      strcat(tmp, "DTLSv1.2, ");
       tmp[strlen(tmp)-2] = '.';
       tmp[strlen(tmp)-1] = '\0';
     }

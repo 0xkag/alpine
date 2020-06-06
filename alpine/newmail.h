@@ -2,7 +2,7 @@
  * $Id: newmail.h 1266 2009-07-14 18:39:12Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2009 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
 #ifndef ALPINE_NEWMAIL_INCLUDED
 #define ALPINE_NEWMAIL_INCLUDED
 
-/* exported protoypes */
+/* exported prototypes */
 void	 newmail_status_message(MAILSTREAM *, long, long);
 
 #endif /* ALPINE_NEWMAIL_INCLUDED */

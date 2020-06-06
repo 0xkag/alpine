@@ -37,7 +37,7 @@ BUNDLED=
 
 # The optimization level here for GCC ports is set here for a reason.  It's
 # to get you to read this text.
-# The general concensus seems to be that -O2 is the one to use.
+# The general consensus seems to be that -O2 is the one to use.
 # Over the years, I've been told to use many different settings, including -O6.
 # In recent versions of GCC [as of 2/2005], -O6 generates bad code that, among
 # other ill effects, causes infinite loops.
@@ -130,17 +130,16 @@ CREATEPROTO=unixproto
 EMPTYPROTO=unixproto
 
 
-# Commands possibly overriden by the individual port
+# Commands possibly overridden by the individual port
 
-ARRC=ar rc
-CC=cc
+ARRC=$(AR) rc
 LN=ln -s
-RANLIB=ranlib
+RANLIB?=ranlib
 
 
 # Standard distribution build parameters
 
-DEFAULTAUTHENTICATORS=ext md5 pla oa2 log
+DEFAULTAUTHENTICATORS=ext md5 pla bea oa2 log
 #
 # mh needs to be after any other directory format drivers (such as mx or mix)
 # since otherwise mh will seize any directory that is under the mh path.
@@ -934,7 +933,7 @@ osdep.o:mail.h misc.h env.h fs.h ftl.h nl.h tcp.h \
 	gr_wait.c gr_wait4.c gr_waitp.c \
 	kerb_mit.c \
 	auth_ext.c auth_gss.c auth_log.c auth_md5.c auth_ntl.c \
-	auth_oa2.c auth_pla.c \
+	auth_bea.c auth_oa2.c auth_pla.c \
 	pmatch.c scandir.c setpgrp.c strerror.c truncate.c write.c \
 	memmove.c memmove2.c memset.c \
 	tz_bsd.c tz_nul.c tz_sv4.c \
@@ -1004,6 +1003,7 @@ onceenv:
 	./drivers $(EXTRADRIVERS) $(DEFAULTDRIVERS) dummy
 	./mkauths $(EXTRAAUTHENTICATORS) $(DEFAULTAUTHENTICATORS)
 	echo "  mail_versioncheck (CCLIENTVERSION);" >> linkage.c
+	sh -c '(test $(SSLTYPE) != none)  && echo "int pith_ssl_encryption_version(char *);" >> linkage.h || true'
 	$(LN) os_$(OS).h osdep.h
 	$(LN) os_$(OS).c osdepbas.c
 	$(LN) log_$(LOGINPW).c osdeplog.c

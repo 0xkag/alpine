@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ extern int       rmhifirst, rmhilast;
 extern int       rm_not_right_now;
 
 
-/* exported protoypes */
+/* exported prototypes */
 HelpType    help_name2section(char *, int);
 void        debugjournal_to_file(FILE *);
 void	    add_review_message(char *, int);

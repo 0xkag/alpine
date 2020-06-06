@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@
 #define SSCP_ANSWER_IS_YES	0x4
 
 
-/* exported protoypes */
+/* exported prototypes */
 char	   *save_get_default(struct pine *, ENVELOPE *, long, char *, CONTEXT_S **);
 void        save_get_fldr_from_env(char *, int, ENVELOPE *, struct pine *, long, char *);
 long	    save(struct pine *, MAILSTREAM *, CONTEXT_S *, char *, MSGNO_S *, int);

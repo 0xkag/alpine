@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: signal.c 1025 2008-04-08 22:59:38Z hubert@u.washingt
 
 /* ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -632,7 +632,7 @@ pipe_callback(PIPE_S *syspipe, int flags, void *data)
 	    if(!child_signalled){
 		if(setjmp(child_state) == 0){
 		    child_jump = 1;	/* prepare to wake up */
-		    sleep(600);		/* give it 5mins to happend */
+		    sleep(600);		/* give it 5mins to happen */
 		}
 		else
 		  our_sigunblock(SIGCHLD);

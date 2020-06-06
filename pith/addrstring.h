@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 #define RAWFIELD "-RAW-FIELD-"
 
 
-/* exported protoypes */
+/* exported prototypes */
 char	     *addr_string(ADDRESS *, char *, size_t);
 char	     *addr_string_mult(ADDRESS *, char *, size_t);
 char	     *simple_addr_string(ADDRESS *, char *, size_t);

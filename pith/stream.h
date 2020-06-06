@@ -2,7 +2,7 @@
  * $Id: stream.h 768 2007-10-24 00:10:03Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -407,7 +407,7 @@ extern MAILSTATUS *pine_cached_status;
 #define	pine_fetchheader_lines_not(S,N,M,F)  pine_fetch_header(S,N,M,F,FT_NOT)
 
 
-/* exported protoypes */
+/* exported prototypes */
 MAILSTREAM    *pine_mail_open(MAILSTREAM *, char *, long, long *);
 long	       pine_mail_create(MAILSTREAM *, char *);
 long	       pine_mail_delete(MAILSTREAM *, char *);

@@ -2,7 +2,7 @@
  * $Id: kblock.h 870 2007-12-14 06:45:43Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@
 
 #ifdef KEYBOARD_LOCK
 
-/* exported protoypes */
+/* exported prototypes */
 int	    lock_keyboard(void);
 
 #endif	/* KEYBOARD_LOCK */

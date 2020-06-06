@@ -2,7 +2,7 @@
  * $Id: imap.h 1074 2008-06-04 00:08:43Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -118,7 +118,7 @@ extern MMLOGIN_S  *cert_failure_list;
 #endif
 
 
-/* exported protoypes */
+/* exported prototypes */
 char   *imap_referral(MAILSTREAM *, char *, long);
 long    imap_proxycopy(MAILSTREAM *, char *, char *, long);
 char   *cached_user_name(char *);

@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: ldap.c 1204 2009-02-02 19:54:23Z hubert@u.washington
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +62,7 @@ int              our_ldap_set_lderrno(LDAP *, int, char *, char *);
  * Args  string -- the string to use in the lookup
  *
  * Returns     NULL -- lookup failed
- *          Address -- A single address is returned if lookup was successfull.
+ *          Address -- A single address is returned if lookup was successful.
  */
 ADDRESS *
 wp_lookups(char *string, WP_ERR_S *wp_err, int recursing)

@@ -478,7 +478,8 @@
 /* Enable keyboard lock support */
 #undef KEYBOARD_LOCK
 
-/* Define to the sub-directory where libtool stores uninstalled libraries. */
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
 #undef LT_OBJDIR
 
 /* Path to local inboxes for pico newmail check */
@@ -543,9 +544,6 @@
 
 /* Default configuration value */
 #undef POSTPONED_MSGS
-
-/* ps command which outputs list of running commands */
-#undef PSEFCMD
 
 /* Define to necessary symbol if this constant uses a non-standard name on
    your system. */

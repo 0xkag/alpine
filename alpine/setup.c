@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: setup.c 918 2008-01-23 19:39:38Z hubert@u.washington
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -388,7 +388,6 @@ option_screen(struct pine *ps, int edit_exceptions)
 	}
 	else{
 	    if(vtmp == &ps->vars[V_FILLCOL]
-	       || vtmp == &ps->vars[V_SLEEP]
 	       || vtmp == &ps->vars[V_QUOTE_SUPPRESSION]
 	       || vtmp == &ps->vars[V_OVERLAP]
 	       || vtmp == &ps->vars[V_MAXREMSTREAM]
@@ -978,7 +977,7 @@ stayopen_list_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 
 	    /*
 	     * Delay setting the displayed value until "var.current_val" is set
-	     * in case current val get's changed due to a special case above.
+	     * in case current val gets changed due to a special case above.
 	     */
 	    if(newval){
 		if(*newval)

@@ -2,7 +2,7 @@
  * $Id: filter.h 1169 2008-08-27 06:42:06Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +37,7 @@
 
 /* gf_wrap flags */
 #define	GFW_NONE		0x000	/* no flags			*/
-#define	GFW_HANDLES		0x001	/* anticpate handle data	*/
+#define	GFW_HANDLES		0x001	/* anticipate handle data	*/
 #define	GFW_ONCOMMA		0x002	/* prefer comma wrap to spaces  */
 #define	GFW_FLOWED		0x004
 #define	GFW_FLOW_RESULT		0x008
@@ -99,7 +99,7 @@ typedef struct _rss_feed_s {
 
 
 /*
- * This searchs for lines beginning with From<space> so that we can QP-encode
+ * This searches for lines beginning with From<space> so that we can QP-encode
  * them.  It also searches for lines consisting of only a dot.  Some mailers
  * will mangle these lines.  The reason it is ifdef'd is because most people
  * seem to prefer the >From style escape provided by a lot of mail software
@@ -156,7 +156,7 @@ typedef struct _rss_feed_s {
 			     }
 
 
-/* exported protoypes */
+/* exported prototypes */
 int	    generic_readc_locale(unsigned char *c,
 				 int (*get_a_char)(unsigned char *, void *),
 				 void *extraarg,

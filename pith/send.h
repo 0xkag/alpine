@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ typedef struct pine_field {
     unsigned  writehdr:1;		/* write rfc822 header for field    */
     unsigned  localcopy:1;		/* copy to fcc or postponed	    */
     unsigned  rcptto:1;			/* send to this if type Address	    */
-    unsigned  posterr:1;		/* posting error occured in field   */
+    unsigned  posterr:1;		/* posting error occurred in field  */
     /* the next three fields are used only for customized-hdrs and friends */
     unsigned  standard:1;		/* this hdr already in pf_template  */
     CustomType cstmtype;		/* for customized-hdrs and r->cstm  */
@@ -125,7 +125,7 @@ typedef struct {
 #define CM_DSN_NEVER	0x02	/* request NO DSN */
 #define CM_DSN_DELAY	0x04	/* DSN delay notification */
 #define CM_DSN_SUCCESS	0x08	/* DSN success notification */
-#define CM_DSN_FULL	0x10	/* DSN full notificiation */
+#define CM_DSN_FULL	0x10	/* DSN full notification */
 #define CM_DSN_SHOW	0x20	/* show DSN result (place holder) */
 
 
@@ -214,7 +214,7 @@ extern PRIORITY_S priorities[];
 extern PINEFIELD pf_template[];
 
 
-/* exported protoypes */
+/* exported prototypes */
 int         postponed_stream(MAILSTREAM **, char *, char *, int);
 int	    redraft_work(MAILSTREAM **, long, ENVELOPE **, BODY **, char **, char **,
 			 REPLY_S **, REDRAFT_POS_S **, PINEFIELD **, ACTION_S **, int, STORE_S *);
@@ -225,8 +225,6 @@ METAENV	   *pine_new_env(ENVELOPE *, char **, char ***, PINEFIELD *);
 void	    pine_free_env(METAENV **);
 int	    check_addresses(METAENV *);
 void	    update_answered_flags(REPLY_S *);
-unsigned int phone_home_hash(char *);
-ADDRESS	   *phone_home_from(void);
 int         call_mailer(METAENV *, BODY *, char **, int, void (*)(char *, int),
 			void (*)(PIPE_S *, int, void *));
 int         write_postponed(METAENV *, BODY *);

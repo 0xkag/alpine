@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ typedef	struct scrolltool_s {
 } SCROLL_S;
 
 
-/* exported protoypes */
+/* exported prototypes */
 char	   *get_url_external_handler(char *, int);
 int	    do_url_launch(char *, char *);
 void	    mail_view_screen(struct pine *);

@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: status.c 840 2007-12-01 01:34:49Z hubert@u.washingto
 /*
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1107,7 +1107,7 @@ output_message_modal(SMQ_T *mq_entry, int ding)
 	char	 *p, *q, *s, *t;
 	SCROLL_S  sargs;
 	
-	/* Count the number of modal messsages and add up their lengths. */
+	/* Count the number of modal messages and add up their lengths. */
 	for(m = mq_entry->next; m != mq_entry; m = m->next)
 	  if((m->flags & SM_MODAL) && !m->shown){
 	      i++;

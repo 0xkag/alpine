@@ -2,7 +2,7 @@
  * $Id: thread.h 761 2007-10-23 22:35:18Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,7 +86,7 @@ typedef struct pine_thrd {
 	 && ps_global->thread_disp_style != THREAD_NONE)
 
 
-/* exported protoypes */
+/* exported prototypes */
 PINETHRD_S   *fetch_thread(MAILSTREAM *, unsigned long);
 PINETHRD_S   *fetch_head_thread(MAILSTREAM *);
 void	      set_flags_for_thread(MAILSTREAM *, MSGNO_S *, int, PINETHRD_S *, int);

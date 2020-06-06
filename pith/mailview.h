@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,7 +128,7 @@ typedef struct header_s {
 				}
 
 
-/* exported protoypes */
+/* exported prototypes */
 int	 format_message(long, ENVELOPE *, BODY *, HANDLE_S **, int, gf_io_t);
 int	 format_attachment_list(long int, BODY *, HANDLE_S **, int, int, gf_io_t);
 char	*format_body(long int, BODY *, HANDLE_S **, HEADER_S *, int, int, gf_io_t);

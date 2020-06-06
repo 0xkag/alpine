@@ -2,7 +2,7 @@
  * $Id: mailcmd.h 1142 2008-08-13 17:22:21Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +51,7 @@ static  unsigned long rule_curpos = 0L;
 #define	MCMD_ISAGG(O)	((O) & (MCMD_AGG | MCMD_AGG_2))
 
 
-/* exported protoypes */
+/* exported prototypes */
 int	   any_messages(MSGNO_S *, char *, char *);
 void	   bogus_utf8_command(char *, char *);
 int	   can_set_flag(struct pine *, char *, int);

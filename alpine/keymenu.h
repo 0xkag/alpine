@@ -2,7 +2,7 @@
  * $Id: keymenu.h 1074 2008-06-04 00:08:43Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -228,6 +228,7 @@ struct key_menu {
 #define MC_PRETHREAD	815
 #define MC_CTHREAD	816
 #define MC_OTHREAD	817
+#define MC_XOAUTH2	805
 
 
 /* Commands for S/MIME screens */
@@ -254,7 +255,7 @@ struct key_menu {
  * label (the Save part) but the actual command (the S) will stay
  * the same, so it will be very difficult to come up with mnemonic
  * labels. The mnemonic isn't necessary, just nice. You can see that
- * we have stretched to the edge of the usefullness of mnemonics with
+ * we have stretched to the edge of the usefulness of mnemonics with
  * cases like K Kolor (instead of Color) and X eXceptions (because E
  * already meant something else).
  */
@@ -686,7 +687,7 @@ extern struct key_menu	cancel_keymenu,
 extern struct key rev_msg_keys[];
 
 
-/* exported protoypes */
+/* exported prototypes */
 void	    draw_cancel_keymenu(void);
 void	    end_keymenu(void);
 int	    menu_command(UCS, struct key_menu *);

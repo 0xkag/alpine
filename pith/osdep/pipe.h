@@ -2,7 +2,7 @@
  * $Id: pipe.h 769 2007-10-24 00:15:40Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +72,7 @@
 #define	OSB_POST_CLOSE	0x0008
 
 /*
- * stucture required for the pipe commands...
+ * structure required for the pipe commands...
  */
 typedef struct pipe_s {
     pid_t    pid;				/* child's process id       */

@@ -2,7 +2,7 @@
  * $Id: colorconf.h 769 2007-10-24 00:15:40Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,7 +66,7 @@
 extern int treat_color_vars_as_text;
 
 
-/* exported protoypes */
+/* exported prototypes */
 void     color_config_screen(struct pine *, int);
 int	 color_setting_tool(struct pine *, int, CONF_S **, unsigned);
 char    *sampleexc_text(struct pine *, struct variable *);

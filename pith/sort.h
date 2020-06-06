@@ -2,7 +2,7 @@
  * $Id: sort.h 761 2007-10-23 22:35:18Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ struct global_sort_data {
 extern struct global_sort_data g_sort;
 
 
-/* exported protoypes */
+/* exported prototypes */
 char	*sort_name(SortOrder);
 void	 sort_folder(MAILSTREAM *, MSGNO_S *, SortOrder, int, unsigned, int);
 int	 decode_sort(char *, SortOrder *, int *, int);

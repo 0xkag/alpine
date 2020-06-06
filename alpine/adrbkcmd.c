@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: adrbkcmd.c 1074 2008-06-04 00:08:43Z hubert@u.washin
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -6805,7 +6805,7 @@ _("\n \"^G\" for help specific to each item. \"^X\" to make the query, or \"^C\"
 	    if(categories > 0 || *sq->custom)
 	      filter = (CUSTOM_FILT_S *)fs_get(sizeof(CUSTOM_FILT_S));
 
-	    /* combine the configed filters with this filter */
+	    /* combine the configured filters with this filter */
 	    if(*sq->custom){
 		string = "";
 		filter->filt = sq->custom;

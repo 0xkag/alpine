@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: reply.c 1074 2008-06-04 00:08:43Z hubert@u.washingto
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -307,7 +307,7 @@ reply(struct pine *pine_state, ACTION_S *role_arg)
 	}
 	
 	/*
-	 * If we're agg-replying or there's a newsgroup and the user want's
+	 * If we're agg-replying or there's a newsgroup and the user wants
 	 * to post to news *and* via email, add relevant addresses to the
 	 * outgoing envelope...
 	 *
@@ -500,7 +500,7 @@ reply(struct pine *pine_state, ACTION_S *role_arg)
 
     seq[++times] = -1L;		/* mark end of sequence list */
 
-    /*==========  Other miscelaneous fields ===================*/   
+    /*==========  Other miscellaneous fields ===================*/   
     outgoing->in_reply_to = reply_in_reply_to(env);
     outgoing->references = reply_build_refs(env);
     outgoing->message_id = generate_message_id();
@@ -2246,7 +2246,7 @@ signature_edit(char *sigfile, char *title)
 				      ps_global->msgmap,
 				      0, FolderName, 0, 0, NULL);
 
-    /* NOTE: at this point, alot of pico struct fields are null'd out
+    /* NOTE: at this point, a lot of pico struct fields are null'd out
      * thanks to the leading memset; in particular "headents" which tells
      * pico to behave like a normal editor (though modified slightly to
      * let the caller dictate the file to edit and such)...
@@ -2440,7 +2440,7 @@ signature_edit_lit(char *litsig, char **result, char *title, HelpType composer_h
 				      ps_global->msgmap,
 				      0, FolderName, 0, 0, NULL);
 
-    /* NOTE: at this point, alot of pico struct fields are null'd out
+    /* NOTE: at this point, a lot of pico struct fields are null'd out
      * thanks to the leading memset; in particular "headents" which tells
      * pico to behave like a normal editor (though modified slightly to
      * let the caller dictate the file to edit and such)...

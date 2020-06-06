@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: filter.c 1266 2009-07-14 18:39:12Z hubert@u.washingt
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -977,8 +977,8 @@ gf_pipe(gf_io_t gc, gf_io_t pc)
 #ifdef	_WINDOWS
 	    if(!(gf_byte_count & 0x3ff))
 	      /* Under windows we yield to allow event processing.
-	       * Progress display is handled throught the alarm()
-	       * mechinism.
+	       * Progress display is handled through the alarm()
+	       * mechanism.
 	       */
 	      mswin_yield ();
 #endif
@@ -1018,7 +1018,7 @@ gf_bytes_piped(void)
  *	pc -- function to write filtered output with
  *	aux_filters -- additional filters to pass data thru after "cmd"
  *
- *  Returns: NULL on sucess, reason for failure (not alloc'd!) on error
+ *  Returns: NULL on success, reason for failure (not alloc'd!) on error
  */
 char *
 gf_filter(char *cmd, char *prepend, STORE_S *source_so, gf_io_t pc,
@@ -2393,7 +2393,7 @@ gf_rich2plain(FILTER_S *f, int flg)
 {
     static int rich_bold_on = 0, rich_uline_on = 0;
 
-/* BUG: qoute incoming \255 values */
+/* BUG: quote incoming \255 values */
     GF_INIT(f, f->next);
 
     if(flg == GF_DATA){
@@ -2568,7 +2568,7 @@ gf_enriched2plain(FILTER_S *f, int flg)
 {
     static int enr_uline_on = 0, enr_bold_on = 0;
 
-/* BUG: qoute incoming \255 values */
+/* BUG: quote incoming \255 values */
     GF_INIT(f, f->next);
 
     if(flg == GF_DATA){
@@ -2851,6 +2851,7 @@ typedef	struct _center_s {
 typedef	struct collector_s {
     char        buf[HTML_BUF_LEN];	/* buffer to collect data */
     int		len;			/* length of that buffer  */
+    unsigned	unquoted_data:1;	/* parameter is not quoted... */
     unsigned    end_tag:1;		/* collecting a closing tag */
     unsigned    hit_equal:1;		/* collecting right half of attrib */
     unsigned	mkup_decl:1;		/* markup declaration */
@@ -2920,8 +2921,8 @@ typedef	struct _html_opts {
     unsigned	handles_loc:1;		/* Local handles requested? */
     unsigned	showserver:1;		/* Display server after anchors */
     unsigned	outputted:1;		/* any */
-    unsigned	no_relative_links:1;	/* Disable embeded relative links */
-    unsigned	related_content:1;	/* Embeded related content */
+    unsigned	no_relative_links:1;	/* Disable embedded relative links */
+    unsigned	related_content:1;	/* Embedded related content */
     unsigned	html:1;			/* Output content in HTML */
     unsigned	html_imgs:1;		/* Output IMG tags in HTML content */
 } HTML_OPT_S;
@@ -3610,7 +3611,7 @@ static ELPROP_S html_element_table[] = {
     {"SAMP", 4,		html_samp},		/* Sample Text (NO OP) */
     {"CITE", 4,		html_cite},		/* Citation (NO OP) */
     {"CODE", 4,		html_code},		/* Code Text (NO OP) */
-    {"INS", 3,		html_ins},		/* Text Inseted (NO OP) */
+    {"INS", 3,		html_ins},		/* Text Inserted (NO OP) */
     {"DEL", 3,		html_del},		/* Text Deleted (NO OP) */
     {"SUP", 3,		html_sup},		/* Text Superscript (NO OP) */
     {"SUB", 3,		html_sub},		/* Text Superscript (NO OP) */
@@ -3645,8 +3646,8 @@ static ELPROP_S html_element_table[] = {
     {"THEAD", 5,	html_thead},		/* Table Table Head */
     {"TBODY", 5,	html_tbody},		/* Table Table Body */
     {"TFOOT", 5,	html_tfoot},		/* Table Table Foot */
-    {"COL", 3,		html_col},		/* Table Column Attibutes */
-    {"COLGROUP", 8,	html_colgroup},		/* Table Column Group Attibutes */
+    {"COL", 3,		html_col},		/* Table Column Attributes */
+    {"COLGROUP", 8,	html_colgroup},		/* Table Column Group Attributes */
 
     {NULL, 0,		NULL}
 };
@@ -3746,7 +3747,7 @@ html_pop(FILTER_S *fd, ELPROP_S *ep)
 
 
 /*
- * Deal with data passed a hander in its GF_DATA state
+ * Deal with data passed a handler in its GF_DATA state
  */
 static void
 html_handoff(HANDLER_S *hd, int ch)
@@ -5638,7 +5639,7 @@ html_ol(HANDLER_S *hd, int ch, int cmd)
 	else{
 	    PARAMETER *p;
 	    /*
-	     * Signal that we're expecting to see <LI> as our next elemnt
+	     * Signal that we're expecting to see <LI> as our next element
 	     * and set the the initial ordered count.
 	     */
 	    hd->x = 1L;			/* set default */
@@ -6464,7 +6465,7 @@ html_pre(HANDLER_S *hd, int ch, int cmd)
 
 
 /*
- * HTML <CENTER> (Centerd Text) element handler
+ * HTML <CENTER> (Centered Text) element handler
  */
 int
 html_center(HANDLER_S *hd, int ch, int cmd)
@@ -7406,7 +7407,7 @@ html_element_collector(FILTER_S *fd, int ch)
 
 	/*
 	 * Remember the comment for possible later processing, if
-	 * it get's too long, remember first and last few chars
+	 * it gets too long, remember first and last few chars
 	 * so we know when to terminate (and throw some garbage
 	 * in between when we toss out what's between.
 	 */
@@ -7462,9 +7463,14 @@ html_element_collector(FILTER_S *fd, int ch)
 	    return(0);			/* need more data */
 	}
     }
+    else if (ASCII_ISSPACE((unsigned char) ch))
+	ED(fd)->unquoted_data = 0;
+    else if (ED(fd)->hit_equal)
+	ED(fd)->unquoted_data = 1;
 
     ch &= 0xff;			/* strip any "literal" high bits */
     if(ED(fd)->quoted
+       || ED(fd)->unquoted_data
        || isalnum(ch)
        || strchr("#-.!", ch)){
 	if(ED(fd)->len < ((ED(fd)->element || !ED(fd)->hit_equal)
@@ -7590,8 +7596,6 @@ html_element_comment(FILTER_S *f, char *s)
 		       && F_ON(F_USE_FK, ps_global))
 		      HD(f)->bitbucket = 0;
 		    else if(!strucmp(s, "running"))
-		      HD(f)->bitbucket = 0;
-		    else if(!strucmp(s, "PHONE_HOME") && ps_global->phone_home)
 		      HD(f)->bitbucket = 0;
 #ifdef	_WINDOWS
 		    else if(!strucmp(s, "os_windows"))
@@ -7888,7 +7892,7 @@ html_entity_collector(FILTER_S *f, int ch, UCS *ucs, char **alt)
 void
 gf_html2plain(FILTER_S *f, int flg)
 {
-/* BUG: qoute incoming \255 values (see "yuml" above!) */
+/* BUG: quote incoming \255 values (see "yuml" above!) */
     if(flg == GF_DATA){
 	register int c;
 	GF_INIT(f, f->next);

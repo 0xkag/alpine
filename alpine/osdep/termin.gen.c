@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: termin.gen.c 1025 2008-04-08 22:59:38Z hubert@u.wash
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -658,7 +658,7 @@ optionally_enter(char *utf8string, int y_base, int x_base, int utf8string_size,
 	  case ctrl('H'):
             /*   Try and do this with by telling the terminal to delete a
                  a character. If that fails, then repaint the rest of the
-                 line, acheiving the same much less efficiently
+                 line, achieving the same much less efficiently
              */
 	    if(field_pos <= 0)
 	      goto bleep;

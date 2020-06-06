@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: search.c 1266 2009-07-14 18:39:12Z hubert@u.washingt
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,7 +101,7 @@ EXTRAKEYS    menu_srchopt[] = {
 
 /*	string search input parameters	*/
 
-#define	PTBEG	1	/* leave the point at the begining on search */
+#define	PTBEG	1	/* leave the point at the beginning on search */
 #define	PTEND	2	/* leave the point at the end on search */
 
 #define NPMT (2*NLINE+32)
@@ -397,7 +397,7 @@ forwsearch(int f, int n)
 
     /*
      * This code is kind of dumb.  What I want is successive C-W 's to 
-     * move dot to successive occurences of the pattern.  So, if dot is
+     * move dot to successive occurrences of the pattern.  So, if dot is
      * already sitting at the beginning of the pattern, then we'll move
      * forward a char before beginning the search.  We'll let the
      * automatic wrapping handle putting the dot back in the right 
@@ -623,7 +623,7 @@ replace_pat(UCS *defpat, int *wrapt, int bsearch)
 	  case (CTRL|'X'):        /* toggle replace all option */
 	    if (repl_all){
 		repl_all = FALSE;
-		/* TRANSLATORS: abbreviation for Replace All occurences */
+		/* TRANSLATORS: abbreviation for Replace All occurrences */
 		menu_pat[0].label = N_("Repl All");
 	    }
 	    else{
@@ -1195,7 +1195,7 @@ forscan(int *wrapt,	/* boolean indicating search wrapped */
 	LINE *limitp,	/* stop searching if reached */
 	int limito,	/* stop searching if reached */
 	int leavep)	/* place to leave point
-				PTBEG = begining of match
+				PTBEG = beginning of match
 				PTEND = at end of match		*/
 
 {
@@ -1317,13 +1317,13 @@ forscan(int *wrapt,	/* boolean indicating search wrapped */
 		  goto fail;
 	    }
 
-	    /* A SUCCESSFULL MATCH!!! */
+	    /* A SUCCESSFUL MATCH!!! */
 	    /* reset the global "." pointers */
 	    if (leavep == PTEND) {	/* at end of string */
 		curwp->w_dotp = matchline;
 		curwp->w_doto = matchoff - 1;
 	    }
-	    else {		/* at begining of string */
+	    else {		/* at beginning of string */
 		curwp->w_dotp = lastline;
 		curwp->w_doto = lastoff;
 	    }

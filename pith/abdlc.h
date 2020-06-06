@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 #include "../pith/adrbklib.h"
 
 
-/* exported protoypes */
+/* exported prototypes */
 DL_CACHE_S    *get_dlc(long);
 void           warp_to_dlc(DL_CACHE_S *, long);
 void           warp_to_beginning(void);

@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: flag.c 1142 2008-08-13 17:22:21Z hubert@u.washington
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -140,7 +140,7 @@ flag_search(MAILSTREAM *stream, int flags, MsgNo set_start, MSGNO_S *set_msgmap,
 	  }
 
 	/*
-	 * No search-worthy messsages?, prod the server for
+	 * No search-worthy messages?, prod the server for
 	 * any flag updates and clear the searched bits...
 	 */
 	if(full_set){

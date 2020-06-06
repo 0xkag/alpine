@@ -2,7 +2,7 @@
  * $Id: store.h 1074 2008-06-04 00:08:43Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,7 +56,7 @@ typedef struct store_object {
 #define	so_puts(so, s)		((*(so)->puts)((so), (s)))
 
 
-/* exported protoypes */
+/* exported prototypes */
 STORE_S	*so_get(SourceType, char *, int);
 int	 so_give(STORE_S **);
 int	 so_nputs(STORE_S *, char *, long);

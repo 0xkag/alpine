@@ -2,7 +2,7 @@
  * $Id: status.h 770 2007-10-24 00:23:09Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@
 #define	SM_INFO		0x10			/* Handy, but discardable    */
 
 
-/* exported protoypes */
+/* exported prototypes */
 void	q_status_message1(int, int, int, char *, void *);
 void	q_status_message2(int, int, int, char *, void *, void *);
 void	q_status_message3(int, int, int, char *, void *, void *, void *);

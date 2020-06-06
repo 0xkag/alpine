@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: alpine.c 1266 2009-07-14 18:39:12Z hubert@u.washingt
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +41,7 @@ static char rcsid[] = "$Id: alpine.c 1266 2009-07-14 18:39:12Z hubert@u.washingt
 #include "context.h"
 #include "mailview.h"
 #include "imap.h"
+#include "xoauth2conf.h"
 #include "radio.h"
 #include "folder.h"
 #include "send.h"
@@ -63,6 +64,7 @@ static char rcsid[] = "$Id: alpine.c 1266 2009-07-14 18:39:12Z hubert@u.washingt
 #include "after.h"
 #include "smime.h"
 #include "newmail.h"
+#include "xoauth2conf.h"
 #ifndef _WINDOWS
 #include "../pico/osdep/raw.h"	/* for STD*_FD */
 #endif
@@ -341,6 +343,7 @@ main(int argc, char **argv)
     mail_parameters(NULL, SET_FREEELTSPAREP,    (void *) free_pine_elt);
     mail_parameters(NULL, SET_FREEBODYSPAREP,   (void *) free_body_sparep);
     mail_parameters(NULL, SET_OA2CLIENTGETACCESSCODE, (void *) oauth2_get_access_code);
+    mail_parameters(NULL, SET_OA2CLIENTINFO, (void *) oauth2_get_client_info);
 
     init_pinerc(pine_state, &init_pinerc_debugging);
 
@@ -468,6 +471,11 @@ main(int argc, char **argv)
 
     init_vars(pine_state, process_init_cmds);
 
+#if !defined(_WINDOWS) || defined(WINDOWS_LIBRESSL_CERTS)
+    set_system_certs_path(pine_state);
+    set_system_certs_container(pine_state);
+#endif
+
 #ifdef SMIME
     if(F_ON(F_DONT_DO_SMIME, ps_global))
       smime_deinit();
@@ -479,7 +487,7 @@ main(int argc, char **argv)
      *
      * We can't use gettext calls before we do this stuff so it doesn't
      * help to translate strings that come before this in the program.
-     * Maybe we could rearrange things to accomodate that.
+     * Maybe we could rearrange things to accommodate that.
      */
     setlocale(LC_MESSAGES, "");
     bindtextdomain(PACKAGE, LOCALEDIR);
@@ -1245,7 +1253,7 @@ main(int argc, char **argv)
 	      /*
 	       * As with almost all the folder vars in the pinerc,
 	       * we subvert the collection "breakout" here if the
-	       * folder name given looks like an asolute path on
+	       * folder name given looks like an absolute path on
 	       * this system...
 	       */
 	      cntxt = (is_absolute_path(args.data.folder))
@@ -1645,7 +1653,7 @@ here.
 This functions handling of new mail, redrawing, errors and such can 
 serve as a template for the other screen that do much the same thing.
 
-There is a loop that fetchs and executes commands until a command to leave
+There is a loop that fetches and executes commands until a command to leave
 this screen is given. Then the name of the next screen to display is
 stored in next_screen member of the structure and this function is exited
 with a return.
@@ -2368,6 +2376,10 @@ choose_setup_cmd(int cmd, MSGNO_S *msgmap, SCROLL_S *sparms)
 	srv->cmd = 'c';
 	break;
 
+      case MC_XOAUTH2 :
+	srv->cmd = 'u';
+	break;
+
       case MC_SIG :
 	srv->cmd = 's';
 	break;
@@ -2573,6 +2585,11 @@ setup_menu(struct pine *ps)
 	so_puts(store, _("    Setup for using S/MIME to verify signed messages, decrypt\n"));
 	so_puts(store, _("    encrypted messages, and to sign or encrypt outgoing messages.\n"));
     }
+
+    so_puts(store, "\n");
+    so_puts(store, _("(U) xoaUth2:\n"));
+    so_puts(store, _("    Set client-id and client-secret to use the XOAUTH2\n"));
+    so_puts(store, _("    authenticator.\n"));
 
     so_puts(store, "\n");
     so_puts(store, _("(Z) RemoteConfigSetup:\n"));
@@ -2805,6 +2822,12 @@ do_setup_task(int command)
         /*----- CONFIGURE OPTIONS -----*/
       case 'c':
 	option_screen(ps_global, edit_exceptions);
+	ps_global->mangled_screen = 1;
+	break;
+
+        /*----- XOAUTH2 CLIENT CONFIGURATION -----*/
+      case 'u':
+	alpine_xoauth2_configuration(ps_global, edit_exceptions);
 	ps_global->mangled_screen = 1;
 	break;
 

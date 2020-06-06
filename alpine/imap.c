@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: imap.c 1266 2009-07-14 18:39:12Z hubert@u.washington
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2009 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,6 +40,7 @@ static char rcsid[] = "$Id: imap.c 1266 2009-07-14 18:39:12Z hubert@u.washington
 #include "busy.h"
 #include "titlebar.h"
 #include "xoauth2.h"
+#include "init.h"
 #include "../pith/state.h"
 #include "../pith/conf.h"
 #include "../pith/msgno.h"
@@ -131,13 +132,75 @@ int   init_wincred_funcs(void);
 
 static	char *details_cert, *details_host, *details_reason;
 
+extern XOAUTH2_INFO_S xoauth_default[];
+
+/*
+ * This is the private information of the client, which is passed to
+ * c-client for processing. Every c-client application must have its
+ * own.
+ */
+OAUTH2_S alpine_oauth2_list[] =
+{
+  {GMAIL_NAME,
+   {"imap.gmail.com", "smtp.gmail.com", NULL, NULL},
+   {{"client_id", NULL},
+    {"client_secret", NULL},
+    {"code", NULL},
+    {"refresh_token", NULL},
+    {"scope", "https://mail.google.com/"},
+    {"redirect_uri", "urn:ietf:wg:oauth:2.0:oob"},
+    {"grant_type", "authorization_code"},
+    {"grant_type", "refresh_token"},
+    {"response_type", "code"},
+    {"state", NULL},
+    {"prompt", NULL}
+   },
+   {{"GET", "https://accounts.google.com/o/oauth2/auth",
+	{OA2_Id, OA2_Scope, OA2_Redirect, OA2_Response, OA2_End, OA2_End, OA2_End}},
+    {"POST", "https://accounts.google.com/o/oauth2/token",
+	{OA2_Id, OA2_Secret, OA2_Redirect, OA2_GrantTypeforAccessToken, OA2_Code, OA2_End, OA2_End}},
+    {"POST", "https://accounts.google.com/o/oauth2/token",
+	{OA2_Id, OA2_Secret, OA2_RefreshToken, OA2_GrantTypefromRefreshToken, OA2_End, OA2_End, OA2_End}}
+   },
+    NULL, 0
+  },
+#if 0
+  {"Outlook",
+   {"outlook.office365.com", "smtp.gmail.com", NULL, NULL},
+//   {{"client_id", "2d681b88-9675-4ff0-b033-4de97dcb7a04"},
+//    {"client_secret", "FHLY770;@%fmrzxbnEKG44!"},
+   {{"client_id", NULL},
+    {"client_secret", NULL},
+    {"code", NULL},
+    {"refresh_token", NULL},
+    {"scope", "openid offline_access profile https://outlook.office.com/mail.readwrite https://outlook.office.com/mail.readwrite.shared https://outlook.office.com/mail.send https://outlook.office.com/mail.send.shared https://outlook.office.com/calendars.readwrite https://outlook.office.com/calendars.readwrite.shared https://outlook.office.com/contacts.readwrite https://outlook.office.com/contacts.readwrite.shared https://outlook.office.com/tasks.readwrite https://outlook.office.com/tasks.readwrite.shared https://outlook.office.com/mailboxsettings.readwrite https://outlook.office.com/people.read https://outlook.office.com/user.readbasic.all"},
+    {"redirect_uri", "https://login.microsoftonline.com/common/oauth2/nativeclient"},
+    {"grant_type", "authorization_code"},
+    {"grant_type", "refresh_token"},
+    {"response_type", "code"},
+    {"state", NULL},
+    {"prompt", "login"}
+   },
+   {{"GET", "https://login.microsoftonline.com/common/oauth2/authorize",
+	{OA2_Id, OA2_Scope, OA2_Redirect, OA2_Response, OA2_State, OA2_Prompt, OA2_End}},
+    {"POST", "https://login.microsoftonline.com/common/oauth2/token",
+	{OA2_Id, OA2_Secret, OA2_Redirect, OA2_GrantTypeforAccessToken, OA2_Code, OA2_Scope, OA2_End}},
+    {"POST", "https://login.microsoftonline.com/common/oauth2/token",
+	{OA2_Id, OA2_Secret, OA2_RefreshToken, OA2_GrantTypefromRefreshToken, OA2_End, OA2_End, OA2_End}}
+   },
+    NULL, 0
+  },
+#endif
+  { NULL, NULL, NULL, NULL, NULL, 0},
+};
+
 typedef struct auth_code_s {
   char *code;
   int   answer;
 } AUTH_CODE_S;
 
 char *
-oauth2_get_access_code(char *url, OAUTH2_S *oauth2, int *tryanother)
+oauth2_get_access_code(char *url, char *method, OAUTH2_S *oauth2, int *tryanother)
 {
    char tmp[MAILTMPLEN];
    char *code;
@@ -154,14 +217,30 @@ oauth2_get_access_code(char *url, OAUTH2_S *oauth2, int *tryanother)
 	  goto try_wantto;
 
 	so_puts(in_store, "<HTML><P>");
-	sprintf(tmp, _("<CENTER>Auhtorizing Alpine Access to %s Email Services</CENTER>"), oauth2->name);
+	sprintf(tmp, _("<CENTER>Authorizing Alpine Access to %s Email Services</CENTER>"), oauth2->name);
 	so_puts(in_store, tmp);
-	sprintf(tmp, _("</P><P>Alpine is attempting to log you into your %s account, using the XOAUTH2 method."), oauth2->name),
+	sprintf(tmp, _("</P><P>Alpine is attempting to log you into your %s account, using the %s method."), oauth2->name, method),
 	so_puts(in_store, tmp);
 
-	so_puts(in_store, _(" In order to do that, Alpine needs to open the following URL:"));
+        if(strucmp(oauth2->name, "Gmail") == 0){
+	   so_puts(in_store, _(" If this is your first time setting up this type of authentication and you have a G-Suite account, please follow the steps below. "));
+	   so_puts(in_store, _("</P><P> First you must register Alpine with Google and create a client-id and client-secret. The steps below explain how to do this. If you already did that, then you can skip to the <A HREF=\"#secondpart\">second part</A> to continue with the setup process."));
+	   so_puts(in_store, _("<UL> "));
+	   so_puts(in_store, _("<LI>First, login to <A HREF=\"https://console.developers.google.com\">https://console.developers.google.com</A>,"));
+	   so_puts(in_store, _("and create a project. The name of the project is not important."));
+	   so_puts(in_store, _("<LI> Go to the Consent Screen and make your app INTERNAL."));
+	   so_puts(in_store, _("<LI> Create OAUTH Credentials."));
+	   so_puts(in_store, _("</UL> "));
+	   so_puts(in_store, _("<P> As a result of this process, you will get a client-id and a client-secret."));
+	   so_puts(in_store, _(" Exit this screen, and from Alpine's Main Screen press S U to save these values permanently."));
+	   so_puts(in_store, _(" Then retry login into Gmail's server, skip these steps, and continue with the steps below."));
+	   so_puts(in_store, _("</P><P> Cancelling this process will lead to an error in authentication that can be ignored."));
+	   so_puts(in_store, _("</P><P> If you completed these steps successfully, you are ready to move to the second part, where you will authorize Gmail to give access to Alpine to access your email."));
+	}
+
+	so_puts(in_store, _("</P><P><A NAME=\"secondpart\">In order</A> to authrorize Alpine to access your email, Alpine needs to open the following URL:"));
 	so_puts(in_store,"</P><P>");
-	sprintf(tmp_20k_buf, _("<A HREF=\"%s\">%s.</A>"), url, url);
+	sprintf(tmp_20k_buf, _("<A HREF=\"%s\">%s</A>"), url, url);
 	so_puts(in_store, tmp_20k_buf);
 
 	so_puts(in_store, _("</P><P> Alpine will try to use your URL Viewers setting to find a browser to open this URL."));
@@ -240,6 +319,48 @@ oauth2_get_access_code(char *url, OAUTH2_S *oauth2, int *tryanother)
 	 * If screen hasn't been initialized yet, use want_to.
 	 */
 try_wantto:
+	tmp_20k_buf[0] = '\0';
+	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf), 
+		_("Auhtorizing Alpine Access to %s Email Services\n\n"), oauth2->name);
+	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+
+	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf),
+		_("Alpine is attempting to log you into your %s account, using the %s method."), oauth2->name, method),
+	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+
+	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf), 
+		"%s\n\n",_(" In order to do that, Alpine needs to open the following URL:"));
+	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+
+	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf), 
+		"%s\n\n", url);
+	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+
+	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf), 
+		_("Copy and paste the previous URL into a web browser that supports javascript, to take you to %s's servers to complete this process.\n\n"), oauth2->name);
+	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+
+	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf),
+		"%s", _("After you open the previous link, you will be asked to authenticate and later to authorize access to Alpine."));
+	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+
+	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf),
+		"%s", _(" At the end of this process, you will be given an access code or redirected to a web page.\n"));
+	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+
+	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf),
+		"%s", _(" If you see a code, copy it and then press 'C', and enter the code at the prompt."));
+	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+
+	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf),
+		"%s", _(" If you do not see a code, copy the url of the page you were redirected to and again press 'C' and copy and paste it into the prompt. "));
+	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+
+	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf),
+		"%s", _(" Once you have completed this process,  Alpine will proceed with authentication.\n"));
+	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+
+	display_init_err(tmp_20k_buf, 0);
 	memset((void *)tmp, 0, sizeof(tmp));
 	strncpy(tmp, _("Alpine would like to get authorization to access your email: "), sizeof(tmp));
 	tmp[sizeof(tmp)-1] = '\0';
@@ -270,7 +391,7 @@ try_wantto:
    return code;
 }
 
-void mm_login_oauth2(NETMBX *, char *, OAUTH2_S *, long int, char *, char *);
+void mm_login_oauth2(NETMBX *, char *, char *, OAUTH2_S *, long int, char *, char *);
 
 /* The purpose of this function is to report to c-client the values of the
  * different tokens and codes so that c-client can try to log in the user
@@ -291,7 +412,7 @@ void mm_login_oauth2(NETMBX *, char *, OAUTH2_S *, long int, char *, char *);
  *
  * 3. When saving this information we use the password caching facilities,
  *    but we must do it in a different format so that old information and
- *    new information are not mixed. In order to accomodate this for new
+ *    new information are not mixed. In order to accommodate this for new
  *    authentication methods, we save the information in the same fields,
  *    but this time we modify it slightly, so that old functions fail to
  *    understand the new information and so not modify it nor use it. The
@@ -309,11 +430,12 @@ void mm_login_oauth2(NETMBX *, char *, OAUTH2_S *, long int, char *, char *);
  *    authenticator is "XOAUTH2\001imap.gmail.com".
  *    In addition, the password field is not used to encode the password
  *    anymore, it is used to save login information needed in a format that
- *    the caller function chooses, but that must be preceeded by the 
+ *    the caller function chooses, but that must be preceded by the 
  *    "authenticator_method separator" code as above.
  */
 void
-mm_login_oauth2(NETMBX *mb, char *user, OAUTH2_S *login, long int trial,
+mm_login_oauth2(NETMBX *mb, char *user, char *method, 
+		OAUTH2_S *login, long int trial,
 	        char *usethisprompt, char *altuserforcache)
 {
     char      *token, tmp[MAILTMPLEN];
@@ -591,7 +713,6 @@ mm_login_oauth2(NETMBX *mb, char *user, OAUTH2_S *login, long int trial,
 		      altuserforcache ? altuserforcache : user, hostlist,
 		      (mb->sslflag||mb->tlsflag), 0, 0, OA2NAME);
 #ifdef	LOCAL_PASSWD_CACHE
-#ifdef	PASSFILE
     /* if requested, remember it on disk for next session */
     if(save_password && F_OFF(F_DISABLE_PASSWORD_FILE_SAVING,ps_global))
 	    set_passfile_passwd_auth(ps_global->pinerc, token,
@@ -599,16 +720,15 @@ mm_login_oauth2(NETMBX *mb, char *user, OAUTH2_S *login, long int trial,
 			(mb->sslflag||mb->tlsflag),
 			(preserve_password == -1 ? 0
 			 : (preserve_password == 0 ? 2 :1)), OA2NAME);
-#endif	/* PASSFILE */
 #endif	/* LOCAL_PASSWD_CACHE */
 
     ps_global->no_newmail_check_from_optionally_enter = 0;
 }
 
 /*----------------------------------------------------------------------
-         recieve notification from IMAP
+         receive notification from IMAP
 
-  Args: stream  --  Mail stream message is relavant to 
+  Args: stream  --  Mail stream message is relevant to 
         string  --  The message text
         errflg  --  Set if it is a serious error
 
@@ -811,8 +931,8 @@ mm_login_method_work(NETMBX *mb, char *user, void *login, long int trial,
 {
    if(method == NULL)
       return;
-   if(strucmp(method, OA2NAME) == 0)
-     mm_login_oauth2(mb, user, (OAUTH2_S *) login, trial, usethisprompt, altuserforcache);
+   if(strucmp(method, OA2NAME) == 0 || strucmp(method, BEARERNAME) == 0)
+     mm_login_oauth2(mb, user, method, (OAUTH2_S *) login, trial, usethisprompt, altuserforcache);
 }
 
 void
@@ -1496,7 +1616,6 @@ mm_login_work(NETMBX *mb, char *user, char **pwd, long int trial,
 		      altuserforcache ? altuserforcache : user, hostlist,
 		      (mb->sslflag||mb->tlsflag), 0, 0);
 #ifdef	LOCAL_PASSWD_CACHE
-#ifdef  PASSFILE
     /* if requested, remember it on disk for next session */
       if(save_password && F_OFF(F_DISABLE_PASSWORD_FILE_SAVING,ps_global))
       set_passfile_passwd(ps_global->pinerc, *pwd,
@@ -1504,7 +1623,6 @@ mm_login_work(NETMBX *mb, char *user, char **pwd, long int trial,
 			(mb->sslflag||mb->tlsflag),
 			(preserve_password == -1 ? 0
 			 : (preserve_password == 0 ? 2 :1)));
-#endif	/* PASSFILE */
 #endif	/* LOCAL_PASSWD_CACHE */
 
     ps_global->no_newmail_check_from_optionally_enter = 0;
@@ -1538,7 +1656,7 @@ mm_login_alt_cue(NETMBX *mb)
 /*----------------------------------------------------------------------
        Receive notification of an error writing to disk
       
-  Args: stream  -- The stream the error occured on
+  Args: stream  -- The stream the error occurred on
         errcode -- The system error code (errno)
         serious -- Flag indicating error is serious (mail may be lost)
 
@@ -1802,7 +1920,7 @@ pine_tcptimeout(long int elapsed, long int sincelast, char *host)
 	flush_status_messages(0);	/* make sure it's seen */
     }
 
-    mark_status_dirty();		/* make sure it get's cleared */
+    mark_status_dirty();		/* make sure it gets cleared */
 
     resume_busy_cue((rv == 1) ? 3 : 0);
     ps_global->tcptimeout = 0;
@@ -1979,6 +2097,8 @@ pine_sslcertquery(char *reason, char *host, char *cert)
 
 	if(the_answer == 'y')
 	  rv++;
+	else if(the_answer == 'n')
+	  ps_global->user_says_cancel = 1;
 
 	ps_global->mangled_screen = 1;
 	ps_global->painted_body_on_startup = 0;
@@ -2924,7 +3044,7 @@ read_passfile(pinerc, l)
     }
 
     /* 
-     * if password file is encrypted we attemtp to decrypt. We ask the 
+     * if password file is encrypted we attempt to decrypt. We ask the 
      * user for the password to unlock the password file. If the user 
      * enters the password and it unlocks the file, use it and keep saving 
      * passwords in it. If the user enters the wrong passwords and does 

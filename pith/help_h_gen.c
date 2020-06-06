@@ -1,7 +1,7 @@
 /*
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ void
 preamble(FILE *ofp)
 {
     fprintf(ofp, "\n\t\t/*\n");
-    fprintf(ofp, "\t\t * AUTMATICALLY GENERATED FILE!\n");
+    fprintf(ofp, "\t\t * AUTOMATICALLY GENERATED FILE!\n");
     fprintf(ofp, "\t\t * DO NOT EDIT!!\n");
     fprintf(ofp, "\t\t * See help_h_gen.c.\n\t\t */\n\n\n");
     fprintf(ofp, "#ifndef PITH_HELPTEXT_INCLUDED\n");

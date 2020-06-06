@@ -2,7 +2,7 @@
  * $Id: folder.h 767 2007-10-24 00:03:59Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@
 #include "../pith/conf.h"
 
 
-/* exported protoypes */
+/* exported prototypes */
 void	    folder_screen(struct pine *);
 void	    folder_config_screen(struct pine *, int);
 int	    folders_for_goto(struct pine *, CONTEXT_S **, char *, int);

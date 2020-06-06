@@ -3,7 +3,7 @@ static char rcsid[] = "$Id: mailindx.c 1266 2009-07-14 18:39:12Z hubert@u.washin
 #endif
 
 /* ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -4272,7 +4272,7 @@ index_data_env(INDEXDATA_S *idata, ENVELOPE *env)
     idata->date	      = (char *) env->date;
     idata->newsgroups = env->newsgroups;
 
-    idata->valid_to = 1;	/* signal that everythings here */
+    idata->valid_to = 1;	/* signal that everything is here */
     idata->valid_cc = 1;
     idata->valid_sender = 1;
     idata->valid_news = 1;
@@ -5052,7 +5052,7 @@ date_str(char *datesrc, IndexColType type, int v, char *str, size_t str_len,
 
 	/* (if message dated this month or last month...) */
 	if((d.year == now.year && d.month >= now.month - 6) ||
-	   (d.year == now.year - 1 && d.month == 12 && now.month == 6)){
+	   (d.year == now.year - 1 && d.month == 12 && now.month <= 6)){
 
 	    daydiff = day_of_year(&now) - day_of_year(&d);
 
@@ -5987,8 +5987,6 @@ subj_str(INDEXDATA_S *idata, char *str, size_t strsize, SubjKW kwtype, int openi
 	    ftielem->data[len] = '\0';
 
 	    ftielem->datalen = strlen(ftielem->data);
-	    if(first_text)
-	      fs_give((void **) &first_text);
 
 	    if(ftielem){
 		if(pico_usingcolor()

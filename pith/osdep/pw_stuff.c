@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: pw_stuff.c 763 2007-10-23 23:37:34Z hubert@u.washing
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ static char *gcos_name(char *, char *);
       Pull the name out of the gcos field if we have that sort of /etc/passwd
 
    Args: gcos_field --  The long name or GCOS field to be parsed
-         logname    --  Replaces occurances of & with logname string
+         logname    --  Replaces occurrences of & with logname string
 
  Result: returns pointer to buffer with name
   ----*/

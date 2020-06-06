@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: send.c 1142 2008-08-13 17:22:21Z hubert@u.washington
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,10 +71,6 @@ typedef struct body_particulars {
     char              *subtype, *charset;
     PARAMETER         *parameter;
 } BODY_PARTICULARS_S;
-
-#define	PHONE_HOME_VERSION	".count"
-
-#define	PHONE_HOME_HOST		"vfemail.net"
 
 /*
  * macro to bind pico's headerentry pointer to PINEFIELD "extdata" hook
@@ -3945,7 +3941,7 @@ pine_send(ENVELOPE *outgoing, struct mail_bodystruct **body,
 
 #if	defined(BACKGROUND_POST) && defined(SIGCHLD)
 	    /*
-	     * If requested, launch backgroud posting...
+	     * If requested, launch background posting...
 	     */
 	    if(background_requested && !(call_mailer_flags & CM_VERBOSE)){
 		ps_global->post = (POST_S *)fs_get(sizeof(POST_S));
@@ -5648,72 +5644,6 @@ pine_send_newsgroup_name(char *mailbox, char *group_name, size_t len)
 
 
 /*----------------------------------------------------------------------
-     Generate and send a message back to the pine development team
-     
-Args: none
-
-Returns: none
-----*/      
-void
-phone_home(char *addr)
-{
-    char       tmp[MAX_ADDRESS], revision[128];
-    ENVELOPE  *outgoing;
-    BODY      *body;
-    NETMBX     mb;
-
-    outgoing = mail_newenvelope();
-    if(!addr || !strindex(addr, '@')){
-	snprintf(addr = tmp, sizeof(tmp), "alpine%s@%s", PHONE_HOME_VERSION, PHONE_HOME_HOST);
-	tmp[sizeof(tmp)-1] = '\0';
-    }
-
-    rfc822_parse_adrlist(&outgoing->to, addr, ps_global->maildomain);
-
-    outgoing->message_id  = generate_message_id();
-    outgoing->subject	  = cpystr("Document Request");
-    outgoing->from	  = phone_home_from();
-
-    body       = mail_newbody();
-    body->type = TYPETEXT;
-
-    if((body->contents.text.data = (void *)so_get(PicoText,NULL,EDIT_ACCESS)) != NULL){
-	so_puts((STORE_S *)body->contents.text.data, "Document request: ");
-	so_puts((STORE_S *)body->contents.text.data, "Alpine-"); 
-	so_puts((STORE_S *)body->contents.text.data, ALPINE_VERSION);
-	get_alpine_revision_string(revision, sizeof(revision));
-	so_puts((STORE_S *)body->contents.text.data, " (");
-	so_puts((STORE_S *)body->contents.text.data, revision);
-	so_puts((STORE_S *)body->contents.text.data, ")");
-	if(ps_global->first_time_user)
-	  so_puts((STORE_S *)body->contents.text.data, " for New Users");
-
-	if(ps_global->VAR_INBOX_PATH
-	   && ps_global->VAR_INBOX_PATH[0] == '{'
-	   && mail_valid_net_parse(ps_global->VAR_INBOX_PATH, &mb)){
-	   so_puts((STORE_S *)body->contents.text.data, " and ");
-	   so_puts((STORE_S *)body->contents.text.data, *mb.service ? mb.service : "UNKNOWN SERVICE");
-	}
-
-	if(ps_global->VAR_NNTP_SERVER && ps_global->VAR_NNTP_SERVER[0]
-	      && ps_global->VAR_NNTP_SERVER[0][0])
-	  so_puts((STORE_S *)body->contents.text.data, " and NNTP");
-
-	(void) pine_simple_send(outgoing, &body, NULL,NULL,NULL,NULL, SS_NULLRP);
-
-	q_status_message(SM_ORDER, 1, 3, "Thank you for being counted!");
-    }
-    else
-      q_status_message(SM_ORDER | SM_DING, 3, 4,
-	               "Problem creating space for message text.");
-
-    mail_free_envelope(&outgoing);
-    pine_free_body(&body);
-
-}
-
-
-/*----------------------------------------------------------------------
     Set up fields for passing to pico.  Assumes first text part is
     intended to be passed along for editing, and is in the form of
     of a storage object brought into existence sometime before pico_send().
@@ -5774,7 +5704,7 @@ outgoing2strings(METAENV *header, struct mail_bodystruct *bod, void **text,
 	       All parts in the body passed in here that are not already
 	       in the attachments list are added to the end of the attachments
 	       list. Attachment items not in the body list will be taken care
-	       of in strings2outgoing, but they are unlikey to occur
+	       of in strings2outgoing, but they are unlikely to occur
 	    */
 
 	    for(part = bod->nested.part->next; part != NULL; part = part->next) {

@@ -2,7 +2,7 @@
  * $Id: flag.h 1142 2008-08-13 17:22:21Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -141,7 +141,7 @@
 typedef long MsgNo;
 
 
-/* exported protoypes */
+/* exported prototypes */
 long	    count_flagged(MAILSTREAM *, long);
 MsgNo	    first_sorted_flagged(unsigned long, MAILSTREAM *, long, int);
 MsgNo	    next_sorted_flagged(unsigned long, MAILSTREAM *, long, int *);

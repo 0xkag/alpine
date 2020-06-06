@@ -2,7 +2,7 @@
  * $Id: conf.h 1155 2008-08-21 18:33:21Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -132,6 +132,12 @@
 #ifndef	_WINDOWS
 #define VAR_COLOR_STYLE		     vars[V_COLOR_STYLE].current_val.p
 #define GLO_COLOR_STYLE		     vars[V_COLOR_STYLE].global_val.p
+#endif
+#if !defined(_WINDOWS) || defined(WINDOWS_LIBRESSL_CERTS)
+#define VAR_SSLCAPATH		     vars[V_SSLCAPATH].current_val.l
+#define GLO_SSLCAPATH		     vars[V_SSLCAPATH].global_val.l
+#define VAR_SSLCAFILE		     vars[V_SSLCAFILE].current_val.l
+#define GLO_SSLCAFILE		     vars[V_SSLCAFILE].global_val.l
 #endif
 #define VAR_INDEX_COLOR_STYLE	     vars[V_INDEX_COLOR_STYLE].current_val.p
 #define GLO_INDEX_COLOR_STYLE	     vars[V_INDEX_COLOR_STYLE].global_val.p
@@ -278,8 +284,6 @@
 #define GLO_OPENING_SEP		     vars[V_OPENING_SEP].global_val.p
 #define VAR_ABOOK_FORMATS	     vars[V_ABOOK_FORMATS].current_val.l
 #define VAR_INDEX_FORMAT	     vars[V_INDEX_FORMAT].current_val.p
-#define VAR_SLEEP		     vars[V_SLEEP].current_val.p
-#define GLO_SLEEP		     vars[V_SLEEP].global_val.p
 #define VAR_OVERLAP		     vars[V_OVERLAP].current_val.p
 #define GLO_OVERLAP		     vars[V_OVERLAP].global_val.p
 #define VAR_MAXREMSTREAM	     vars[V_MAXREMSTREAM].current_val.p
@@ -312,8 +316,10 @@
 #define GLO_REMOTE_ABOOK_HISTORY     vars[V_REMOTE_ABOOK_HISTORY].global_val.p
 #define VAR_REMOTE_ABOOK_VALIDITY    vars[V_REMOTE_ABOOK_VALIDITY].current_val.p
 #define GLO_REMOTE_ABOOK_VALIDITY    vars[V_REMOTE_ABOOK_VALIDITY].global_val.p
+#ifdef DF_ENCRYPTION_RANGE
 #define GLO_ENCRYPTION_RANGE         vars[V_ENCRYPTION_RANGE].global_val.p
 #define VAR_ENCRYPTION_RANGE	     vars[V_ENCRYPTION_RANGE].current_val.p
+#endif
   /* Elm style save is obsolete in Pine 3.81 (see saved msg name rule) */
 #define VAR_ELM_STYLE_SAVE           vars[V_ELM_STYLE_SAVE].current_val.p
 #define GLO_ELM_STYLE_SAVE           vars[V_ELM_STYLE_SAVE].global_val.p
@@ -732,10 +738,6 @@
  */
 #define Q_SUPP_LIMIT (4)
 #define Q_DEL_ALL    (-10)
-#define	SVAR_SLEEP(ps,n,e,el)	strtoval((ps)->VAR_SLEEP,		  \
-					 &(n), 60, 120, 0, (e),		  \
-					  (el), 			  \
-					 "Sleep-Interval-Length")
 #define	SVAR_OVERLAP(ps,n,e,el)	strtoval((ps)->VAR_OVERLAP,		  \
 					 &(n), 0, 20, 0, (e),		  \
 					  (el), 			  \
@@ -887,7 +889,7 @@ struct sm_folder {
 #define	CONF_TXT_T	char
 
 
-/* exported protoypes */
+/* exported prototypes */
 void       init_init_vars(struct pine *);
 void       init_pinerc(struct pine *, char **);
 void       init_vars(struct pine *, void (*)(struct pine *, char **));
@@ -965,6 +967,10 @@ char     **get_supported_options(void);
 unsigned   reset_startup_rule(MAILSTREAM *);
 void	   free_pinerc_lines(PINERC_LINE **);
 void	   panic1(char *, char *);
+#if !defined(_WINDOWS) || defined(WINDOWS_LIBRESSL_CERTS)
+void	   set_system_certs_path(struct pine *);
+void	   set_system_certs_container(struct pine *);
+#endif
 
 /* mandatory to implement prototypes */
 int	   set_input_timeout(int);

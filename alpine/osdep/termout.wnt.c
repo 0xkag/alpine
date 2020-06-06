@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: termout.unx.c 159 2006-10-02 22:00:13Z hubert@u.wash
 /*
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,7 +150,7 @@ end_screen(char *message, int exit_val)
 
  Result:  terminal size is discovered and set pine state
           termcap entry is fetched and stored in local variables
-          make sure terminal has adequate capabilites
+          make sure terminal has adequate capabilities
           evaluate scrolling situation
           returns status of indicating the state of the screen/termcap entry
 
@@ -361,7 +361,7 @@ MoveCursor(int row, int col)
 /*----------------------------------------------------------------------
     Write a character to the screen, keeping track of cursor position
 
- Input:  charater to write
+ Input:  character to write
 
  Result: character output
          cursor position variables updated

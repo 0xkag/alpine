@@ -2,7 +2,7 @@
  * $Id: smime.h 1074 2008-06-04 00:08:43Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@
 #include "../pith/smime.h"
 
 
-/* exported protoypes */
+/* exported prototypes */
 int    smime_get_passphrase(void);
 int    smime_certificate_error_ask(int error);
 void   smime_info_screen(struct pine *ps);

@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ typedef struct {
 typedef int (* MT_OPERATORPROC)(MT_MAP_T *, FILE *);
 
 
-/* exported protoypes */
+/* exported prototypes */
 int	    set_mime_type_by_extension(BODY *, char *);
 int	    set_mime_extension_by_type(char *, char *);
 int	    check_mime_type_by_extension(char *, char *);

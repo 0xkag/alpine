@@ -2,7 +2,7 @@
  * $Id: icache.h 874 2007-12-15 02:51:06Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@
 #define IC_CLEAR_WIDTHS_DONE  0x02
 
 
-/* exported protoypes */
+/* exported prototypes */
 void	  clear_index_cache_ent(MAILSTREAM *, long, unsigned);
 void	  clear_index_cache(MAILSTREAM *, unsigned);
 void	  clear_index_cache_for_thread(MAILSTREAM *, PINETHRD_S *, MSGNO_S *);

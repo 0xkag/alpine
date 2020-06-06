@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: store.c 1074 2008-06-04 00:08:43Z hubert@u.washingto
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -353,7 +353,7 @@ so_file_open(STORE_S *so)
 
 /*
  * put a character into the specified storage object,
- * expanding if neccessary
+ * expanding if necessary
  *
  * return 1 on success and 0 on failure
  */
@@ -659,7 +659,7 @@ so_file_puts_locale(STORE_S *so, char *s)
 #ifdef SMIME
 /*
  * put a character into the specified storage object,
- * expanding if neccessary
+ * expanding if necessary
  *
  * return 1 on success and 0 on failure
  */

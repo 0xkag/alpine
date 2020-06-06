@@ -1,6 +1,6 @@
 /* ========================================================================
+ * Copyright 2019 - 2020 Eduardo Chappa
  * Copyright 2008-2011 Mark Crispin
- * Copyright 2019 Eduardo Chappa
  * ========================================================================
  */
 
@@ -154,7 +154,7 @@ long nntp_send_work (SENDSTREAM *stream,char *command,char *args);
 long nntp_send_auth (SENDSTREAM *stream,long flags);
 long nntp_send_auth_work (SENDSTREAM *stream,NETMBX *mb,char *pwd,long flags);
 void *nntp_challenge (void *s,unsigned long *len);
-long nntp_response (void *s,char *response,unsigned long size);
+long nntp_response (void *s,char *base,char *response,unsigned long size);
 long nntp_reply (SENDSTREAM *stream);
 long nntp_fake (SENDSTREAM *stream,char *text);
 long nntp_soutr (void *stream,char *s);
@@ -585,7 +585,7 @@ long nntp_status (MAILSTREAM *stream,char *mbx,long flags)
     status.uidvalidity = stream->uid_validity;
 				/* pass status to main program */
     mm_status (stream,mbx,&status);
-    ret = T;			/* succes */
+    ret = T;			/* success */
   }
 				/* flush temporary stream */
   if (tstream) mail_close (tstream);
@@ -688,9 +688,9 @@ MAILSTREAM *nntp_mopen (MAILSTREAM *stream)
     hostlist[0] = strcpy (tmp,mb.host);
     if (mb.port || nntp_port)
       sprintf (tmp + strlen (tmp),":%lu",mb.port ? mb.port : nntp_port);
-    if (mb.tlsflag) strcat (tmp,"/tls");
+    if (mb.tlsflag) strcat (tmp,"/starttls");
     if (mb.tlssslv23) strcat (tmp,"/tls-sslv23");
-    if (mb.notlsflag) strcat (tmp,"/notls");
+    if (mb.notlsflag) strcat (tmp,"/nostarttls");
     if (mb.sslflag) strcat (tmp,"/ssl");
     if (mb.tls1) strcat (tmp,"/tls1");
     if (mb.tls1_1) strcat (tmp,"/tls1_1");
@@ -761,9 +761,9 @@ MAILSTREAM *nntp_mopen (MAILSTREAM *stream)
   sprintf (tmp,"{%s:%lu/nntp",(long) mail_parameters (NIL,GET_TRUSTDNS,NIL) ?
 	   net_host (nstream->netstream) : mb.host,
 	   net_port (nstream->netstream));
-  if (LOCAL->tlsflag) strcat (tmp,"/tls");
+  if (LOCAL->tlsflag) strcat (tmp,"/starttls");
   if (LOCAL->tlssslv23) strcat (tmp,"/tls-sslv23");
-  if (LOCAL->notlsflag) strcat (tmp,"/notls");
+  if (LOCAL->notlsflag) strcat (tmp,"/nostarttls");
   if (LOCAL->sslflag) strcat (tmp,"/ssl");
   if (LOCAL->tls1) strcat (tmp,"/tls1");
   if (LOCAL->tls1_1) strcat (tmp,"/tls1_1");
@@ -1752,7 +1752,7 @@ SENDSTREAM *nntp_open_full (NETDRIVER *dv,char **hostlist,char *service,
       stream = nntp_close (stream);
     }
   }
-  else if (mb.tlsflag) {	/* user specified /tls but can't do it */
+  else if (mb.tlsflag) {	/* user specified /starttls but can't do it */
     mm_log ("Unable to negotiate TLS with this server",ERROR);
     return NIL;
   }
@@ -2045,7 +2045,7 @@ long nntp_send_auth (SENDSTREAM *stream,long flags)
 long nntp_send_auth_work (SENDSTREAM *stream,NETMBX *mb,char *pwd,long flags)
 {
   unsigned long trial,auths;
-  char tmp[MAILTMPLEN],usr[MAILTMPLEN], *pwd2 = NIL;
+  char tmp[MAILTMPLEN],usr[MAILTMPLEN], *pwd2 = NIL, *base;
   AUTHENTICATOR *at;
   char *lsterr = NIL;
   long ret = NIL;
@@ -2068,11 +2068,16 @@ long nntp_send_auth_work (SENDSTREAM *stream,NETMBX *mb,char *pwd,long flags)
 	fs_give ((void **) &lsterr);
       }
       stream->saslcancel = NIL;
-      if (nntp_send (stream,"AUTHINFO SASL",at->name) == NNTPCHALLENGE) {
+      if(at->flags & AU_SINGLE){
+        sprintf(tmp, "AUTHINFO SASL %s", at->name);	/* create base string */
+        base = (char *) tmp;
+      }
+      else base = NIL;
+      if ((at->flags & AU_SINGLE) || nntp_send (stream,"AUTHINFO SASL",at->name) == NNTPCHALLENGE) {
 				/* hide client authentication responses */
 	if (!(at->flags & AU_SECURE)) stream->sensitive = T;
-	if ((*at->client) (nntp_challenge,nntp_response,"nntp",mb,stream,
-			   &trial,usr)) {
+	if ((*at->client) (nntp_challenge,nntp_response,base,"nntp",mb,stream,
+			   net_port(stream->netstream), &trial,usr)) {
 	  if (stream->replycode == NNTPAUTHED) ret = LONGT;
 				/* if main program requested cancellation */
 	  else if (!trial) mm_log ("NNTP Authentication cancelled",ERROR);
@@ -2163,7 +2168,7 @@ void *nntp_challenge (void *s,unsigned long *len)
  * Returns: T, always
  */
 
-long nntp_response (void *s,char *response,unsigned long size)
+long nntp_response (void *s,char *base,char *response,unsigned long size)
 {
   SENDSTREAM *stream = (SENDSTREAM *) s;
   unsigned long i,j;
@@ -2173,13 +2178,13 @@ long nntp_response (void *s,char *response,unsigned long size)
       for (t = (char *) rfc822_binary ((void *) response,size,&i),u = t,j = 0;
 	   j < i; j++) if (t[j] > ' ') *u++ = t[j];
       *u = '\0';		/* tie off string */
-      i = nntp_send_work (stream,t,NIL);
+      i = base ? nntp_send_work(stream, base, t) : nntp_send_work (stream,t,NIL);
       fs_give ((void **) &t);
     }
     else i = nntp_send_work (stream,"",NIL);
   }
   else {			/* abort requested */
-    i = nntp_send_work (stream,"*",NIL);
+    i = base ? 0L : nntp_send_work (stream,"*",NIL);
     stream->saslcancel = T;	/* mark protocol-requested SASL cancel */
   }
   return LONGT;

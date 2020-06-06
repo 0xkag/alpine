@@ -2,7 +2,7 @@
  * $Id: conftype.h 1155 2008-08-21 18:33:21Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -127,7 +127,6 @@ typedef	enum {    V_PERSONAL_NAME = 0
 		, V_MARGIN
 		, V_STATUS_MSG_DELAY
 		, V_ACTIVE_MSG_INTERVAL
-		, V_SLEEP
 		, V_MAILCHECK
 		, V_MAILCHECKNONCURR
 		, V_MAILDROPCHECK
@@ -144,6 +143,10 @@ typedef	enum {    V_PERSONAL_NAME = 0
 		, V_DOWNLOAD_CMD_PREFIX
 		, V_MAILCAP_PATH
 		, V_MIMETYPE_PATH
+#if !defined(_WINDOWS) || defined(WINDOWS_LIBRESSL_CERTS)
+		, V_SSLCAPATH
+		, V_SSLCAFILE
+#endif
 		, V_BROWSER
 		, V_HISTORY
 		, V_MAXREMSTREAM
@@ -190,13 +193,16 @@ typedef	enum {    V_PERSONAL_NAME = 0
 		, V_NEW_VER_QUELL
 		, V_DISABLE_DRIVERS
 		, V_DISABLE_AUTHS
+#ifdef DF_ENCRYPTION_RANGE
 		, V_ENCRYPTION_RANGE
+#endif
 		, V_REMOTE_ABOOK_METADATA
 		, V_REMOTE_ABOOK_HISTORY
 		, V_REMOTE_ABOOK_VALIDITY
 		, V_PRINTER
 		, V_PERSONAL_PRINT_COMMAND
 		, V_PERSONAL_PRINT_CATEGORY
+		, V_XOAUTH2_INFO
 		, V_PATTERNS		/* obsolete */
 		, V_PAT_ROLES
 		, V_PAT_FILTS
@@ -381,9 +387,9 @@ typedef enum {
 	F_AUTO_INCLUDE_IN_REPLY,
 	F_DISABLE_CONFIG_SCREEN,
 	F_DISABLE_PASSWORD_CACHING,
-#ifdef PASSFILE
+#ifdef LOCAL_PASSWD_CACHE
 	F_DISABLE_PASSWORD_FILE_SAVING,
-#endif /* PASSFILE */
+#endif /* LOCAL_PASSWD_CACHE */
 	F_DISABLE_REGEX,
 	F_DISABLE_PASSWORD_CMD,
 	F_DISABLE_UPDATE_CMD,
@@ -809,7 +815,7 @@ typedef struct smime_stuff {
 #endif /* SMIME */
 
 
-/* exported protoypes */
+/* exported prototypes */
 
 #define DF_THREAD_SORT_KEY  "thread"
 

@@ -11,8 +11,16 @@ rem     http://www.apache.org/licenses/LICENSE-2.0
 rem
 rem ========================================================================
 
+rem These are the default values, which we might override below
+rem by setting them to older versions
+set CRYPTO_VERSION=45
+set SSL_VERSION=47
+set TLS_VERSION=19
+
 if "%1"=="" goto blank
 if "%1"=="wnt" goto wnt
+if "%1"=="wxp" goto wxp
+if "%1"=="w32" goto w32
 if "%1"=="w2k" goto w2k
 if "%1"=="clean" goto clean
 echo Unknown build command: %1 %2 %3 %4
@@ -23,11 +31,30 @@ echo Must specify build command!
 echo usage: BUILD cmd
 echo   where "cmd" is one of either:
 echo         wnt        -- Windows
+echo         w32        -- Windows 32 bits (not Windows XP)
+echo         wxp        -- Windows XP
 echo         w2k        -- Windows with Win2k Kerb
 echo         clean      -- to remove obj, lib, and exe files from source
 goto fini
 
+:wxp
+set CRYPTO_VERSION=41
+set SSL_VERSION=43
+set TLS_VERSION=15
+set BIT=32
+set windows32build=-DWXPBUILD -D__MINGW_USE_VC2005_COMPAT
+goto wntbuild
+
+:w32
+rem this port uses the default values for libcrypto and friends.
+set BIT=32
+set windows32build=-DW32BITSBUILD -D__MINGW_USE_VC2005_COMPAT
+goto wntbuild
 :wnt
+rem this port uses the default values for libcrypto and friends.
+set BIT=64
+set windows32build=
+:wntbuild
 echo PC-Alpine for Windows/Winsock (Win32) build sequence
 set cclntmake=makefile.nt
 set alpinemake=makefile.wnt
@@ -40,8 +67,8 @@ set libresslextralibes="crypt32.lib"
 goto ldapincludewnt
 :yeslibresslwnt
 echo including LIBRESSL functionality
-set libresslflags=-I\"%ALPINE_LIBRESSL%\"\include -I\"%ALPINE_LIBRESSL%\"\include\openssl -DENABLE_WINDOWS_LIBRESSL
-set libressllibes=\"%ALPINE_LIBRESSL%\"\x86\libcrypto-41.lib \"%ALPINE_LIBRESSL%\"\x86\libssl-43.lib \"%ALPINE_LIBRESSL%\"\x86\libtls-15.lib
+set libresslflags=-I\"%ALPINE_LIBRESSL%\"\include\"%BIT%\" -I\"%ALPINE_LIBRESSL%\"\include\"%BIT%\"\openssl -DENABLE_WINDOWS_LIBRESSL
+set libressllibes=\"%ALPINE_LIBRESSL%\"\x86\libcrypto-%CRYPTO_VERSION%.lib \"%ALPINE_LIBRESSL%\"\x86\libssl-%SSL_VERSION%.lib \"%ALPINE_LIBRESSL%\"\x86\libtls-%TLS_VERSION%.lib
 set libresslextralibes=
 :ldapincludewnt
 if not defined ALPINE_LDAP set ALPINE_LDAP=%cd%\ldap
@@ -55,7 +82,7 @@ echo including LDAP functionality
 set ldapflags=-I\"%ALPINE_LDAP%\"\inckit -DENABLE_LDAP
 set ldaplibes=\"%ALPINE_LDAP%\"\binaries\release\ldap32.lib
 :noldapwnt
-set extracflagsnq=/DWINVER=0x0501 /Zi -Od %ldapflags% %libresslflags% -D_USE_32BIT_TIME_T -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -DSPCL_REMARKS=\"\\\"\\\"\"
+set extracflagsnq=/DWINVER=0x0501 /Zi -Od %ldapflags% %libresslflags% %windows32build% -D_USE_32BIT_TIME_T -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -DSPCL_REMARKS=\"\\\"\\\"\"
 set extralibes="%libresslextralibes%"
 set extralibesalpine="%ldaplibes% %libressllibes%"
 set extrarcflags="/D_PCP_WNT"
@@ -75,8 +102,8 @@ set libresslextralibes="crypt32.lib"
 goto ldapincludew2k
 :yeslibresslw2k
 echo including LIBRESSL functionality
-set libresslflags=-I\"%ALPINE_LIBRESSL%\"\include -I\"%ALPINE_LIBRESSL%\"\include\openssl -DENABLE_WINDOWS_LIBRESSL
-set libressllibes=\"%ALPINE_LIBRESSL%\"\x86\libcrypto-41.lib \"%ALPINE_LIBRESSL%\"\x86\libssl-43.lib \"%ALPINE_LIBRESSL%\"\x86\libtls-15.lib
+set libresslflags=-I\"%ALPINE_LIBRESSL%\"\include -I\"%ALPINE_LIBRESSL%\"\include\openssl -DENABLE_WINDOWS_LIBRESSL 
+set libressllibes=\"%ALPINE_LIBRESSL%\"\x86\libcrypto-45.lib \"%ALPINE_LIBRESSL%\"\x86\libssl-47.lib \"%ALPINE_LIBRESSL%\"\x86\libtls-19.lib
 set libresslextralibes=
 :ldapincludew2k
 if not defined ALPINE_LDAP set ALPINE_LDAP=%cd%\ldap
@@ -149,6 +176,11 @@ rem del garbageout.txt
 if not exist mailutil mkdir mailutil
 copy /Y "%ALPINE_IMAP%"\src\mailutil\* mailutil\ > garbageout.txt
 del garbageout.txt
+if defined ALPINE_LIBRESSL del /Q libressl\x86\lib*.lib
+if defined ALPINE_LIBRESSL del /Q alpine\lib*.dll
+if defined ALPINE_LIBRESSL copy /Y libressl\x86\"%1%"\* libressl\x86\ > garbageout.txt
+if defined ALPINE_LIBRESSL copy /Y alpine\DLL\"%1%"\* alpine\ > garbageout.txt
+if defined ALPINE_LIBRESSL del garbageout.txt
 goto build
 
 :build

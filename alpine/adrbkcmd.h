@@ -2,7 +2,7 @@
  * $Id: adrbkcmd.h 1012 2008-03-26 00:44:22Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@
 #define AB_COMMENT_STR			_("Comment")
 
 
-/* exported protoypes */
+/* exported prototypes */
 void       view_abook_entry(struct pine *, long);
 void       edit_entry(AdrBk *, AdrBk_Entry *, a_c_arg_t, Tag, int, int *, char *);
 int        ab_add_abook(int, int);

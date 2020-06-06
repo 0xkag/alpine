@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: charset.c 1032 2008-04-11 00:30:04Z hubert@u.washing
 
 /*
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,7 +79,7 @@ trans_euc_to_2022_jp(unsigned char *src)
 
     /*
      * Worst possible increase is every other character an 8-bit character.
-     * In that case, each of those gets 6 extra charactes for the escape
+     * In that case, each of those gets 6 extra characters for the escape
      * sequences. We're not too concerned about the extra length because
      * these are relatively short strings.
      */
@@ -140,7 +140,7 @@ trans_euc_to_2022_jp(unsigned char *src)
  *
  *   RFC 1522 support is *very* loosely based on code contributed
  *   by Lars-Erik Johansson <lej@cdg.chalmers.se>.  Thanks to Lars-Erik,
- *   and appologies for taking such liberties with his code.
+ *   and apologies for taking such liberties with his code.
  */
 
 #define	RFC1522_INIT	"=?"
@@ -593,9 +593,32 @@ rfc1522_encoded_word(unsigned char *s, int enc, char *charset)
       for(goal = ((goal / 4) * 3) - 2; goal && *s; goal--, s++)
 	;
     else				/* special 'Q' encoding */
-      for(; goal && *s; s++)
-	if((goal -= RFC1522_ENC_CHAR(*s) ? 3 : 1) < 0)
-	  break;
+      if(!strucmp(charset, "UTF-8")){	/* special handling for utf-8 */
+	int i,more;
+	unsigned char *p;
+	for(; goal && *s; s++){
+	   more = *s < 0x80 ? 0
+		   : *s < 0xe0 ? 1
+		   : *s < 0xf0 ? 2
+		   : *s < 0xf8 ? 3
+		   : *s < 0xfc ? 4
+		   : *s < 0xfe ? 5 : -1;
+	   if(more >= 0){	/* check that we have at least more characters */
+		for(p = s, i = 0; i <= more && *p != '\0'; i++, p++)
+		    goal -= RFC1522_ENC_CHAR(*p) ? 3 : 1;
+		if(goal < 0)   /* does not fit in encoded word */
+		   break;
+		s += i - 1; 	/* i - 1 should be equal to more */
+	   }
+	   else /* encode it, and skip it */
+	      if((goal -= RFC1522_ENC_CHAR(*s) ? 3 : 1) < 0)
+	        break;
+	}
+      }
+      else
+        for(; goal && *s; s++)
+	  if((goal -= RFC1522_ENC_CHAR(*s) ? 3 : 1) < 0)
+	    break;
 
     return(s);
 }

@@ -1,7 +1,7 @@
 /* 
- * Copyright 2016-2018 Eduardo Chappa
+ * Copyright 2016-2020 Eduardo Chappa
  *
- * Last Edited: May 5, 2018 Eduardo Chappa <alpine.chappa@gmx.com>
+ * Last Edited: Jan 26, 2020 Eduardo Chappa <alpine.chappa@gmx.com>
  *
  */
 /* ========================================================================
@@ -177,7 +177,7 @@ long imap_anon (MAILSTREAM *stream,char *tmp);
 long imap_auth (MAILSTREAM *stream,NETMBX *mb,char *tmp,char *usr);
 long imap_login (MAILSTREAM *stream,NETMBX *mb,char *pwd,char *usr);
 void *imap_challenge (void *stream,unsigned long *len);
-long imap_response (void *stream,char *s,unsigned long size);
+long imap_response (void *stream,char *base,char *s,unsigned long size);
 void imap_close (MAILSTREAM *stream,long options);
 void imap_fast (MAILSTREAM *stream,char *sequence,long flags);
 void imap_flags (MAILSTREAM *stream,char *sequence,long flags);
@@ -852,7 +852,7 @@ MAILSTREAM *imap_open (MAILSTREAM *stream)
     /* IMAP connection open logic is more complex than net_open() normally
      * deals with, because of the simap and rimap hacks.
      * If the session is anonymous, a specific port is given, or if /ssl or
-     * /tls is set, do net_open() since those conditions override everything
+     * /starttls is set, do net_open() since those conditions override everything
      * else.
      */
     if (stream->anonymous || mb.port || mb.sslflag || mb.tlsflag)
@@ -911,7 +911,7 @@ MAILSTREAM *imap_open (MAILSTREAM *stream)
 				/* get capabilities now that TLS in effect */
 	if (LOCAL->netstream) imap_capability (stream);
       }
-      else if (mb.tlsflag) {	/* user specified /tls but can't do it */
+      else if (mb.tlsflag) {	/* user specified /starttls but can't do it */
 	mm_log ("Unable to negotiate TLS with this server",ERROR);
 	return NIL;
       }
@@ -975,13 +975,13 @@ MAILSTREAM *imap_open (MAILSTREAM *stream)
     if (!((i = net_port (LOCAL->netstream)) & 0xffff0000))
       sprintf (tmp + strlen (tmp),":%lu",i);
     strcat (tmp,"/imap");
-    if (LOCAL->tlsflag) strcat (tmp,"/tls");
+    if (LOCAL->tlsflag) strcat (tmp,"/starttls");
     if (LOCAL->tls1) strcat (tmp,"/tls1");
     if (LOCAL->tls1_1) strcat (tmp,"/tls1_1");
     if (LOCAL->tls1_2) strcat (tmp,"/tls1_2");
     if (LOCAL->tls1_3) strcat (tmp,"/tls1_3");
     if (LOCAL->tlssslv23) strcat (tmp,"/tls-sslv23");
-    if (LOCAL->notlsflag) strcat (tmp,"/notls");
+    if (LOCAL->notlsflag) strcat (tmp,"/nostarttls");
     if (LOCAL->sslflag) strcat (tmp,"/ssl");
     if (LOCAL->novalidate) strcat (tmp,"/novalidate-cert");
     if (LOCAL->loser) strcat (tmp,"/loser");
@@ -1107,7 +1107,7 @@ long imap_anon (MAILSTREAM *stream,char *tmp)
       mm_log (broken,ERROR);
       return NIL;
     }
-    if (imap_challenge (stream,&i)) imap_response (stream,s,strlen (s));
+    if (imap_challenge (stream,&i)) imap_response (stream,NIL,s,strlen (s));
 				/* get response */
     if (!(reply = &LOCAL->reply)->tag) reply = imap_fake (stream,tag,broken);
 				/* what we wanted? */
@@ -1145,7 +1145,7 @@ long imap_auth (MAILSTREAM *stream,NETMBX *mb,char *tmp,char *usr)
   unsigned long trial,ua,uasaved;
   int ok;
   char tag[16];
-  char *lsterr = NIL;
+  char *lsterr = NIL, *base;
   AUTHENTICATOR *at, *atsaved;
   IMAPPARSEDREPLY *reply;
   for (ua = LOCAL->cap.auth, LOCAL->saslcancel = NIL; LOCAL->netstream && ua &&
@@ -1176,12 +1176,21 @@ long imap_auth (MAILSTREAM *stream,NETMBX *mb,char *tmp,char *usr)
       sprintf (tag,"%08lx",0xffffffff & (stream->gensym++));
 				/* build command */
       sprintf (tmp,"%s AUTHENTICATE %s",tag,at->name);
-      if (imap_soutr (stream,tmp)) {
+      base = (at->flags & AU_SINGLE) && LOCAL->cap.sasl_ir
+		? (char *) tmp : NIL;
+      if (base || imap_soutr (stream,tmp)) {
+				/* report we tried this authenticator */
+	if(base && stream && stream->debug) mm_dlog (base);
 				/* hide client authentication responses */
 	if (!(at->flags & AU_SECURE)) LOCAL->sensitive = T;
-	ok = (*at->client) (imap_challenge,imap_response,"imap",mb,stream,
-			    &trial,usr);
+	ok = (*at->client) (imap_challenge,imap_response,base,"imap",mb,stream,
+			    net_port(LOCAL->netstream),&trial,usr);
 	LOCAL->sensitive = NIL;	/* unhide */
+
+	if(base && ok && !trial){	/* return now or see below for the same code */
+	    mm_log ("IMAP Authentication cancelled",ERROR);
+	    return NIL;
+	}
 				/* make sure have a response */
 	if (!(reply = &LOCAL->reply)->tag)
 	  reply = imap_fake (stream,tag,
@@ -1311,17 +1320,29 @@ void *imap_challenge (void *s,unsigned long *len)
  * Returns: T if successful, else NIL
  */
 
-long imap_response (void *s,char *response,unsigned long size)
+long imap_response (void *s,char *base,char *response,unsigned long size)
 {
   MAILSTREAM *stream = (MAILSTREAM *) s;
   unsigned long i,j,ret;
   char *t,*u;
   if (response) {		/* make CRLFless BASE64 string */
     if (size) {
-      for (t = (char *) rfc822_binary ((void *) response,size,&i),u = t,j = 0;
+      if(base){
+	char *s, *v;
+
+        v = (char *) rfc822_binary ((void *) response,size,&i);
+	t  = fs_get((strlen(base) + strlen(v) + 1 + 2)*sizeof(char));
+	for(s = base, u = t; *s; s++) *u++ = *s;
+	*u++ = ' ';
+        for (s = v,j = 0; j < i; j++) if (s[j] > ' ') *u++ = s[j];
+	fs_give((void **) &v);
+      } else {
+        for (t = (char *) rfc822_binary ((void *) response,size,&i),u = t,j = 0;
 	   j < i; j++) if (t[j] > ' ') *u++ = t[j];
+      }
       *u = '\0';		/* tie off string for mm_dlog() */
       if (stream->debug) mail_dlog (t,LOCAL->sensitive);
+
 				/* append CRLF */
       *u++ = '\015'; *u++ = '\012';
       ret = net_sout (LOCAL->netstream,t,u - t);
@@ -1330,7 +1351,7 @@ long imap_response (void *s,char *response,unsigned long size)
     else ret = imap_soutr (stream,"");
   }
   else {			/* abort requested */
-    ret = imap_soutr (stream,"*");
+    ret = base ? NIL : imap_soutr (stream,"*");
     LOCAL->saslcancel = T;	/* mark protocol-requested SASL cancel */
   }
   return ret;
@@ -2775,7 +2796,7 @@ void imap_capability (MAILSTREAM *stream)
 /* IMAP set ACL
  * Accepts: mail stream
  *	    mailbox name
- *	    authentication identifer
+ *	    authentication identifier
  *	    new access rights
  * Returns: T on success, NIL on failure
  */
@@ -2794,7 +2815,7 @@ long imap_setacl (MAILSTREAM *stream,char *mailbox,char *id,char *rights)
 /* IMAP delete ACL
  * Accepts: mail stream
  *	    mailbox name
- *	    authentication identifer
+ *	    authentication identifier
  * Returns: T on success, NIL on failure
  */
 
@@ -2825,7 +2846,7 @@ long imap_getacl (MAILSTREAM *stream,char *mailbox)
 /* IMAP list rights
  * Accepts: mail stream
  *	    mailbox name
- *	    authentication identifer
+ *	    authentication identifier
  * Returns: T on success with data returned via callback, NIL on failure
  */
 
@@ -4450,7 +4471,7 @@ void imap_parse_unsolicited (MAILSTREAM *stream,IMAPPARSEDREPLY *reply)
       while (ac->rights && s && (*s == ' ') && s++ &&
 	     (ac = ac->next = mail_newacllist ()));
       if (!ac->rights || (s && *s)) {
-	sprintf (LOCAL->tmp,"Invalid ACL identifer/rights for %.80s",
+	sprintf (LOCAL->tmp,"Invalid ACL identifier/rights for %.80s",
 		 (char *) t);
 	mm_notify (stream,LOCAL->tmp,WARN);
 	stream->unhealthy = T;
@@ -4499,7 +4520,7 @@ void imap_parse_unsolicited (MAILSTREAM *stream,IMAPPARSEDREPLY *reply)
       fs_give ((void **) &id);	/* free identifier */
     }
     else {
-      sprintf (LOCAL->tmp,"Missing LISTRIGHTS identifer for %.80s",(char *) t);
+      sprintf (LOCAL->tmp,"Missing LISTRIGHTS identifier for %.80s",(char *) t);
       mm_notify (stream,LOCAL->tmp,WARN);
       stream->unhealthy = T;
     }
@@ -4887,7 +4908,7 @@ THREADNODE *imap_parse_thread (MAILSTREAM *stream,unsigned char **txtptr)
 				/* skip past any space */
       if (**txtptr == ' ') ++*txtptr;
     }
-    ++*txtptr;			/* skip pase end of thread */
+    ++*txtptr;			/* skip past end of thread */
     parent = NIL;		/* close this thread */
   }
   return ret;			/* return parsed thread */

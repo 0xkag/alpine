@@ -2,7 +2,7 @@
  * $Id: indxtype.h 1074 2008-06-04 00:08:43Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -261,7 +261,7 @@ typedef struct index_data {
 typedef enum {NoKW, KW, KWInit} SubjKW;
 
 
-/* exported protoypes */
+/* exported prototypes */
 
 
 #endif /* PITH_INDXTYPE_INCLUDED */

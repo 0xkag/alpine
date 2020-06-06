@@ -2,7 +2,7 @@
  * $Id: detoken.h 761 2007-10-23 22:35:18Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
 #include "../pith/repltype.h"
 
 
-/* exported protoypes */
+/* exported prototypes */
 char	*detoken(ACTION_S *, ENVELOPE *, int, int, int, REDRAFT_POS_S **, int *);
 char	*detoken_src(char *, int, ENVELOPE *, ACTION_S *, REDRAFT_POS_S **, int *);
 

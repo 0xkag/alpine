@@ -2,7 +2,7 @@
  * $Id: msgno.h 1142 2008-08-13 17:22:21Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -181,7 +181,7 @@ typedef struct msg_nos {
 #define	MI_CLOSING	0x04
 
 
-/* exported protoypes */
+/* exported prototypes */
 void	    msgno_init(MSGNO_S **, long, SortOrder, int);
 void        msgno_reset_isort(MSGNO_S *);
 void	    msgno_give(MSGNO_S **);

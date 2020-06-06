@@ -1952,7 +1952,7 @@ BOOL APIENTRY DllMain(
 
 	now = time((time_t *)0);
 	tm_now = localtime(&now);
-	fprintf(ms_global->dfd, "pmapi32.dll for Alpine Version 2.21.99999\r\n");
+	fprintf(ms_global->dfd, "pmapi32.dll for Alpine Version 2.22\r\n");
 	fprintf(ms_global->dfd, " Build date: %s\r\n", datestamp);
 	fprintf(ms_global->dfd,
 		" please report all bugs to chappa@gmx.com\r\n");
@@ -2899,7 +2899,7 @@ void ErrorBoxFunc(char *msg)
 
   Result: Alloc'd unique string is returned
 
-Uniqueness is gaurenteed by using the host name, process id, date to the
+Uniqueness is guaranteed by using the host name, process id, date to the
 second and a single unique character
 *----------------------------------------------------------------------*/
 char *

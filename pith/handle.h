@@ -2,7 +2,7 @@
  * $Id: handle.h 814 2007-11-14 18:39:28Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,7 +82,7 @@ typedef	struct handle_s {
 typedef	int	(*url_tool_t)(char *);
 
 
-/* exported protoypes */
+/* exported prototypes */
 HANDLE_S   *get_handle(HANDLE_S *, int);
 void	    init_handles(HANDLE_S **);
 HANDLE_S   *new_handle(HANDLE_S **);

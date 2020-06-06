@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl /* ========================================================================
-dnl  * Copyright 2013-2019 Eduardo Chappa
+dnl  * Copyright 2013-2020 Eduardo Chappa
 dnl  * Copyright 2006-2008 University of Washington
 dnl  *
 dnl  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -105,39 +105,6 @@ AC_ARG_WITH(host-stamp,
     fi
   ])
 AC_SUBST([ALPINE_HOSTSTAMP], $ALPINE_hoststamp)
-
-dnl set ps command, this test is fragile, but it should mostly work
-ALPINE_psefcmd="/bin/ps auxww"
-ALPINE_psfailed="0"
-ALPINE_PSTEST="-"
-AC_ARG_WITH(ps-cmd,
-  AS_HELP_STRING([--with-ps-cmd="CMD"],[Use this command to check running commands. Default: /bin/ps auxww]),
-  [
-    if test "x$withval" = "xno" -o "x$withval" = "xyes" -o "x$withval" = "x" ; then
-	withval=$ALPINE_psefcmd
-    fi
-    ALPINE_PSTEST=`$withval | $EGREP "$withval" | $EGREP -v $EGREP`
-    if test -n "$ALPINE_PSTEST" ; then
-       ALPINE_psefcmd="$withval"
-    else
-       ALPINE_psfailed="1"
-       if test "x$ALPINE_psefcmd" != "x$withval" ; then
-          AC_MSG_WARN(failed command $withval. Trying $ALPINE_psefcmd)
-       fi
-    fi
-  ])
-if test "$ALPINE_psfailed" = "1" -o "$ALPINE_PSTEST" = "-" ; then
-   withval="$ALPINE_psefcmd"
-   ALPINE_PSTEST=`$withval | $EGREP "$withval" | $EGREP -v $EGREP`
-   if test -z "$ALPINE_PSTEST" ; then
-      ALPINE_psfailed="1"
-   else
-      ALPINE_psfailed="0"
-   fi
-fi
-if test "$ALPINE_psfailed" = "0" ; then
-  AC_DEFINE_UNQUOTED([PSEFCMD], "$ALPINE_psefcmd", [ps command which outputs list of running commands])
-fi
 
 dnl Set default locale dir.
 case $host in
@@ -747,7 +714,7 @@ dnl is the one intended to be used.
 else
   dnl preload c-client default locations/options
   case $host in
-    *-linux-gnu*|*-k*bsd*-gnu*|*-gnu*)
+    *-linux*|*-k*bsd*-gnu*|*-gnu*)
       if test -f /etc/fedora-release -o -f /etc/redhat-release -o -f /etc/redhat_version ; then  
         alpine_SSLTYPE="nopwd"
 	if test -d /etc/pki/tls ; then  
@@ -1192,7 +1159,7 @@ dnl Tests and assignments below are mostly to coax the appropriate
 dnl build from c-client.  Most of this will go away when c-client
 dnl adopts configure
 case "$host" in
-  *-linux-gnu*|*-k*bsd*-gnu*|*-gnu*)
+  *-linux*|*-k*bsd*-gnu*|*-gnu*)
     alpine_path_delim="/"
     alpine_mode_readonly="(0600)"
     if test -f /etc/fedora-release ; then  
@@ -1224,7 +1191,7 @@ case "$host" in
         alpine_c_client_target="ldb"
 	alpine_PAM="yes"
       fi
-    elif test -f /etc/SuSE-release ; then
+    elif test -f /etc/SuSE-release; then
       systype="LSU"
       alpine_c_client_target="lsu"
       alpine_PAM="yes"
@@ -1670,10 +1637,7 @@ if test -z "$alpine_c_client_bundled" ; then
 fi
 
 if test -n "$alpine_c_client_bundled" ; then
-     AC_SEARCH_LIBS(crypt,crypt,
-      [
-	LIBS="$LIBS -lcrypt"
-      ],
+     AC_SEARCH_LIBS(crypt,crypt,,
       [
        AC_MSG_ERROR([crypt library not found.])
       ])
@@ -2095,7 +2059,7 @@ else
   SSL_CERT_LINK="no"
   if test -z "`ls ${certdir} | $EGREP '^@<:@0-9A-Fa-f@:>@{8}\.@<:@0-9@:>@'`" ; then
      SSL_BUNDLE_EXISTS="no"
-     SSL_PEM="factory.pem ca-bundle.pem ca-bundle.crt ca-root-nss.crt"
+     SSL_PEM="factory.pem ca-bundle.pem cert.pem ca-bundle.crt ca-root-nss.crt"
      for SSL_BUNDLE in $SSL_PEM
      do
        if test -f ${certdir}/${SSL_BUNDLE} ; then

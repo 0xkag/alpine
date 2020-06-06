@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: confscroll.c 1169 2008-08-27 06:42:06Z hubert@u.wash
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -343,7 +343,9 @@ exclude_config_var(struct pine *ps, struct variable *var, int allow_hard_to_conf
       case V_GLOB_ADDRBOOK :
       case V_DISABLE_DRIVERS :
       case V_DISABLE_AUTHS :
+#ifdef DF_ENCRYPTION_RANGE
       case V_ENCRYPTION_RANGE :
+#endif
       case V_REMOTE_ABOOK_METADATA :
       case V_REMOTE_ABOOK_HISTORY :
       case V_REMOTE_ABOOK_VALIDITY :
@@ -1561,10 +1563,6 @@ text_toolit(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags, int look_
 	    lowrange = 1;
 	    hirange  = MAX_FILLCOL;
 	}
-	else if((*cl)->var == &ps->vars[V_SLEEP]){
-	    lowrange = 60;
-	    hirange  = 600;
-	}
 	else if((*cl)->var == &ps->vars[V_OVERLAP]
 		|| (*cl)->var == &ps->vars[V_MARGIN]){
 	    lowrange = 0;
@@ -2452,7 +2450,7 @@ delete:
 
 	/*
 	 * Delay setting the displayed value until "var.current_val" is set
-	 * in case current val get's changed due to a special case above.
+	 * in case current val gets changed due to a special case above.
 	 */
 	if(newval){
 	    if(*newval)
@@ -4556,7 +4554,7 @@ clear_feature(char ***l, char *f)
 
     /*
      * this is helpful to keep the array from growing if a feature
-     * get's set and unset repeatedly
+     * gets set and unset repeatedly
      */
     if(!f)
       fs_resize((void **)l, count * sizeof(char *));
@@ -5325,16 +5323,6 @@ fix_side_effects(struct pine *ps, struct variable *var, int revert)
 	else
 	  ps->viewer_overlap = old_value;
     }
-    else if(var == &ps->vars[V_SLEEP]){
-	int old_value = ps->sleep;
-
-	if(SVAR_SLEEP(ps, old_value, tmp_20k_buf, SIZEOF_20KBUF)){
-	    if(!revert)
-	      q_status_message(SM_ORDER, 3, 5, tmp_20k_buf);
-	}
-	else
-	  ps->sleep = old_value;
-    }
 #ifdef	SMIME
     else if(smime_related_var(ps, var)){
 	smime_deinit();
@@ -5845,7 +5833,13 @@ fix_side_effects(struct pine *ps, struct variable *var, int revert)
 		        var == &ps->vars[V_NEWS_SPEC] ||
 		        var == &ps->vars[V_DISABLE_DRIVERS] ||
 		        var == &ps->vars[V_DISABLE_AUTHS] ||
+#ifdef DF_ENCRYPTION_RANGE
 		        var == &ps->vars[V_ENCRYPTION_RANGE] ||
+#endif
+#if !defined(_WINDOWS) || defined(ENABLE_WINDOWS_LIBRESSL_CERTS)
+			var == &ps->vars[V_SSLCAPATH] ||
+			var == &ps->vars[V_SSLCAFILE] ||
+#endif
 		        var == &ps->vars[V_RSHPATH] ||
 		        var == &ps->vars[V_RSHCMD] ||
 		        var == &ps->vars[V_SSHCMD] ||
@@ -6088,7 +6082,7 @@ unexpected_pinerc_change(void)
 
 
   Args: cmd - what type of scroll operation.
-	scroll_pos - paramter for operation.  
+	scroll_pos - parameter for operation.  
 			used as position for SCROLL_TO operation.
 
   Returns: TRUE - did the scroll operation.

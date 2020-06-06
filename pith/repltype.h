@@ -2,7 +2,7 @@
  * $Id: repltype.h 769 2007-10-24 00:15:40Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,7 +75,7 @@ typedef struct reply_s {
 #define FS_CONVERT_QUOTES 1
 
 
-/* exported protoypes */
+/* exported prototypes */
 
 
 #endif /* PITH_REPLTYPE_INCLUDED */

@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: save.c 1204 2009-02-02 19:54:23Z hubert@u.washington
 /*
  * ========================================================================
  * Copyright 2006-2009 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1711,7 +1711,7 @@ save_ex_output_line(char *line, long unsigned int *len, gf_io_t pc)
 /*----------------------------------------------------------------------
    Save() helper function to create canonical date string from given header
 
-   Args: date -- buf to recieve canonical date string
+   Args: date -- buf to receive canonical date string
 	 header -- rfc822 header to fish date string from
 
  Result: date filled with canonicalized date in header, or null string
@@ -1766,7 +1766,7 @@ save_msg_stream(CONTEXT_S *context, char *folder, int *we_opened)
 
 
 /*----------------------------------------------------------------------
-    Offer to create a non-existant folder to copy message[s] into
+    Offer to create a non-existent folder to copy message[s] into
 
    Args: context -- context to create folder in
 	 folder -- name of folder to create

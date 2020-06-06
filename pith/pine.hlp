@@ -3,7 +3,7 @@
 #        T H E   A L P I N E    M E S S A G E   S Y S T E M
 #
 #/* ========================================================================
-# * Copyright 2013-2018 Eduardo Chappa
+# * Copyright 2013-2020 Eduardo Chappa
 # * Copyright 2006-2008 University of Washington
 # *
 # * Licensed under the Apache License, Version 2.0 (the "License");
@@ -140,7 +140,7 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 380 2019-12-19 08:22:29
+Alpine Commit 432 2020-05-21 21:53:25
 ============= h_news =================
 <HTML>
 <HEAD>
@@ -156,7 +156,7 @@ Version <!--#echo var="ALPINE_VERSION"--> (<!--#echo var="ALPINE_REVISION"-->)
 <!--chtml endif-->
 
 <BR>
-<BR>Copyright 2013-2019 Eduardo Chappa
+<BR>Copyright 2013-2020 Eduardo Chappa
 <BR>Copyright 2006-2008 University of Washington
 </DIV>
 
@@ -173,8 +173,74 @@ Apache web server.
 
 <H2>New in Alpine <!--#echo var="ALPINE_VERSION"--> (<!--#echo var="ALPINE_REVISION"-->)</H2>
 
-Version <!--#echo var="ALPINE_VERSION"--> (<!--#echo var="ALPINE_REVISION"-->)
-addresses bugs found in previous releases and has a few additions as well.
+This is a development version of Alpine. These enhancements are
+released after the release of version 2.22. Please report any
+problems you find with this release.
+
+<P> Additions include:
+
+<UL>
+<LI> Add support for the OAUTHBEARER authentication method in Gmail. Thanks to
+     Alexander Perlis for suggesting it and explaining how the method works.
+
+<LI> Support for the SASL-IR IMAP extension that avoids a round trip during
+     authentication. Similar support added for the SMTP, NNTP and POP3 
+     protocols. Thanks to Geoffrey Bodwin for a report that lead to this
+     implementation.
+
+<LI> New variable system-certs-path that allows users to indicate the 
+     location of the directory where certificates are located. In PC-Alpine 
+     this must be C:\\libressl\\ssl\\certs. The C: drive can be replaced 
+     by the name of the drive where the binary and DLL files are located.
+
+<LI> New variable system-certs-file that allows users to configure the
+     location of a container of certificate authority (CA) certificates
+     to be used to validate certificates of remote servers.
+
+<LI> Remove sleep of 5 seconds for mailcap programs that use the terminal
+     to display content. Suggested by Carl Edquist. In addition to remove
+     configurable process table command and it corresponding sleep time.
+</UL>
+
+<P>
+Bugs that have been addressed include:
+<UL>
+<LI>Bug in PC-Alpine that made Alpine go into an infinite loop and
+    consume CPU when it was iconized. Reported by Holger Schieferdecker in
+    comp.mail.pine.
+
+<LI>Crash in Alpine when attempting to reply to a multipart/alternative 
+    message that is malformed, and the option to include attachments in
+    reply is enabled. Reported and patched by Peter Tirsek.
+
+<LI>Bug that makes Alpine split encoded words in the subject of a message
+    in the middle of a utf-8 character into two encoded words, breaking the
+    encoding. Reported by Jean Chevalier.
+
+<LI> Alpine would not redraw the screen when a check for new mail in an
+    incoming folder failed due to a failurec while validating the server 
+    certificate, and the user did not allow the connection to proceed.
+
+<LI> Crash in Alpine while resizing the screen when using any of the tokens
+    SUBJKEYTEXT, SUBJECTTEXT, or SUBJKEYINITTEXT in the index format, and 
+    the screen was resized. Reported by Iggy Mogo.
+
+<LI> When Alpine is trying to authenticate to Gmail, using the XOAUTH2 method,
+    it does not display the url the user needs to open, in order to authorize
+    Alpine to access Gmail using XOAUTH2 when Alpine still has not created
+    a screen. Reported by Baron Fujimoto.
+
+<LI> When an html anchor does not quote the link in the href parameter,
+    alpine does not link to it.
+
+<LI> Attempt to fix a bug that breaks scrolling of a message in Alpine when
+     the screen is resized. Reported in the Debian bug system at
+     <A HREF="https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=956361">https://bugs.debian.org/cgi-bin/bugreport.cgie?bug=956361</A>.
+</UL>
+
+<P>
+Version 2.22 addresses bugs found in previous releases and has several
+additions as well.
 
 <P>
 Additions include:
@@ -189,6 +255,11 @@ Based on code provided by Maciej W. Rozycki.
 
 <LI> Add /tls1_3 flag for servers that support it. Read more information
 in the secure protocols <A HREF="h_network_encryption_security">help</A>.
+
+<LI> To increase user's privacy, remove phone-home code that would prompt 
+users to send an email message upon starting Alpine for the first time for 
+purposes of counting. Your use of Alpine does not disclose information about 
+you or your use of Alpine to the developers of Alpine.
 
 <LI> New variable 
 <A HREF="h_config_encryption_range"><!--#echo var="VAR_encryption-protocol-range"--></A> 
@@ -266,7 +337,7 @@ Bugs that have been addressed include:
         view certificate information of other certificate authorities.
 
    <LI> Crash in the S/MIME configuration screen when a user turned off S/MIME, and
-        then reenabled it. Also crash when attempting to enter the S/MIME 
+        then re-enabled it. Also crash when attempting to enter the S/MIME 
         configuration screen if S/MIME was turned off.
 
    <LI> Deactivate some color code from Pico (as standalone editor in the
@@ -800,15 +871,6 @@ Bugs that have been addressed include:
   <LI> When writing the .pinerc file, lines were truncated if they were longer
        than 10,000 characters. This could cause data corruption, so now lines
        are allowed to be of any length.
-  <LI> In Unix Alpine (but not in MAC OSX) fix a problem that made Alpine 
-       remove attachments before they were open by a mailcap viewer. It 
-       requires that the user has an equivalent to a command such as "ps 
-       auxww" to list the list of processes, and check if there is any 
-       program using the attachment. The default is "/bin/ps auxww", but 
-       it can be changed at compile time with the option --with-ps-cmd. 
-       See the help of the variable 
-       <a href="h_config_psleep"><!--#echo var="VAR_mailcap-check-interval"--></a> 
-       for more information.
   <LI> S/MIME: signed messages that contained an attachment would not validate.
   <LI> S/MIME: signed and encrypted messages from Thunderbird would not 
        validate. Thanks to Andreas Schamanek for testing, debugging and 
@@ -1103,7 +1165,7 @@ Bugs addressed in the 2.00 release included:
    <LI> Make a default save folder of &quot;inbox&quot; always mean the real
 	inbox, not the inbox in the primary collection
    <LI> Address book entries with lots of addresses would be truncated when
-	entered in the composer with a screen size wider than 270 or so charcters
+	entered in the composer with a screen size wider than 270 or so characters
    <LI> Some fields in the index screen were truncated when the screen width was
 	wider than 256 characters
    <LI> Crash when TABing to next folder, the next folder with new mail is a POP
@@ -1193,7 +1255,7 @@ Bugs addressed in the 1.10(962) release included:
    <LI> After calling the file browser to attach a file in the composer, a resize
 	of the window when back in the composer would redraw the last screen that
 	had been shown in the browser instead of the current composer screen
-   <LI> Possible crash in index screen when encountering unparseable addresses
+   <LI> Possible crash in index screen when encountering unparsable addresses
 	or when using one of the PRIORITY tokens or the HEADER token in the
 	<a href="h_config_index_format"><!--#echo var="VAR_index-format"--></a>
    <LI> Problems with Header Color editing if the configuration option
@@ -1221,8 +1283,7 @@ Bugs addressed in the 1.10(962) release included:
 
 <P>
 Version 1.00
-was an evolutionary release based on
-<A HREF="http://www.washington.edu/pine/">Pine</A>, which was also
+was an evolutionary release based on Pine, which was also
 developed at the University of Washington.
 It is upwards-compatible for existing Pine users.
 
@@ -1270,12 +1331,6 @@ including new version availability, is the web page at
 </DD>
 </DL>
 
-Frequently Asked Questions (and answers) may be found at the following
-URL:
-<P>
-<CENTER><SAMP><A HREF="http://www.washington.edu/alpine/faq/">http://www.washington.edu/alpine/faq/</A></SAMP></CENTER>
-<P>
-
 <HR WIDTH="75%"><P>
 
 <H2>Additional Information</H2>
@@ -1294,7 +1349,7 @@ Since then, the effort of developing Alpine has been continued by
 a community of volunteers who make good software even better!
 
 <P>
-Alpine Copyright 2013-2018 Eduardo Chappa, 
+Alpine Copyright 2013-2020 Eduardo Chappa, 
 <BR> Copyright 2006-2008 University of Washington.
 
 <P>
@@ -1508,7 +1563,7 @@ username/password that users are accostumed to, and it needs to be set up
 by the user. This text will help you understand this authentication method.
 
 <P>
-The most important difference between this method and other autentication
+The most important difference between this method and other authentication
 methods is what happens if someone steals your credentials. This method is
 attached to three components: Your username, your password and your email
 program.
@@ -1707,7 +1762,7 @@ a folder-collection, or a news or SMTP server).  This will
 disable certificate validation.  On the other hand, if you are attacked,
 you will get no warning if you do this.
 
-<P> When you get an error indicating a self-signed certficate from the 
+<P> When you get an error indicating a self-signed certificate from the 
 remote server, you can download and install the certificate for that 
 server. Avoid using the /NoValidate-Cert modifier. Alpine cannot help you 
 with this process because certificates are part of the system and are not 
@@ -2290,29 +2345,20 @@ listing of changes in Alpine <!--#echo var="ALPINE_VERSION"-->
 <B>especially</B> if a &quot;problem&quot; you are encountering is actually 
 a change in the way an aspect of Alpine works.  There, you will also find notes 
 on Alpine configuration.<P>
-<!--
   <LI> The main site for Alpine contains information on configuring and solving problems
        with Alpine, it can be found at
 
 <CENTER><A HREF="http://alpine.x10host.com/alpine/">http://alpine.x10host.com/alpine/</A></CENTER>  
--->
-  <LI> The Alpine Information Center (maintained by the University of
-	   Washington) World Wide Web site contains, among other things
-	   <UL>
-	   <LI>a collection of Frequently Asked Questions (and answers!) about Alpine
-	   <LI>an overview of the basics for beginning Alpine users
-	   <LI>Technical Notes for systems administrators
-	   <LI>archives (including a searchable index) of the alpine-info 
-mailing list, on which matters of interest to systems/email administrators,
-developers, trainers, user support personnel, and others involved with Alpine 
-messaging on a &quot;technical&quot; level are discussed.
-</UL>
-	The Alpine Information Center can be accessed with a WWW browser at:<P>
-	    <CENTER><A HREF="http://www.washington.edu/alpine/">http://www.washington.edu/alpine/</A></CENTER>  
+
+  <LI> Archives of the Alpine-info mailing list, at <A 
+href="http://mailman13.u.washington.edu/pipermail/alpine-info/">http://mailman13.u.washington.edu/pipermail/alpine-info/</A>
+
+  <LI>The newsgroup comp.mail.pine.
+
 </UL>
 <P><HR WIDTH="75%">
 <H1>Requesting help</H1>
-If the internal help, the Release Notes, the Alpine Information Center, and your 
+If the internal help, the Release Notes, and your 
 local online and print resources do not help you resolve a problem, please
 start by contacting your local computer support staff and asking for help.
 <p>
@@ -2345,9 +2391,6 @@ employer, ... ; or
 <LI> the person who setup your computer and internet connection.
 </UL>
 
-Due to the large number of Alpine installations worldwide, and because we
-receive no funding for it, the University of Washington <B>cannot provide 
-individual support services outside the University of Washington</B>.
 <P>
 If you have no local computing support to turn to, the worldwide <b>comp.mail.pine</b>
 newsgroup can be a valuable source of information and assistance for Alpine 
@@ -2358,7 +2401,7 @@ personnel, and others involved with Alpine messaging on a &quot;technical&quot;
 level, the mailing list alpine-info is available; for information on
 subscribing and posting to it, see
 <P>
-<CENTER><A HREF="http://www.washington.edu/alpine/alpine-info/subscribing.html">http://www.washington.edu/alpine/alpine-info/subscribing.html</A></CENTER>
+<CENTER><A HREF="https://mailman13.u.washington.edu/mailman/listinfo/alpine-info">https://mailman13.u.washington.edu/mailman/listinfo/alpine-info</A></CENTER>
 <P>
 
 Regardless of whom you are asking for help with Alpine, remember 
@@ -2504,7 +2547,7 @@ Version <!--#echo var="ALPINE_VERSION"-->
 <BR>(built <!--#echo var=ALPINE_COMPILE_DATE-->)
 <!--chtml endif-->
 </DIV>
-<CENTER>Copyright 2013-2018 Eduardo Chappa,
+<CENTER>Copyright 2013-2020 Eduardo Chappa,
 <BR>Copyright 2006-2008 University of Washington.
 </CENTER>
 
@@ -4545,7 +4588,6 @@ There are also additional details on
 <li><a href="h_config_image_viewer">OPTION: <!--#echo var="VAR_image-viewer"--></a>
 <li><a href="h_config_inbox_path">OPTION: <!--#echo var="VAR_inbox-path"--></a>
 <li><a href="h_config_archived_folders">OPTION: <!--#echo var="VAR_incoming-archive-folders"--></a>
-<li><a href="h_config_psleep">OPTION: <!--#echo var="VAR_mailcap-check-interval"--></a>
 <li><a href="h_config_incoming_interv">OPTION: <!--#echo var="VAR_incoming-check-interval"--></a>
 <li><a href="h_config_incoming_second_interv">OPTION: <!--#echo var="VAR_incoming-check-interval-secondary"--></a>
 <li><a href="h_config_incoming_list">OPTION: <!--#echo var="VAR_incoming-check-list"--></a>
@@ -4642,6 +4684,7 @@ There are also additional details on
 <li><a href="h_config_permlocked">OPTION: <!--#echo var="VAR_stay-open-folders"--></a>
 <li><a href="h_config_tcp_open_timeo">OPTION: <!--#echo var="VAR_tcp-open-timeout"--></a>
 <li><a href="h_config_tcp_query_timeo">OPTION: <!--#echo var="VAR_tcp-query-timeout"--></a>
+<li><a href="h_config_quit_query_timeo">OPTION: <!--#echo var="VAR_close-connection-timeout"--></a>
 <li><a href="h_config_tcp_readwarn_timeo">OPTION: <!--#echo var="VAR_tcp-read-warning-timeout"--></a>
 <li><a href="h_config_tcp_writewarn_timeo">OPTION: <!--#echo var="VAR_tcp-write-warning-timeout"--></a>
 <li><a href="h_config_thread_disp_style">OPTION: <!--#echo var="VAR_threading-display-style"--></a>
@@ -16143,6 +16186,66 @@ Nickname: field.
 &lt;End of help on this topic&gt;
 </BODY>
 </HTML>
+======= h_config_xoauth2_client_id =======
+<HTML>
+<HEAD>
+<TITLE>Client-Id Explained</TITLE>
+</HEAD>
+<BODY>
+<H1>Client-Id Explained</H1>
+
+If you have registered Alpine with your service provider to use the
+XOAUTH2 authenticator, or someone has shared a client-id with you, use this
+field to input this value. Remember that in order to use the XOAUTH2 authentication
+method, you must have a pair of client-id and client-secret. You must have
+both in order for this authenticator to work.
+
+<P>
+The Client-Id field is a string that your provider generates for the program
+being registered. However, some providers allow different users to register
+the same program. Users of the Mutt email program already do this to use
+XOAUTH2 authentication in Gmail.
+
+<P>
+Some providers generate an extremely long client-id string. If this is your 
+case, you might have to divide that string into pieces and paste each of those
+pieces  into this field.
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+======= h_config_xoauth2_client_secret =======
+<HTML>
+<HEAD>
+<TITLE>Client-Secret Explained</TITLE>
+</HEAD>
+<BODY>
+<H1>Client-Secret Explained</H1>
+
+If you have registered Alpine with your service provider to use the
+XOAUTH2 authenticator, or someone has shared a client-secret with you, use this
+field to input this value. Remember that in order to use the XOAUTH2 authentication
+method, you must have a pair of client-id and client-secret. You must have
+both in order for this authenticator to work.
+
+<P> The client-secret field is supposed to be kept secret, that is not 
+shared with any of the users, but due to the open source nature of Alpine, 
+it is not possible to keep it secret in any meaningful way. The intention 
+of this field is so that only the coders of an app can use the codes given 
+to them and authenticate their users to the services they are requesting. 
+This means that other coders would not be able to impresonate that app, 
+and use it to steal data from those users. In the case of Alpine this is 
+not possible, as Alpine does not steal data from its users, so users are safe
+sharing client-secrets. Just make sure you obtain your copy of Alpine from
+a reputable provider or compile the source code by yourself. The official
+source code of this project is located at
+
+<P><CENTER><A HREF="http://repo.or.cz/alpine.git">http://repo.or.cz/alpine.git</A>.</CENTER>
+
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
 ======= h_config_role_nick =======
 <HTML>
 <HEAD>
@@ -21243,7 +21346,7 @@ An example might be:
 
 </DD>
 
-<DT>TLS</DT>
+<DT>STARTTLS</DT>
 <DD>
 This is a unary parameter indicating communication with the server must 
 take place over a TLS connection. If you use this parameter, Alpine will 
@@ -21262,7 +21365,7 @@ establish a secure connection using STARTTLS.
 considerations when you use this option.
 
 <P>
-<CENTER><SAMP>/tls</SAMP></CENTER>
+<CENTER><SAMP>/starttls</SAMP></CENTER>
 <P>
 
 </DD>
@@ -21515,7 +21618,8 @@ SSL protocols.
 modifier /tls with respect to the names of the encryption protocols, such 
 as TLS 1.2. The meaning of /tls is to start an encrypted connection to a 
 server after an insecure connection has been established, and we will 
-discuss this later in this help text. 
+discuss this later in this help text. The preferred way flag is to use
+/starttls, instead of /tls.
 
 <P>The best way to start an encrypted connection to a server is to use the 
 /ssl modifier. If your provider allows encrypted connections on port 993 
@@ -21532,13 +21636,13 @@ above.
 the port number in case it is different to the ones above.
 
 <P>If your service provider says to use STARTTLS, then you need to use the 
-/tls modifier. If your service provider gives you the option to use SSL or 
+/starttls modifier. If your service provider gives you the option to use SSL or 
 TLS and to use STARTTLS choose the secure port and choose the /ssl 
-modifier. This is because connections using the /tls modifier can be 
+modifier. This is because connections using the /starttls modifier can be 
 attacked and your username and password can be stolen by a hacker. The next
 paragraph describes in short how to do this.
 
-<P> When you use the /tls modifier, Alpine connects insecurely to the 
+<P> When you use the /starttls modifier, Alpine connects insecurely to the 
 remote server. Because the connection is insecure, it is possible that you 
 connect to a different server, which connects you to the real server. This 
 is called &quot;man-in-the-middle&quot; attack, and so your communication 
@@ -22087,47 +22191,6 @@ give up and consider it a failed connection.
 &lt;End of help on this topic&gt;
 </BODY>
 </HTML>
-====== h_config_psleep ======
-<HTML>
-<HEAD>
-<TITLE>OPTION: <!--#echo var="VAR_mailcap-check-interval"--> (UNIX Alpine only)</TITLE>
-</HEAD>
-<BODY>
-<H1>OPTION: <!--#echo var="VAR_mailcap-check-interval"--> (UNIX Alpine only)</H1>
-
-<P>
-In the good old days a mailcap viewer was used to examine an 
-attachment before saving it, and after viewing the attachment control 
-would return to the operating system when the viewer was closed. Therefore, 
-when the mailcap viewer returned control to the operating system, it 
-could be assumed that the user who opened the attachment was done
-examining it, and the copy of the attachment that was used, could be removed.
-
-<P>
-However, today this assumption is not longer valid. Some viewers return 
-control to the operating system before they actually read the attachment
-to be examined. This causes Alpine to delete the attachment before it 
-is read by the viewer, causing the viewer to fail opening the attachment.
-
-<P>
-In order to work around this problem, Alpine checks, after the viewer has 
-returned control to the operating system, if there is any process that is 
-using the attachment. This variable controls the number of seconds that 
-must elapse between checks. Once it is found that no process is using the 
-attachment, this is removed.
-
-<P>
-The minimum value for this variable is 60 (checks will be made once per 
-minute), and the maximum value is 600 (checks will be made once every 10 
-minutes). The default value is 60.
-
-<P>
-<UL>   
-<LI><A HREF="h_finding_help">Finding more information and requesting help</A>
-</UL><P>
-&lt;End of help on this topic&gt;
-</BODY>
-</HTML>
 ====== h_config_incoming_interv ======
 <HTML>
 <HEAD>
@@ -22491,6 +22554,85 @@ by a colon (:) under UNIX and a semi-colon (;) under Windows.
 <P>
 &lt;End of help on this topic&gt;
 </BODY></HTML>
+====== h_config_system_certs_path ======
+<HTML>
+<HEAD>
+<TITLE>OPTION: <!--#echo var="VAR_system-certs-path"--></TITLE>
+</HEAD>
+<BODY>
+<H1>OPTION: <!--#echo var="VAR_system-certs-path"--></H1>
+
+When Alpine is built to support secure connections to remote servers, a directory
+must be reserved in the system to store certificates that will be used to validate
+remote servers. This is normally configured at the time that Alpine is built, but
+there might be circumstances under which a user might want to use a different
+directory. For example, the directory might not be accessible, or has not been 
+updated and contains old certificates that have expired.
+
+<P>
+This variable can be used to list
+the directory where such certificates can be found. Alpine will use the first
+directory in this list that exists in your system and can be accessed. This
+allows for users to be able to use the same pinerc file in different systems.
+
+<P>
+Example of values for this option might be:
+
+<PRE>
+System CACerts Dir = /etc/ssl/certs
+                     /usr/local/ssl/certs
+                     C:\\libressl\\ssl\\certs
+<PRE>
+
+<P>
+In unix systems, the default location of the certificates for openssl can
+be obtained by first executing the command
+
+<PRE>openssl version -d</PRE>
+
+and adding &quot;/certs&quot; to that value. In Windows the default location
+for the certificates is C:\\libressl\\ssl\\certs. This value was set by
+LibreSSL developers, and this option can be used to override this default.
+
+<P>
+&lt;End of help on this topic&gt;
+</BODY></HTML>
+====== h_config_system_certs_file ======
+<HTML>
+<HEAD>
+<TITLE>OPTION: <!--#echo var="VAR_system-certs-file"--></TITLE>
+</HEAD>
+<BODY>
+<H1>OPTION: <!--#echo var="VAR_system-certs-file"--></H1>
+
+This option sets the location of the container file that holds 
+certificate authority (CA) certificates.
+Alpine will use the first
+container in this list that exists in your system and can be accessed. This
+allows for users to be able to use the same pinerc file in different systems.
+
+<P>
+Example of values for this option might be:
+
+<PRE>
+System Certs Path = /etc/ssl/certs/cert.pem
+                    /usr/local/ssl/ca-root-nss.crt
+                    C:\\libressl\\ssl\\certs\\cert.pem
+<PRE>
+
+<P>
+In unix systems, the default location of the certificates for openssl can
+be obtained by first executing the command
+
+<PRE>openssl version -d</PRE>
+
+and adding &quot;/certs&quot; to that value. In Windows the default location
+for the certificates is C:\\libressl\\ssl\\certs\\cert.pem. This value was set 
+by LibreSSL developers, and this option can be used to override this default.
+
+<P>
+&lt;End of help on this topic&gt;
+</BODY></HTML>
 ====== h_config_set_att_ansi ======
 <HTML><HEAD>
 <TITLE>OPTION: Set printer to attached ansi printer</TITLE>
@@ -22746,11 +22888,11 @@ Normally, when a connection is made to the Smtp-Server Alpine will attempt
 to negotiate a secure (encrypted) session using Transport Layer Security (TLS).
 If that fails then a non-encrypted connection will be attempted instead.
 You may specify that a TLS connection is required if you wish.
-If you append &quot;/tls&quot; to the name then the connection will fail
+If you append &quot;/starttls&quot; to the name then the connection will fail
 instead of falling back to a non-secure connection.
 
 <P>
-<CENTER><SAMP>smtpserver.example.com/tls</SAMP></CENTER>
+<CENTER><SAMP>smtpserver.example.com/starttls</SAMP></CENTER>
 <P>
 
 
@@ -25350,7 +25492,7 @@ Here is a list of many of the possible character sets:
 <TR> <TD>ISO-8859-15</TD> <TD>8 bit European "Latin 9" character set</TD> </TR>
 <TR> <TD>ISO-8859-16</TD> <TD>8 bit European "Latin 10" character set</TD> </TR>
 <TR> <TD>KOI8-R</TD> <TD>8 bit Latin and Russian</TD> </TR>
-<TR> <TD>KOI8-U</TD> <TD>8 bit Latin and Ukranian</TD> </TR>
+<TR> <TD>KOI8-U</TD> <TD>8 bit Latin and Ukrainian</TD> </TR>
 <TR> <TD>WINDOWS-1251</TD> <TD>8 bit Latin and Russian</TD> </TR>
 <TR> <TD>TIS-620</TD> <TD>8 bit Latin and Thai</TD> </TR>
 <TR> <TD>VISCII</TD> <TD>8 bit Latin and Vietnamese</TD> </TR>
@@ -25574,7 +25716,7 @@ PC Alpine only.
 <P>
 This option specifies a list of dictionaries you will use with
 aspell. A sample entry is &quot;en_US&quot; for american english, or
-&quot;en_GB&quot; for brittish english.
+&quot;en_GB&quot; for british english.
 
 <P>
 <UL>   
@@ -26609,6 +26751,56 @@ has a minimum of 5 seconds, and a maximum of 1000 seconds.
 &lt;End of help on this topic&gt;
 </BODY>
 </HTML>
+====== h_config_quit_query_timeo =====
+<HTML>
+<HEAD>
+<TITLE>OPTION: <!--#echo var="VAR_close-connection-timeout"--></TITLE>
+</HEAD>
+<BODY>
+<H1>OPTION: <!--#echo var="VAR_close-connection-timeout"--></H1>
+
+The original purpose of this option was to close a connection after this
+much time has elapsed without response from the server. The problem this
+generates is that a server might not reply on time due to a slow operation
+(for example, sorting a large folder, or filtering messages, etc.) In those
+situations it is desirable to wait for the server, even when this takes
+a long time.
+
+<P>
+In order to have a good compromise so that a user can distinguish between
+when a connection is closed, therefore
+we do not need to wait for it, and the operation that the user is waiting
+for takes a long time, this option only applies to the
+&quot;NOOP&quot; IMAP command. So, if a NOOP command has been issued,
+and the connection does not return after the number of seconds configured
+here, which must be at least the amount configured in the option
+<a href="h_config_tcp_query_timeo"><!--#echo var="VAR_tcp-query-timeout"--></a>,
+then Alpine will close the connection.
+
+<P>
+Closing connections that have connectivity problems is a good idea. In an ideal
+world, one would like all connections to be fast and reliable, so the amount
+of time and effort put into parsing a folder to report its state when it is
+opened is not wasted, so keeping connections alive is good, but the problem
+with this is that waiting for a user to reply to a &quot;keep connection
+alive?&quot; question can take a long time, and that might affect other
+connections that could be closed because Alpine is not pinging them while it
+is waiting for a reply from a user for a different connection. Therefore
+setting this value helps to keep other connections alive, in case
+you have several incoming folders in other servers.
+
+<P>
+The default value for this option is 0, which means that no connections will
+be closed automatically, so if you want connections to be closed automatically
+you must set this option to a positive number bigger or equal than the
+value of the option <!--#echo var="VAR_tcp-query-timeout"-->.
+<P>
+<UL>
+<LI><A HREF="h_finding_help">Finding more information and requesting help</A>
+</UL><P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
 ====== h_config_incoming_folders =====
 <HTML>
 <HEAD>
@@ -27259,7 +27451,7 @@ Sets the format of the command used to
 open a UNIX secure shell connection. The default is
 "%s %s -l %s exec /etc/r%sd". All four "%s" entries MUST exist in the
 provided command. The first is for the command's pathname, the second is
-for the host to connnect to, the third is for the user to connect as, and
+for the host to connect to, the third is for the user to connect as, and
 the fourth is for the connection method (typically <CODE>imap</CODE>).
 <P>
 <UL>   
@@ -27602,7 +27794,7 @@ Once Alpine has opened a connection to a particular folder, it will attempt
 to keep that connection open in case you use it again.
 In order to do this,
 Alpine will attempt to use the <!--#echo var="VAR_max-remote-connections"--> (the value of
-this option) IMAP connections you have alloted for this purpose.
+this option) IMAP connections you have allotted for this purpose.
 <P>
 For example, suppose the value of this option is set to &quot;2&quot;.
 If your INBOX is accessed on a remote server using the IMAP protocol, that
@@ -27757,7 +27949,7 @@ displayed items are scrolled down or up by a single line.
 
 <P>
 This option allows you to tell Alpine the number of lines from the top and
-bottom screen edge that line-by-line paging should occcur.  For example,
+bottom screen edge that line-by-line paging should occur.  For example,
 setting this value to one (1) will cause Alpine to scroll the display
 vertically when you move to select an item on the display's top or
 bottom edge.
@@ -29372,7 +29564,7 @@ the way to configure Alpine to recognize URLs other than the built-in set.
 It can also be used to override Alpine's built-in handlers.
 For example, you could specify &quot;news&quot; in the <VAR>scheme-list</VAR>,
 and Alpine would use (provided it passed all other criteria) the associated
-viewer when it encounterd a URL of the form &quot;news:comp.mail.pine&quot;.
+viewer when it encountered a URL of the form &quot;news:comp.mail.pine&quot;.
 
 </DD>
 </DL>
@@ -32565,14 +32757,14 @@ This feature controls an aspect of Alpine's message sending.  When enabled,
 Alpine will send a VERB (i.e., VERBose) command early in the posting process
 intended to cause the SMTP server to provide a more detailed account of
 the transaction.  This feature is typically only useful to system
-administrators and other support personel as an aid in troublshooting
+administrators and other support personnel as an aid in troublshooting
 problems.
 <P>
 Note, this feature relies on a specific capability of the system's mail
 transport agent or configured 
 <A HREF="h_config_smtp_server">&quot;<!--#echo var="VAR_smtp-server"-->&quot;</A>.  
 It is possible that this
-feature will cause problems for some tranport agents, and may result in
+feature will cause problems for some transport agents, and may result in
 sending failure.  In addition, as the verbose output comes from the mail
 transport agent, it is likely to vary from one system to another. 
 <P><UL>
@@ -33803,8 +33995,7 @@ terminal with the same Alpine configuration.
 Alpine will know to use color on the color terminal because it is described
 in the termcap entry, and Alpine will know to use black and white on the
 non-color terminal.
-The Alpine Technical Notes
-<CENTER><SAMP><A HREF="http://www.washington.edu/alpine/tech-notes/">http://www.washington.edu/alpine/tech-notes/</A></SAMP></CENTER>
+The Alpine Technical Notes, distributed with the source code of Alpine
 have more information on configuring a TERMCAP or TERMINFO
 entry for color Alpine.
 This is usually something a system administrator does.
@@ -34042,10 +34233,10 @@ terminal being used.
 <H1>FEATURE: <!--#echo var="FEAT_try-alternative-authentication-driver-first"--></H1>
 
 This feature affects how Alpine connects to IMAP servers.
-It's utility has largely been overtaken by events,
+Its utility has largely been overtaken by events,
 but it may still be useful in some circumstances.
 If you only connect to modern IMAP servers that support
-&quot;TLS&quot; you can ignore this feature.
+&quot;STARTTLS&quot; you can ignore this feature.
 
 <P>
 Details:
@@ -34053,22 +34244,22 @@ Details:
 <P>
 By default, Alpine will attempt to connect to an IMAP server on the
 normal IMAP service port (143), and if the server offers &quot;Transport Layer
-Security&quot; (TLS) and Alpine has been compiled with encryption capability,
+Security&quot; (STARTTLS) and Alpine has been compiled with encryption capability,
 then a secure (encrypted) session will be negotiated.
 
 <P>
 With this feature enabled, before connecting on the normal IMAP port, Alpine
 will first attempt to connect to an alternate IMAP service port (993) used
 specifically for encrypted IMAP sessions via the Secure Sockets Layer
-(SSL) method.
+(SSL) or Transport Layer Security (TLS) method.
 If the SSL attempt fails, Alpine will then try the default
 behavior described in the previous paragraph.
 
 <P>
-TLS negotiation on the normal port is preferred, and supersedes the use of
-SSL on port 993, but older servers may not provide TLS support.
+STARTTLS negotiation on the normal port is preferred, and supersedes the use of
+SSL on port 993, but older servers may not provide STARTTLS support.
 This feature may be convenient when accessing IMAP servers that do not support
-TLS, but do support SSL connections on port 993.
+STARTTLS, but do support SSL or TLS connections on port 993.
 However, it is important to understand that with this feature enabled,
 Alpine will <EM>attempt</EM> to make a secure connection if that is possible,
 but it will proceed to make an insecure connection if that is the only
@@ -34083,14 +34274,14 @@ This feature interacts with some of
 the possible host/folder path specification flags as follows:
 
 <P>
-The <SAMP>/tls</SAMP> host flag, for example,
+The <SAMP>/starttls</SAMP> host flag, for example,
 
 <P>
-<CENTER><SAMP>{foo.example.com/tls}INBOX</SAMP></CENTER>
+<CENTER><SAMP>{foo.example.com/starttls}INBOX</SAMP></CENTER>
 <P>
 will over-ride this feature for the specified host by bypassing the
-SSL connection attempt.
-Moreover, with <SAMP>/tls</SAMP> specified,
+SSL or TLS connection attempt.
+Moreover, with <SAMP>/starttls</SAMP> specified,
 the connection attempt will fail if the
 service on port 143 does not offer TLS support.
 
@@ -34100,8 +34291,8 @@ The <SAMP>/ssl</SAMP> host flag, for example,
 <P>
 <CENTER><SAMP>{foo.example.com/ssl}INBOX</SAMP></CENTER>
 <P>
-will insist on an SSL connection for the specified host,
-and will fail if the SSL service on port 993 is not available.
+will insist on an SSL or TLS connection for the specified host,
+and will fail if the SSL or TLS service on port 993 is not available.
 Alpine will not subsequently retry a connection
 on port 143 if <SAMP>/ssl</SAMP> is specified.
 
@@ -35556,7 +35747,15 @@ That is a separate and independent feature.
 <BODY>
 <H1>FEATURE: <!--#echo var="FEAT_disable-password-file-saving"--></H1>
 
-This feature changes the behavior of Alpine when a login name and password combination
+<P> This feature disables caching of passwords, even if your version of Alpine allows
+saving passwords. For MAC OS users saving passwords is done using the Apple Key Chain, for
+Windows users caching passwords is done using the internal Windows Credentials, and for
+other users this is done by using the password file. In this feature, the phrase
+&quot;password file&quot; is a misnomer and represents the way in which your system
+stores passwords.
+
+<P>
+Specifically, this feature changes the behavior of Alpine when a login name and password combination
 for a specific server is not found in the password file. The default behavior is that
 Alpine will ask the user if they wish to save this information in the password file for future
 use. It is assumed that if a user created a password file it is because they intend
@@ -35564,6 +35763,12 @@ to use it, but in some instances a user might want to save some passwords and no
 In this case, enabling this feature will make Alpine not add any more passwords to the
 password file and will only use the passwords that it already saved. If you wish to allow
 Alpine to save more passwords in the password file, disable this feature.
+
+<P> Regardless of which method Alpine uses to store passwords, this is done in a secure
+way when compiled with OpenSSL or LibreSSL. This is very likely to be your version, and
+you can check this by reading the encryption features
+<A HREF="X-Alpine-Config:">supported</A> by Alpine.
+
 <P>
 <UL>   
 <LI><A HREF="h_finding_help">Finding more information and requesting help</A>

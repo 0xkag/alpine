@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@
 #define ANC_AFTERCOMMA      0x1
 
 
-/* exported protoypes */
+/* exported prototypes */
 int            cur_is_open(void);
 void	       init_disp_form(PerAddrBook *, char **, int);
 void	       init_abook_screen(void);

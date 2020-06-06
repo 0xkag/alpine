@@ -2,7 +2,7 @@
  * $Id: search.h 761 2007-10-23 22:35:18Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2019 Eduardo Chappa
+ * Copyright 2013-2020 Eduardo Chappa
  * Copyright 2006 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
 #define PITH_SEARCH_INCLUDED
 
 
-/* exported protoypes */
+/* exported prototypes */
 SEARCHSET    *build_searchset(MAILSTREAM *);
 int           in_searchset(SEARCHSET *, unsigned long);
 
