@@ -32648,6 +32648,38 @@ Ctrl-B key can be used to select the previous web hostnames in the same way.
 &lt;End of help on this topic&gt;
 </BODY>
 </HTML>
+====== h_config_enable_long_url =====
+<HTML>
+<HEAD>
+<TITLE>FEATURE: <!--#echo var="FEAT_enable-msg-view-long-url"--></TITLE>
+</HEAD>
+<BODY>
+<H1>FEATURE: <!--#echo var="FEAT_enable-msg-view-long-url"--></H1>
+
+This feature modifies the behavior of Alpine's MESSAGE TEXT screen. When this feature
+is set alpine will attempt to recognize long urls (those that spread over several
+lines in the text) for the HTTP protocol, even when they have not been enclosed between
+delimiters &quot;&lt;&quot; and &quot;&gt;&quot;.
+
+<P>The normal behavior in Alpine is that if a URL is preceeded by the &quot;&lt;&quot;
+character and this URL was not finished before the end of the line, then a
+continuation of the URL is searched in the following line(s). Normally, this type of
+URLs will be ended by the &quot;&gt;&quot; character, and if it is not, there is a
+possibility of including erroneous text into the URL.
+
+<P>Enabling this feature will make Alpine search for a continuation of certain URLs in
+lines following its location. This will be of great help most times, but in some cases
+the algorithm will catch some text into the URL that is not part of the URL.
+
+<P>If you find that Alpine failed to recognize correctly a URL simply edit the URL before
+passing it to your browser.
+
+<UL>   
+<LI><A HREF="h_finding_help">Finding more information and requesting help</A>
+</UL><P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
 ====== h_config_enable_view_addresses =====
 <HTML>
 <HEAD>
