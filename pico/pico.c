@@ -674,12 +674,19 @@ abort_composer(int f, int n)
     result = "";
 
     Pmaster->arm_winch_cleanup++;
+    Pmaster->onctrlc++;
     if(Pmaster->canceltest){
         if(((Pmaster->pine_flags & MDHDRONLY) && !any_header_changes())
 	  || (result = (*Pmaster->canceltest)(redraw_pico_for_callback))){
-	    pico_all_done = COMP_CANCEL;
 	    emlwrite(result, NULL);
 	    Pmaster->arm_winch_cleanup--;
+	    if(Pmaster->curpos[0]){
+	       curwp->w_flag |= WFMODE;		/* and modeline so we  */
+	       sgarbk = TRUE;			/* redraw the keymenu  */
+	       pclear(term.t_nrow - 1, term.t_nrow + 1);
+	       return(FALSE);
+	    }
+	    pico_all_done = COMP_CANCEL;
 	    return(TRUE);
 	}
 	else{
@@ -706,6 +713,12 @@ abort_composer(int f, int n)
 
       case ABORT:
 	emlwwrite(_("Cancel Cancelled"), NULL);
+	break;
+
+      case COUNT:
+	showcpos(1,0);
+	emlwrite(Pmaster->curpos, NULL);
+	Pmaster->onctrlc--;
 	break;
 
       default:

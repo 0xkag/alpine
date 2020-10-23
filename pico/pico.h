@@ -209,11 +209,13 @@ typedef struct pico_struct {
     PCOLORS *colors;                    /* colors for titlebar and keymenu */
     void  *input_cs;			/* passed to mbtow() via kbseq() */
     long   pine_flags;			/* entry mode flags */
+    char  curpos[80];			/* where are we now? */
     /* The next few bits are features that don't fit in pine_flags      */
     /* If we had this to do over, it would probably be one giant bitmap */
     unsigned always_spell_check:1;      /* always spell-checking upon quit */
     unsigned strip_ws_before_send:1;    /* don't default strip bc of flowed */
     unsigned allow_flowed_text:1;    /* clean text when done to keep flowed */
+    unsigned onctrlc;			/* are we on ctrl-c command? */
     int   (*helper)();			/* Pine's help function  */
     int   (*showmsg)();			/* Pine's display_message */
     UCS   (*suspend)();			/* Pine's suspend */
