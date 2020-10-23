@@ -15,8 +15,6 @@ web/lib/
 *~
 *.o
 *.a
-*.orig
-*.rej
 date.c
 an
 alpine/alpine
