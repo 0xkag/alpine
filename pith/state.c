@@ -236,6 +236,8 @@ free_pine_struct(struct pine **pps)
     if((*pps)->kw_colors)
       free_spec_colors(&(*pps)->kw_colors);
 
+    free_allowed_qstr();
+
     if((*pps)->atmts){
 	int i;
 

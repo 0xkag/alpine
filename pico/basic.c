@@ -26,9 +26,10 @@ static char rcsid[] = "$Id: basic.c 831 2007-11-27 01:04:19Z hubert@u.washington
  * framing, are hard.
  */
 #include        "headers.h"
-
+#include	"../pith/osdep/color.h"
 #include "osdep/terminal.h"
 
+int	indent_match(char **, LINE *, char *, int, int);
 
 /*
  * Move the cursor to the
@@ -285,7 +286,7 @@ int
 gotobop(int f, int n)
 {
     int quoted, qlen;
-    UCS qstr[NLINE], qstr2[NLINE];
+    char qstr[NLINE], qstr2[NLINE], ind_str[NLINE], pqstr[NLINE];;
 
     if (n < 0)	/* the other way...*/
       return(gotoeop(f, -n));
@@ -297,6 +298,14 @@ gotobop(int f, int n)
 	    curwp->w_dotp = lback(curwp->w_dotp);
 	    curwp->w_doto = 0;
 	}
+
+	if (indent_match(default_qstr(glo_quote_str, 1), curwp->w_dotp,ind_str, NLINE, 0)){
+	   if (n){ /* look for another paragraph ? */
+	      curwp->w_dotp = lback(curwp->w_dotp);
+	      continue;
+	   }
+	   break;
+	}
 	
 	/* scan line by line until we come to a line ending with
 	 * a <NL><NL> or <NL><TAB> or <NL><SPACE>
@@ -304,17 +313,58 @@ gotobop(int f, int n)
 	 * PLUS: if there's a quote string, a quoted-to-non-quoted
 	 *	 line transition.
 	 */
-	quoted = quote_match(glo_quote_str, curwp->w_dotp, qstr, NLINE);
-	qlen   = quoted ? ucs4_strlen(qstr) : 0;
+	quoted = quote_match(default_qstr(glo_quote_str, 1), curwp->w_dotp, qstr, NLINE, 0);
+	qlen   = quoted ? strlen(qstr) : 0;
 	while(lback(curwp->w_dotp) != curbp->b_linep
 	      && llength(lback(curwp->w_dotp)) > qlen
-	      && quoted == quote_match(glo_quote_str,
+	      && (quoted == quote_match(default_qstr(glo_quote_str, 1),
 					   lback(curwp->w_dotp),
-					   qstr2, NLINE)
-	      && !ucs4_strcmp(qstr, qstr2)
-	      && lgetc(curwp->w_dotp, qlen).c != TAB
-	      && lgetc(curwp->w_dotp, qlen).c != ' ')
+					   qstr2, NLINE, 0))
+	      && !strcmp(qstr, qstr2)  /* processed string */
+	      && (quoted == quote_match(default_qstr(glo_quote_str, 1),
+			lback(curwp->w_dotp), qstr2, NLINE, 1))
+	      && !strcmp(qstr, qstr2)   /* raw string */
+	      && !indent_match(default_qstr(glo_quote_str, 1),
+			lback(curwp->w_dotp),ind_str, NLINE, 0)
+	      && !ISspace(lgetc(curwp->w_dotp, qlen).c))
 	  curwp->w_dotp = lback(curwp->w_dotp);
+
+	 /*
+	  * Ok, we made it here and we assume that we are at the begining
+	  * of the paragraph. Let's double check this now. In order to do
+	  * so we shell check if the first line was indented in a special
+	  * way.
+	  */
+	if(lback(curwp->w_dotp) == curbp->b_linep)
+	    break;
+	else{
+	     int i, j;
+
+	   /*
+	    * First we test if the preceding line is indented.
+	    * for the following test we need to have the raw values,
+	    * not the processed values
+	    */
+	   quote_match(default_qstr(glo_quote_str, 1), curwp->w_dotp, qstr, NLINE, 1);
+	   quote_match(default_qstr(glo_quote_str, 1), lback(curwp->w_dotp), qstr2, NLINE, 1);
+	   for (i = 0, j = 0;
+	        qstr[i] && qstr2[i] && (qstr[i] == qstr2[i]); i++, j++);
+	   for (; ISspace(qstr2[i]); i++);
+	   for (; ISspace(qstr[j]); j++);
+	   if ((indent_match(default_qstr(glo_quote_str, 1), lback(curwp->w_dotp),
+						ind_str, NLINE, 1)
+	       && (strlenis(qstr2) 
+			+ strlenis(ind_str) >= strlenis(qstr)))
+	      || (lback(curwp->w_dotp) != curbp->b_linep
+	         && llength(lback(curwp->w_dotp)) > qlen
+	         && (quoted == quote_match(default_qstr(glo_quote_str, 1),
+				lback(curwp->w_dotp), pqstr, NLINE, 0))
+		 && !strcmp(qstr, pqstr)
+		 && !ISspace(lgetc(curwp->w_dotp, qlen).c)
+		 && (strlenis(qstr2) > strlenis(qstr)))
+	         && !qstr2[i] && !qstr[j])
+		curwp->w_dotp = lback(curwp->w_dotp);
+	}
 
 	if(n){
 	    /* keep looking */
@@ -328,7 +378,7 @@ gotobop(int f, int n)
 	else{
 	  /* leave cursor on first word in para */
 	    curwp->w_doto = 0;
-	    while(ucs4_isspace(lgetc(curwp->w_dotp, curwp->w_doto).c))
+	    while(ISspace(lgetc(curwp->w_dotp, curwp->w_doto).c))
 	      if(++curwp->w_doto >= llength(curwp->w_dotp)){
 		  curwp->w_doto = 0;
 		  curwp->w_dotp = lforw(curwp->w_dotp);
@@ -351,8 +401,9 @@ gotobop(int f, int n)
 int
 gotoeop(int f, int n)
 {
-    int quoted, qlen;
-    UCS qstr[NLINE], qstr2[NLINE];
+    int quoted, qlen, indented, changeqstr = 0;
+    int i,j, fli = 0; /* fli = first line indented a boolean variable */
+    char qstr[NLINE], qstr2[NLINE], ind_str[NLINE];
 
     if (n < 0)	/* the other way...*/
       return(gotobop(f, -n));
@@ -365,24 +416,70 @@ gotoeop(int f, int n)
 	      break;
 	}
 
-	/* scan line by line until we come to a line ending with
-	 * a <NL><NL> or <NL><TAB> or <NL><SPACE>
-	 *
-	 * PLUS: if there's a quote string, a quoted-to-non-quoted
-	 *	 line transition.
+	/*
+	 * We need to figure out if this line is the first line of
+	 * a paragraph that has been indented in a special way. If this
+	 * is the case, we advance one more line before we use the
+	 * algorithm below
 	 */
-	quoted = quote_match(glo_quote_str,
-			curwp->w_dotp, qstr, NLINE);
-	qlen   = quoted ? ucs4_strlen(qstr) : 0;
+
+	if(curwp->w_dotp != curbp->b_linep){
+	   quote_match(default_qstr(glo_quote_str, 1), curwp->w_dotp, qstr, NLINE, 1);
+	   quote_match(default_qstr(glo_quote_str, 1), lforw(curwp->w_dotp), qstr2, NLINE, 1);
+	   indented = indent_match(default_qstr(glo_quote_str, 1), curwp->w_dotp, ind_str,
+							NLINE, 1);
+	   if (strlenis(qstr) 
+		+ strlenis(ind_str) < strlenis(qstr2)){
+		curwp->w_doto = llength(curwp->w_dotp);
+		if(n){    /* this line is a paragraph by itself */
+		   curwp->w_dotp = lforw(curwp->w_dotp);
+		   continue;
+		}
+		break;
+	   }
+	   for (i=0,j=0; qstr[i] && qstr2[i] && (qstr[i] == qstr2[i]);i++,j++);
+	   for (; ISspace(qstr[i]); i++);
+	   for (; ISspace(qstr2[j]); j++);
+	   if (!qstr[i] && !qstr2[j] && indented){
+		fli++;
+		if (indent_match(default_qstr(glo_quote_str, 1), lforw(curwp->w_dotp),
+					ind_str, NLINE, 0)){
+		    if (n){ /* look for another paragraph ? */
+		      curwp->w_dotp = lforw(curwp->w_dotp);
+		      continue;
+		    }
+		}
+		else{
+		  if (!lisblank(lforw(curwp->w_dotp)))
+		     curwp->w_dotp = lforw(curwp->w_dotp);
+		}
+	   }
+	}
+
+  	/* scan line by line until we come to a line ending with
+  	 * a <NL><NL> or <NL><TAB> or <NL><SPACE>
+  	 *
+  	 * PLUS: if there's a quote string, a quoted-to-non-quoted
+  	 *	 line transition.
+  	 */
+	/* if the first line is indented (fli == 1), then the test below
+	   is on the second line, and in that case we will need the raw
+	   string, not the processed string
+	 */
+	quoted = quote_match(default_qstr(glo_quote_str, 1), curwp->w_dotp, qstr, NLINE, fli);
+	qlen   = quoted ? strlen(qstr) : 0;
 	
 	while(curwp->w_dotp != curbp->b_linep
 	      && llength(lforw(curwp->w_dotp)) > qlen
-	      && (quoted == quote_match(glo_quote_str,
-					   lforw(curwp->w_dotp),
-					   qstr2, NLINE)
-		     && !ucs4_strcmp(qstr, qstr2))
-	      && lgetc(lforw(curwp->w_dotp), qlen).c != TAB
-	      && lgetc(lforw(curwp->w_dotp), qlen).c != ' ')
+	      && (quoted == quote_match(default_qstr(glo_quote_str, 1),
+				lforw(curwp->w_dotp), qstr2, NLINE, fli))
+	      && !strcmp(qstr, qstr2)
+	      && (quoted == quote_match(default_qstr(glo_quote_str, 1),
+				lforw(curwp->w_dotp), qstr2, NLINE, 1))
+	      && !strcmp(qstr, qstr2)
+	      && !indent_match(default_qstr(glo_quote_str, 1),
+				lforw(curwp->w_dotp), ind_str, NLINE, 0)
+	      && !ISspace(lgetc(lforw(curwp->w_dotp), qlen).c))
 	  curwp->w_dotp = lforw(curwp->w_dotp);
 
 	curwp->w_doto = llength(curwp->w_dotp);

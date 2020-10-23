@@ -55,7 +55,11 @@ static char rcsid[] = "$Id: mailview.c 1266 2009-07-14 18:39:12Z hubert@u.washin
 #include "../pith/escapes.h"
 #include "../pith/keyword.h"
 #include "../pith/smime.h"
-
+#include "../pith/osdep/color.h"
+#include "../pico/osdep/color.h"
+#include "../pico/estruct.h"
+#include "../pico/pico.h"
+#include "../pico/efunc.h"
 
 #define FBUF_LEN	(50)
 
@@ -640,7 +644,7 @@ format_body(long int msgno, BODY *body, HANDLE_S **handlesp, HEADER_S *hp, int f
 	       && pico_usingcolor()
 	       && ps_global->VAR_SIGNATURE_FORE_COLOR
 	       && ps_global->VAR_SIGNATURE_BACK_COLOR){
-		gf_link_filter(gf_line_test, gf_line_test_opt(color_signature, &is_in_sig));
+		gf_link_filter(gf_quote_test, gf_line_test_opt(color_signature, &is_in_sig));
 	    }
 
 	    if((flgs & FM_DISPLAY)
@@ -648,8 +652,10 @@ format_body(long int msgno, BODY *body, HANDLE_S **handlesp, HEADER_S *hp, int f
 	       && pico_usingcolor()
 	       && ps_global->VAR_QUOTE1_FORE_COLOR
 	       && ps_global->VAR_QUOTE1_BACK_COLOR){
-		gf_link_filter(gf_line_test, gf_line_test_opt(color_a_quote, NULL));
+		gf_link_filter(gf_quote_test, gf_line_test_opt(color_a_quote, NULL));
 	    }
+	    else
+		gf_link_filter(gf_quote_test,gf_line_test_opt(select_quote, NULL));
 
 	    if(!(flgs & FM_NOWRAP)){
 		wrapflags = (flgs & FM_DISPLAY) ? (GFW_HANDLES|GFW_SOFTHYPHEN) : GFW_NONE;
@@ -1465,26 +1471,87 @@ int
 color_signature(long int linenum, char *line, LT_INS_S **ins, void *is_in_sig)
 {
     struct variable *vars = ps_global->vars;
-    int             *in_sig_block;
+    int             *in_sig_block, i, j,same_qstr = 0, plb;
     COLOR_PAIR      *col = NULL;
+    static char GLine[NSTRING] = {'\0'};
+    static char PLine[NSTRING] = {'\0'};
+    static char PPLine[NSTRING] = {'\0'};
+    char NLine[NSTRING] = {'\0'};
+    char rqstr[NSTRING] = {'\0'};
+    char *p, *q;
+    static char *buf, buf2[NSTRING] = {'\0'};
+    QSTRING_S *qs;
+    static int qstrlen = 0;
 
     if(is_in_sig == NULL)
       return 0;
 
+    if (linenum > 0){
+	strncpy(PLine, GLine, sizeof(PLine));
+	PLine[sizeof(PLine)-1] = '\0';
+    }
+
+    if(p = strchr(tmp_20k_buf, '\015')) *p = '\0';
+    strncpy(NLine, tmp_20k_buf, sizeof(NLine));
+    NLine[sizeof(NLine) - 1] = '\0';
+    if (p) *p = '\015';
+
+    strncpy(GLine, line, sizeof(GLine));
+    GLine[sizeof(GLine) - 1] = '\0';
+
+    ps_global->list_qstr = default_qstr(ps_global->prefix && *ps_global->prefix 
+		? (void *) ps_global->prefix : (void *) ">", 0);
+    plb = line_isblank(ps_global->list_qstr, PLine, GLine, PPLine, NSTRING);
+    qs = do_quote_match(ps_global->list_qstr, GLine, NLine, PLine, rqstr, NSTRING, plb);
+    if(linenum > 0)
+       strncpy(PPLine, PLine, NSTRING);
+    strncpy(buf2, rqstr, NSTRING);
+    i = buf2 && buf2[0] ? strlen(buf2) : 0;
+    free_qs(&qs);
+
+    /* determine if buf and buf2 are the same quote string */
+    if (!struncmp(buf, buf2, qstrlen)){
+      for (j = qstrlen; buf2[j] && isspace((unsigned char)buf2[j]); j++);
+      if (!buf2[j] || buf2[j] == '|' || (buf2[j] == '*' && buf2[j+1] != '>'))
+         same_qstr++;
+    }
+
     in_sig_block = (int *) is_in_sig;
     
-    if(!strcmp(line, SIGDASHES))
-      *in_sig_block = START_SIG_BLOCK; 
-    else if(*line == '\0')
+    if (*in_sig_block != OUT_SIG_BLOCK){
+      if (line && *line && (strlen(line) >= qstrlen) && same_qstr)
+         line += qstrlen;
+        else if (strlen(line) < qstrlen)
+         line += i;
+      else if (!same_qstr)
+         *in_sig_block = OUT_SIG_BLOCK;
+    }
+    else
+      line += i;
+
+    if(!strcmp(line, SIGDASHES) || !strcmp(line, "--")){
+      *in_sig_block = START_SIG_BLOCK;
+       buf = (char *) fs_get((i + 1)*sizeof(char));
+       buf = cpystr(buf2);
+       qstrlen = i;
+    }
+    else if(*line == '\0'){
       /* 
        * Suggested by Eduardo: allow for a blank line right after 
        * the sigdashes. 
        */
       *in_sig_block = (*in_sig_block == START_SIG_BLOCK)
 			  ? IN_SIG_BLOCK : OUT_SIG_BLOCK;
+    }
     else
       *in_sig_block = (*in_sig_block != OUT_SIG_BLOCK)
 			  ? IN_SIG_BLOCK : OUT_SIG_BLOCK;
+
+    if (*in_sig_block == OUT_SIG_BLOCK){
+      qstrlen = 0;    /* reset back in case there's another paragraph */
+      if (buf)
+         fs_give((void **)&buf);
+    }
 
     if(*in_sig_block != OUT_SIG_BLOCK
        && VAR_SIGNATURE_FORE_COLOR && VAR_SIGNATURE_BACK_COLOR
@@ -2044,6 +2111,77 @@ pad_to_right_edge(long int linenum, char *line, LT_INS_S **ins, void *local)
     return(0);
 }
 
+
+/* This filter gives a quote string of a line. It sends its reply back to the
+   calling filter in the tmp_20k_buf variable. This filter replies with
+   the full quote string including tailing spaces if any. It is the
+   responsibility of the calling filter to figure out if thos spaces are
+   useful for that filter or if they should be removed before doing any
+   useful work. For example, color_a_quote does not require the trailing
+   spaces, but gf_wrap does.
+ */
+int
+select_quote(long linenum, char *line, LT_INS_S **ins, void *local)
+{
+     int i, plb, *code;
+     char rqstr[NSTRING] = {'\0'}, buf[NSTRING] = {'\0'};
+     char GLine[NSTRING] = {'\0'}, PLine[NSTRING] = {'\0'};
+     char PPLine[NSTRING] = {'\0'}, NLine[NSTRING] = {'\0'};
+     static char GLine1[NSTRING] = {'\0'};
+     static char PLine1[NSTRING] = {'\0'};
+     static char PPLine1[NSTRING] = {'\0'};
+     static char GLine2[NSTRING] = {'\0'};
+     static char PLine2[NSTRING] = {'\0'};
+     static char PPLine2[NSTRING] = {'\0'};
+     QSTRING_S *qs;
+     int buflen = NSTRING < SIZEOF_20KBUF ? NSTRING - 1: SIZEOF_20KBUF - 1;
+     int who, raw;
+
+     code = (int *)local;
+     who = code ? (*code & COLORAQUO) : 0; /* may I ask who is calling? */
+     raw = code ? (*code & RAWSTRING) : 0; /* return raw string */
+     strncpy(GLine, (who ? GLine1 : GLine2), buflen);
+     strncpy(PLine, (who ? PLine1 : PLine2), buflen);
+     strncpy(PPLine, (who ? PPLine1 : PPLine2), buflen);
+
+     if (linenum > 0)
+        strncpy(PLine, GLine, buflen);
+
+     strncpy(NLine, tmp_20k_buf, buflen);
+
+     if (line)
+        strncpy(GLine, line, buflen);
+     else
+        GLine[0] = '\0';
+
+     ps_global->list_qstr = default_qstr(ps_global->prefix && *ps_global->prefix 
+		? (void *) ps_global->prefix : (void *) ">", 0);
+     plb = line_isblank(ps_global->list_qstr, PLine, GLine, PPLine, NSTRING);
+
+     qs = do_quote_match(ps_global->list_qstr, GLine, NLine, PLine, rqstr, NSTRING, plb);
+     if (raw)
+        strncpy(buf, rqstr, NSTRING);
+     else
+        flatten_qstring(qs, buf, NSTRING);
+     if(qs)
+	record_quote_string(qs);
+     free_qs(&qs);
+
+     /* do not paint an extra level for a line with a >From string at the
+      * begining of it
+      */
+     if (buf[0]){
+       i = strlen(buf);
+       if (strlen(line) >= i + 6 && !strncmp(line+i-1,">From ", 6))
+           buf[i - 1] = '\0';
+     }
+     strncpy(tmp_20k_buf, buf, buflen);
+     if (linenum > 0)
+       strncpy((who ? PPLine1 : PPLine2), PLine, buflen);
+     strncpy((who ? GLine1 : GLine2), GLine, buflen);
+     strncpy((who ? PLine1 : PLine2), PLine, buflen);
+     return 1;
+}
 
 
 #define	UES_LEN	12
