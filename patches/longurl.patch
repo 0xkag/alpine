@@ -1,9 +1,9 @@
-diff -rc alpine-2.22/pith/conf.c alpine-2.22.longurl/pith/conf.c
-*** alpine-2.22/pith/conf.c	2020-01-19 01:32:18.678505766 -0700
---- alpine-2.22.longurl/pith/conf.c	2020-01-19 01:35:01.390412210 -0700
+diff -rc alpine-2.24/pith/conf.c alpine-2.24.longurl/pith/conf.c
+*** alpine-2.24/pith/conf.c	2020-10-10 00:24:28.204554602 -0600
+--- alpine-2.24.longurl/pith/conf.c	2020-10-10 00:27:03.492512044 -0600
 ***************
-*** 3008,3013 ****
---- 3008,3015 ----
+*** 3084,3089 ****
+--- 3084,3091 ----
   	 F_VIEW_SEL_URL, h_config_enable_view_url, PREF_VIEW, 1},
   	{"enable-msg-view-web-hostnames", "Enable Message View Web Hostname Links",
   	 F_VIEW_SEL_URL_HOST, h_config_enable_view_web_host, PREF_VIEW, 1},
@@ -11,23 +11,23 @@ diff -rc alpine-2.22/pith/conf.c alpine-2.22.longurl/pith/conf.c
 + 	 F_VIEW_LONG_URL, h_config_enable_long_url, PREF_VIEW, 0},
   	{"enable-msg-view-forced-arrows", "Enable Message View Forced Arrows",
   	 F_FORCE_ARROWS, h_config_enable_view_arrows, PREF_VIEW, 0},
-  	/* set to TRUE for windows */
-diff -rc alpine-2.22/pith/conftype.h alpine-2.22.longurl/pith/conftype.h
-*** alpine-2.22/pith/conftype.h	2020-01-19 01:32:18.702505283 -0700
---- alpine-2.22.longurl/pith/conftype.h	2020-01-19 01:35:01.391412203 -0700
+  	{"external-command-loads-inline-images-only", NULL,
+diff -rc alpine-2.24/pith/conftype.h alpine-2.24.longurl/pith/conftype.h
+*** alpine-2.24/pith/conftype.h	2020-10-10 00:24:28.204554602 -0600
+--- alpine-2.24.longurl/pith/conftype.h	2020-10-10 00:27:03.492512044 -0600
 ***************
-*** 455,460 ****
---- 455,461 ----
+*** 461,466 ****
+--- 461,467 ----
   	F_VIEW_SEL_ATTACH,
   	F_VIEW_SEL_URL,
   	F_VIEW_SEL_URL_HOST,
 + 	F_VIEW_LONG_URL,
   	F_SCAN_ADDR,
   	F_FORCE_ARROWS,
-  	F_PREFER_PLAIN_TEXT,
-diff -rc alpine-2.22/pith/mailview.c alpine-2.22.longurl/pith/mailview.c
-*** alpine-2.22/pith/mailview.c	2020-01-19 01:32:18.803503250 -0700
---- alpine-2.22.longurl/pith/mailview.c	2020-01-19 01:35:01.393412189 -0700
+  	F_EXTERNAL_INLINE_IMAGES,
+diff -rc alpine-2.24/pith/mailview.c alpine-2.24.longurl/pith/mailview.c
+*** alpine-2.24/pith/mailview.c	2020-10-10 00:24:28.204554602 -0600
+--- alpine-2.24.longurl/pith/mailview.c	2020-10-10 00:27:03.492512044 -0600
 ***************
 *** 1849,1866 ****
       return(0);
@@ -271,12 +271,12 @@ diff -rc alpine-2.22/pith/mailview.c alpine-2.22.longurl/pith/mailview.c
       return(0);
   }
   
-diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.longurl/pith/pine.hlp
-*** alpine-2.22/pith/pine.hlp	2020-01-19 01:32:19.035498584 -0700
---- alpine-2.22.longurl/pith/pine.hlp	2020-01-19 01:35:01.405412105 -0700
+diff -rc alpine-2.24/pith/pine.hlp alpine-2.24.longurl/pith/pine.hlp
+*** alpine-2.24/pith/pine.hlp	2020-10-10 00:24:28.204554602 -0600
+--- alpine-2.24.longurl/pith/pine.hlp	2020-10-10 00:27:03.496512148 -0600
 ***************
-*** 30730,30735 ****
---- 30730,30767 ----
+*** 31335,31340 ****
+--- 31335,31372 ----
   &lt;End of help on this topic&gt;
   </BODY>
   </HTML>
@@ -315,9 +315,9 @@ diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.longurl/pith/pine.hlp
   ====== h_config_enable_view_addresses =====
   <HTML>
   <HEAD>
-diff -rc alpine-2.22/pith/url.c alpine-2.22.longurl/pith/url.c
-*** alpine-2.22/pith/url.c	2020-01-19 01:32:18.700505323 -0700
---- alpine-2.22.longurl/pith/url.c	2020-01-19 01:35:01.407412091 -0700
+diff -rc alpine-2.24/pith/url.c alpine-2.24.longurl/pith/url.c
+*** alpine-2.24/pith/url.c	2020-10-10 00:24:28.204554602 -0600
+--- alpine-2.24.longurl/pith/url.c	2020-10-10 00:27:03.496512148 -0600
 ***************
 *** 53,59 ****
   rfc1738_scan(char *line, int *len)

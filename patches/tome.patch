@@ -1,9 +1,9 @@
-diff -rc alpine-2.22/pith/conf.c alpine-2.22.tome/pith/conf.c
-*** alpine-2.22/pith/conf.c	2020-01-19 01:32:18.678505766 -0700
---- alpine-2.22.tome/pith/conf.c	2020-01-19 01:35:02.888401776 -0700
+diff -rc alpine-2.24/pith/conf.c alpine-2.24.tome/pith/conf.c
+*** alpine-2.24/pith/conf.c	2020-10-10 00:24:28.204554602 -0600
+--- alpine-2.24.tome/pith/conf.c	2020-10-10 00:27:04.304532739 -0600
 ***************
-*** 2982,2987 ****
---- 2982,2989 ----
+*** 3058,3063 ****
+--- 3058,3065 ----
   	 F_ENABLE_SPACE_AS_TAB, h_config_cruise_mode, PREF_INDX, 0},
   	{"enable-cruise-mode-delete", "Enable Cruise Mode With Deleting",
   	 F_ENABLE_TAB_DELETES, h_config_cruise_mode_delete, PREF_INDX, 0},
@@ -13,8 +13,8 @@ diff -rc alpine-2.22/pith/conf.c alpine-2.22.tome/pith/conf.c
   	 F_MARK_FOR_CC, h_config_mark_for_cc, PREF_INDX, 1},
   	{"next-thread-without-confirm", "Read Next Thread Without Confirming",
 ***************
-*** 7132,7137 ****
---- 7134,7140 ----
+*** 7273,7278 ****
+--- 7275,7281 ----
   	break;
   
         case F_MARK_FOR_CC :
@@ -22,12 +22,12 @@ diff -rc alpine-2.22/pith/conf.c alpine-2.22.tome/pith/conf.c
   	clear_index_cache(ps->mail_stream, 0);
   	if(THREADING() && sp_viewing_a_thread(ps->mail_stream))
   	  unview_thread(ps, ps->mail_stream, ps->msgmap);
-diff -rc alpine-2.22/pith/conftype.h alpine-2.22.tome/pith/conftype.h
-*** alpine-2.22/pith/conftype.h	2020-01-19 01:32:18.702505283 -0700
---- alpine-2.22.tome/pith/conftype.h	2020-01-19 01:35:02.888401776 -0700
+diff -rc alpine-2.24/pith/conftype.h alpine-2.24.tome/pith/conftype.h
+*** alpine-2.24/pith/conftype.h	2020-10-10 00:24:28.204554602 -0600
+--- alpine-2.24.tome/pith/conftype.h	2020-10-10 00:27:04.304532739 -0600
 ***************
-*** 420,425 ****
---- 420,426 ----
+*** 426,431 ****
+--- 426,432 ----
   	F_FIRST_SEND_FILTER_DFLT,
   	F_ALWAYS_LAST_FLDR_DFLT,
   	F_TAB_TO_NEW,
@@ -35,9 +35,9 @@ diff -rc alpine-2.22/pith/conftype.h alpine-2.22.tome/pith/conftype.h
   	F_MARK_FOR_CC,
   	F_WARN_ABOUT_NO_SUBJECT,
   	F_WARN_ABOUT_NO_FCC,
-diff -rc alpine-2.22/pith/mailindx.c alpine-2.22.tome/pith/mailindx.c
-*** alpine-2.22/pith/mailindx.c	2020-01-19 01:32:19.552488235 -0700
---- alpine-2.22.tome/pith/mailindx.c	2020-01-19 01:35:02.890401762 -0700
+diff -rc alpine-2.24/pith/mailindx.c alpine-2.24.tome/pith/mailindx.c
+*** alpine-2.24/pith/mailindx.c	2020-10-10 00:24:28.204554602 -0600
+--- alpine-2.24.tome/pith/mailindx.c	2020-10-10 00:27:04.312532942 -0600
 ***************
 *** 2094,2103 ****
   			      if(to_us == ' ')
@@ -132,12 +132,12 @@ diff -rc alpine-2.22/pith/mailindx.c alpine-2.22.tome/pith/mailindx.c
   		    && VAR_IND_PLUS_FORE_COLOR && VAR_IND_PLUS_BACK_COLOR){
   		ielem = ifield->ielem;
   		ielem->freecolor = 1;
-diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.tome/pith/pine.hlp
-*** alpine-2.22/pith/pine.hlp	2020-01-19 01:32:19.035498584 -0700
---- alpine-2.22.tome/pith/pine.hlp	2020-01-19 01:35:02.904401665 -0700
+diff -rc alpine-2.24/pith/pine.hlp alpine-2.24.tome/pith/pine.hlp
+*** alpine-2.24/pith/pine.hlp	2020-10-10 00:24:28.204554602 -0600
+--- alpine-2.24.tome/pith/pine.hlp	2020-10-10 00:27:04.324533249 -0600
 ***************
-*** 4344,4349 ****
---- 4344,4350 ----
+*** 4719,4724 ****
+--- 4719,4725 ----
   <li><a href="h_config_add_ldap">FEATURE: <!--#echo var="FEAT_ldap-result-to-addrbook-add"--></a>
   <li><a href="h_config_maildrops_preserve_state">FEATURE: <!--#echo var="FEAT_maildrops-preserve-state"--></a>
   <li><a href="h_config_mark_fcc_seen">FEATURE: <!--#echo var="FEAT_mark-fcc-seen"--></a>
@@ -146,8 +146,8 @@ diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.tome/pith/pine.hlp
   <li><a href="h_config_mulnews_as_typed">FEATURE: <!--#echo var="FEAT_mult-newsrc-hostnames-as-typed"--></a>
   <li><a href="h_config_news_uses_recent">FEATURE: <!--#echo var="FEAT_news-approximates-new-status"--></a>
 ***************
-*** 5497,5502 ****
---- 5498,5507 ----
+*** 5872,5877 ****
+--- 5873,5882 ----
   	message in the thread was sent to you as a cc:. This symbol will only show up if
   	the feature
   	&quot;<A HREF="h_config_mark_for_cc"><!--#echo var="FEAT_mark-for-cc"--></A>&quot; is turned on (which is the default).
@@ -159,8 +159,8 @@ diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.tome/pith/pine.hlp
   	&quot;select&quot; command.  (Some systems may optionally allow selected
   	messages to be denoted by the index line being displayed in bold
 ***************
-*** 5656,5661 ****
---- 5661,5670 ----
+*** 6031,6036 ****
+--- 6036,6045 ----
   	message was sent to you as a cc:. This symbol will only show up if
   	the feature
   	&quot;<A HREF="h_config_mark_for_cc"><!--#echo var="FEAT_mark-for-cc"--></A>&quot; is turned on (which is the default).
@@ -172,7 +172,7 @@ diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.tome/pith/pine.hlp
   	&quot;select&quot; command.  (Some systems may optionally allow selected
   	messages to be denoted by the index line being displayed in bold
 ***************
-*** 19939,19945 ****
+*** 20390,20396 ****
   The first character is either blank,
   a '*' for message marked Important, or a '+' indicating a message
   addressed directly to you (as opposed to your having received it via a
@@ -180,7 +180,7 @@ diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.tome/pith/pine.hlp
   When the feature
   &quot;<A HREF="h_config_mark_for_cc"><!--#echo var="FEAT_mark-for-cc"--></A>&quot;
   is set, if the first character would have been
---- 19948,19958 ----
+--- 20399,20409 ----
   The first character is either blank,
   a '*' for message marked Important, or a '+' indicating a message
   addressed directly to you (as opposed to your having received it via a
@@ -193,8 +193,8 @@ diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.tome/pith/pine.hlp
   &quot;<A HREF="h_config_mark_for_cc"><!--#echo var="FEAT_mark-for-cc"--></A>&quot;
   is set, if the first character would have been
 ***************
-*** 34693,34698 ****
---- 34706,34733 ----
+*** 35339,35344 ****
+--- 35352,35379 ----
   &lt;End of help on this topic&gt;
   </BODY>
   </HTML>
@@ -224,7 +224,7 @@ diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.tome/pith/pine.hlp
   <HTML>
   <HEAD>
 ***************
-*** 34702,34708 ****
+*** 35348,35354 ****
   <H1>FEATURE: <!--#echo var="FEAT_mark-for-cc"--></H1>
   
   This feature affects Alpine's MESSAGE INDEX display.
@@ -232,7 +232,7 @@ diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.tome/pith/pine.hlp
   message is addressed directly to you.
   When this feature is set and the message is not addressed to you, then a
   '-' character is displayed if the message is instead Cc'd directly
---- 34737,34743 ----
+--- 35383,35389 ----
   <H1>FEATURE: <!--#echo var="FEAT_mark-for-cc"--></H1>
   
   This feature affects Alpine's MESSAGE INDEX display.
@@ -240,9 +240,9 @@ diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.tome/pith/pine.hlp
   message is addressed directly to you.
   When this feature is set and the message is not addressed to you, then a
   '-' character is displayed if the message is instead Cc'd directly
-diff -rc alpine-2.22/pith/thread.c alpine-2.22.tome/pith/thread.c
-*** alpine-2.22/pith/thread.c	2020-01-19 01:32:18.556508222 -0700
---- alpine-2.22.tome/pith/thread.c	2020-01-19 01:35:02.907401644 -0700
+diff -rc alpine-2.24/pith/thread.c alpine-2.24.tome/pith/thread.c
+*** alpine-2.24/pith/thread.c	2020-10-10 00:24:28.204554602 -0600
+--- alpine-2.24.tome/pith/thread.c	2020-10-10 00:27:04.324533249 -0600
 ***************
 *** 1210,1216 ****
   /*

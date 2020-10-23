@@ -1,6 +1,19 @@
-diff -rc alpine-2.22/alpine/send.c alpine-2.22.compose/alpine/send.c
-*** alpine-2.22/alpine/send.c	2020-01-19 01:32:20.126476758 -0700
---- alpine-2.22.compose/alpine/send.c	2020-01-19 01:35:04.431391171 -0700
+diff -rc alpine-2.24/alpine/help.c alpine-2.24.compose/alpine/help.c
+*** alpine-2.24/alpine/help.c	2020-10-10 00:24:28.208554703 -0600
+--- alpine-2.24.compose/alpine/help.c	2020-10-10 00:31:57.912015197 -0600
+***************
+*** 140,146 ****
+  	if(status != HTTP_OK){
+  	    shown_text = NO_HELP;
+  	    if(help_text) fs_give((void **) &help_text);
+- 	    return MC_FINISH;
+  	}
+  	else{
+  	    is_external = 1;
+--- 140,145 ----
+diff -rc alpine-2.24/alpine/send.c alpine-2.24.compose/alpine/send.c
+*** alpine-2.24/alpine/send.c	2020-10-10 00:24:28.212554806 -0600
+--- alpine-2.24.compose/alpine/send.c	2020-10-10 00:31:57.912015197 -0600
 ***************
 *** 52,57 ****
 --- 52,58 ----
@@ -168,12 +181,12 @@ diff -rc alpine-2.22/alpine/send.c alpine-2.22.compose/alpine/send.c
           if(given_to)
   	  rfc822_parse_adrlist(&outgoing->to, given_to, ps_global->maildomain);
   
-diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.compose/pith/pine.hlp
-*** alpine-2.22/pith/pine.hlp	2020-01-19 01:32:19.035498584 -0700
---- alpine-2.22.compose/pith/pine.hlp	2020-01-19 01:35:04.444391082 -0700
+diff -rc alpine-2.24/pith/pine.hlp alpine-2.24.compose/pith/pine.hlp
+*** alpine-2.24/pith/pine.hlp	2020-10-10 00:24:28.204554602 -0600
+--- alpine-2.24.compose/pith/pine.hlp	2020-10-10 00:31:57.916015301 -0600
 ***************
-*** 29974,29979 ****
---- 29974,29993 ----
+*** 30579,30584 ****
+--- 30579,30598 ----
   <P>
   setRole, for selecting a role to apply to a composition.
   
@@ -195,7 +208,7 @@ diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.compose/pith/pine.hlp
   &lt;End of help on this topic&gt;
   </BODY>
 ***************
-*** 37445,37469 ****
+*** 38246,38270 ****
   with question marks; return to the composer; or cancel message altogether.
   ========== h_compose_intrptd ==========
   N, compose a new msg. I, continue interrupted msg. R, set a role.
@@ -221,7 +234,7 @@ diff -rc alpine-2.22/pith/pine.hlp alpine-2.22.compose/pith/pine.hlp
   ========== h_config_context_del_except ==========
   If you delete the last exceptional collection you can only add it back by
   manually editing the exceptions config file.
---- 37459,37483 ----
+--- 38260,38284 ----
   with question marks; return to the composer; or cancel message altogether.
   ========== h_compose_intrptd ==========
   N, compose a new msg. I, continue interrupted msg. R, set a role.
