@@ -4720,6 +4720,7 @@ There are also additional details on
 <li><a href="h_config_add_ldap">FEATURE: <!--#echo var="FEAT_ldap-result-to-addrbook-add"--></a>
 <li><a href="h_config_maildrops_preserve_state">FEATURE: <!--#echo var="FEAT_maildrops-preserve-state"--></a>
 <li><a href="h_config_mark_fcc_seen">FEATURE: <!--#echo var="FEAT_mark-fcc-seen"--></a>
+<li><a href="h_config_mark_for_group">FEATURE: <!--#echo var="FEAT_mark-for-me-in-group"--></a>
 <li><a href="h_config_mark_for_cc">FEATURE: <!--#echo var="FEAT_mark-for-cc"--></a>
 <li><a href="h_config_mulnews_as_typed">FEATURE: <!--#echo var="FEAT_mult-newsrc-hostnames-as-typed"--></a>
 <li><a href="h_config_news_uses_recent">FEATURE: <!--#echo var="FEAT_news-approximates-new-status"--></a>
@@ -5875,6 +5876,10 @@ thread:
 	message in the thread was sent to you as a cc:. This symbol will only show up if
 	the feature
 	&quot;<A HREF="h_config_mark_for_cc"><!--#echo var="FEAT_mark-for-cc"--></A>&quot; is turned on (which is the default).
+  <LI> &quot;.&quot; for messages that were sent to you as part of a group message, regardless
+       of if all addresses in the To: field are yours or not. This symbol will only show up if
+	the feature
+	&quot;<A HREF="h_config_mark_for_group"><!--#echo var="FEAT_mark-for-me-in-group"--></A>&quot; is turned on (which is the default).
   <LI> &quot;X&quot; for selected.  You have selected at least one message in the thread by using the
 	&quot;select&quot; command.  (Some systems may optionally allow selected
 	messages to be denoted by the index line being displayed in bold
@@ -6034,6 +6039,10 @@ message:
 	message was sent to you as a cc:. This symbol will only show up if
 	the feature
 	&quot;<A HREF="h_config_mark_for_cc"><!--#echo var="FEAT_mark-for-cc"--></A>&quot; is turned on (which is the default).
+  <LI> &quot;.&quot; for messages that were sent to you as part of a group message, regardless
+       of if all addresses in the To: field are yours or not. This symbol will only show up if
+	the feature
+	&quot;<A HREF="h_config_mark_for_group"><!--#echo var="FEAT_mark-for-me-in-group"--></A>&quot; is turned on (which is the default).
   <LI> &quot;X&quot; for selected.  You have selected the message by using the
 	&quot;select&quot; command.  (Some systems may optionally allow selected
 	messages to be denoted by the index line being displayed in bold
@@ -20467,7 +20476,11 @@ aspects of the message's state.
 The first character is either blank,
 a '*' for message marked Important, or a '+' indicating a message
 addressed directly to you (as opposed to your having received it via a
-mailing list, for example).
+mailing list, for example). The symbol '.' will be used
+for messages that were sent to you as part of a group message, regardless
+of if all addresses in the To: field are yours or not. This symbol will only show up if
+the feature
+&quot;<A HREF="h_config_mark_for_group"><!--#echo var="FEAT_mark-for-me-in-group"--></A>&quot; is turned on (which is the default).
 When the feature
 &quot;<A HREF="h_config_mark_for_cc"><!--#echo var="FEAT_mark-for-cc"--></A>&quot;
 is set, if the first character would have been
@@ -36729,6 +36742,28 @@ messages.
 &lt;End of help on this topic&gt;
 </BODY>
 </HTML>
+====== h_config_mark_for_group =====
+<HTML>
+<HEAD>
+<TITLE>FEATURE: <!--#echo var="FEAT_mark-for-me-in-group"--></TITLE>
+</HEAD>
+<BODY>
+<H1>FEATURE: <!--#echo var="FEAT_mark-for-me-in-group"--></H1>
+
+This feature affects Alpine's MESSAGE INDEX display.
+By default, a '+' is displayed in the first column if the
+message is addressed directly to you.
+When this feature is set and the message is addressed to you as part of a group message
+(that is, your address appears in the To: field, but there is more than one recipient), then a
+'.' character is displayed instead.
+
+<P>
+<UL>   
+<LI><A HREF="h_finding_help">Finding more information and requesting help</A>
+</UL><P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
 ====== h_config_mark_for_cc =====
 <HTML>
 <HEAD>
@@ -36738,7 +36773,7 @@ messages.
 <H1>FEATURE: <!--#echo var="FEAT_mark-for-cc"--></H1>
 
 This feature affects Alpine's MESSAGE INDEX display.
-By default, a '+' is displayed in the first column if the
+By default, a '+' or a '.' is displayed in the first column if the
 message is addressed directly to you.
 When this feature is set and the message is not addressed to you, then a
 '-' character is displayed if the message is instead Cc'd directly

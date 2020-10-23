@@ -2121,10 +2121,15 @@ format_index_index_line(INDEXDATA_S *idata)
 			      if(to_us == ' ')
 				to_us = '+';
 
+			      if(to_us == '+' 
+				   && F_ON(F_MARK_FOR_GROUP,ps_global) &&
+				 (addr->next || addr != fetch_to(idata)))
+				   to_us = '.';
+
 			      break;
 			  }
 
-			if(to_us != '+' && resent_to_us(idata)){
+			if(to_us == ' ' && resent_to_us(idata)){
 			    ice->to_us = 1;
 			    if(to_us == ' ')
 			      to_us = '+';
@@ -2178,7 +2183,7 @@ format_index_index_line(INDEXDATA_S *idata)
 			    ielem->color = new_color_pair(VAR_IND_IMP_FORE_COLOR, VAR_IND_IMP_BACK_COLOR);
 			}
 		    }
-		    else if(str[0] == '+' || str[0] == '-'){
+		    else if(str[0] == '+' || str[0] == '-' || str[0] == '.'){
 			if(VAR_IND_PLUS_FORE_COLOR && VAR_IND_PLUS_BACK_COLOR){
 			    ielem = ifield->ielem;
 			    ielem->freecolor = 1;
@@ -2234,6 +2239,12 @@ format_index_index_line(INDEXDATA_S *idata)
 			for(addr = fetch_to(idata); addr; addr = addr->next)
 			  if(address_is_us(addr, ps_global)){
 			      to_us = '+';
+
+			      if(to_us == '+' 
+				   && F_ON(F_MARK_FOR_GROUP,ps_global) &&
+				 (addr->next || addr != fetch_to(idata)))
+				   to_us = '.';
+
 			      break;
 			  }
 		      
@@ -2329,7 +2340,7 @@ format_index_index_line(INDEXDATA_S *idata)
 
 		  if(pico_usingcolor()){
 
-		      if(str[0] == '+' || str[0] == '-'){
+		      if(str[0] == '+' || str[0] == '-' || str[0] == '.'){
 			  if(start == 0
 			     && VAR_IND_PLUS_FORE_COLOR
 			     && VAR_IND_PLUS_BACK_COLOR){
@@ -3182,7 +3193,7 @@ format_thread_index_line(INDEXDATA_S *idata)
 		  tice->linecolor = new_color_pair(VAR_IND_IMP_FORE_COLOR,
 						   VAR_IND_IMP_BACK_COLOR);
 	    }
-	    else if((to_us == '+' || to_us == '-')
+	    else if((to_us == '+' || to_us == '-' || to_us == '.')
 		    && VAR_IND_PLUS_FORE_COLOR && VAR_IND_PLUS_BACK_COLOR){
 		ielem = ifield->ielem;
 		ielem->freecolor = 1;
