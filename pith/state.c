@@ -145,6 +145,9 @@ free_pine_struct(struct pine **pps)
     if((*pps)->html_dir_list != NULL)
       free_html_log(&(*pps)->html_dir_list);
 
+    if((*pps)->paterror == 0)
+      regfree(&(*pps)->colorpat);
+
     if((*pps)->ui.homedir)
       fs_give((void **)&(*pps)->ui.homedir);
 

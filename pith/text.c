@@ -171,6 +171,15 @@ decode_text(ATTACH_S	    *att,
 						       gf_url_hilite_opt(&uh,handlesp,0));
 	}
 
+	if((flags & FM_DISPLAY)
+           && !(flags & FM_NOCOLOR)
+           && pico_usingcolor()
+           && VAR_SPECIAL_TEXT_FORE_COLOR 
+           && VAR_SPECIAL_TEXT_BACK_COLOR){
+            filters[filtcnt].filter = gf_line_test;
+            filters[filtcnt++].data = gf_line_test_opt(color_this_text, NULL);
+        }
+
 	/*
 	 * First, paint the signature.
 	 * Disclaimers noted below for coloring quotes apply here as well.
