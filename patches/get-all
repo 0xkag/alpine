@@ -9,7 +9,7 @@ set -o pipefail
 
 urlbase=http://alpine.x10host.com/alpine
 urlbasehtml=$urlbase/info
-urlbasepatch=$urlbase/patches/alpine-2.22
+urlbasepatch=$urlbase/patches/alpine-2.24
 
 for patch in \
     colortext \
