@@ -182,7 +182,7 @@ attachment_screen(struct pine *ps)
 		  maxnumwid = 0, maxsizewid = 0, old_cols = -1, km_popped = 0, expbits,
 		  last_type = TYPEOTHER;
     long	  msgno;
-    char	 *q, *last_subtype = NULL, backtag[64], *utf8str;
+    char	 *q, *last_subtype = NULL, backtag[64], *utf8str, *screen_name;
     OtherMenu     what;
     ATTACH_S	 *a;
     ATDISP_S	 *current = NULL, *ctmp = NULL;
@@ -190,6 +190,10 @@ attachment_screen(struct pine *ps)
 
     ps->prev_screen = attachment_screen;
     ps->next_screen = SCREEN_FUN_NULL;
+
+    screen_name = ps->screen_name[0] ? cpystr(ps->screen_name) : NULL;
+    strncpy(ps->screen_name, "attachment", sizeof(ps->screen_name));
+    ps->screen_name[sizeof(ps->screen_name)-1] = '\0';
 
     ps->some_quoting_was_suppressed = 0;
 
@@ -911,6 +915,12 @@ attachment_screen(struct pine *ps)
 
     if(screen.titlecolor)
       free_color_pair(&screen.titlecolor);
+
+    if(screen_name){
+      strncpy(ps->screen_name, screen_name, sizeof(ps->screen_name));
+      ps->screen_name[sizeof(ps->screen_name)-1] = '\0';
+      fs_give((void **) &screen_name);
+    }
 }
 
 

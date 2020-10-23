@@ -73,6 +73,7 @@ static char rcsid[] = "$Id: mailcmd.c 1266 2009-07-14 18:39:12Z hubert@u.washing
 #include "../pith/tempfile.h"
 #include "../pith/search.h"
 #include "../pith/margin.h"
+#include "../pith/rules.h"
 #ifdef _WINDOWS
 #include "../pico/osdep/mswin.h"
 #endif
@@ -2709,6 +2710,9 @@ role_compose(struct pine *state)
 		role->nick = cpystr("Default Role");
 	    }
 
+	    if(state->role)
+	      fs_give((void **)&state->role);
+	    state->role = cpystr(role->nick); /* remember the role */
 	    state->redrawer = NULL;
 	    switch(action){
 	      case 'c':
@@ -2759,12 +2763,12 @@ save_prompt(struct pine *state, CONTEXT_S **cntxt, char *nfldr, size_t len_nfldr
 	    char *nmsgs, ENVELOPE *env, long int rawmsgno, char *section,
 	    SaveDel *dela, SavePreserveOrder *prea)
 {
-    int		      rc, ku = -1, n, flags, last_rc = 0, saveable_count = 0, done = 0;
+    int		      rc, ku = -1, n = 0, flags, last_rc = 0, saveable_count = 0, done = 0;
     int		      delindex, preindex, r;
     char	      prompt[6*MAX_SCREEN_COLS+1], *p, expanded[MAILTMPLEN];
     char              *buf = tmp_20k_buf;
     char              shortbuf[200];
-    char              *folder;
+    char              *folder, folder2[MAXPATH];
     HelpType	      help;
     SaveDel           del = DontAsk;
     SavePreserveOrder pre = DontAskPreserve;
@@ -2772,6 +2776,7 @@ save_prompt(struct pine *state, CONTEXT_S **cntxt, char *nfldr, size_t len_nfldr
     static HISTORY_S *history = NULL;
     CONTEXT_S	     *tc;
     ESCKEY_S	      ekey[10];
+    RULE_RESULT	     *rule;
 
     if(!cntxt)
       alpine_panic("no context ptr in save_prompt");
@@ -2780,6 +2785,15 @@ save_prompt(struct pine *state, CONTEXT_S **cntxt, char *nfldr, size_t len_nfldr
 
     if(!(folder = save_get_default(state, env, rawmsgno, section, cntxt)))
       return(0);		/* message expunged! */
+
+    if (rule = get_result_rule(V_SAVE_RULES, FOR_SAVE, env)){
+       strncpy(folder2,rule->result,sizeof(folder2)-1);
+       folder2[sizeof(folder2)-1] = '\0';
+       folder = folder2;
+       if (rule->result)
+	   fs_give((void **)&rule->result);
+       fs_give((void **)&rule);
+    }
 
     /* how many context's can be saved to... */
     for(tc = state->context_list; tc; tc = tc->next)

@@ -229,6 +229,8 @@ mail_index_screen(struct pine *state)
     state->prev_screen = mail_index_screen;
     state->next_screen = SCREEN_FUN_NULL;
 
+    setup_threading_display_style();
+
     if(THRD_AUTO_VIEW()
        && sp_viewing_a_thread(state->mail_stream)
        && state->view_skipped_index
@@ -240,10 +242,14 @@ mail_index_screen(struct pine *state)
 
     adjust_cur_to_visible(state->mail_stream, state->msgmap);
 
+    strcpy(state->screen_name,"index");
+
     if(THRD_INDX())
       thread_index_screen(state);
     else
       index_index_screen(state);
+
+    strcpy(state->screen_name,"unknown");
 }
 
 

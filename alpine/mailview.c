@@ -244,6 +244,8 @@ mail_view_screen(struct pine *ps)
     ps->prev_screen = mail_view_screen;
     ps->force_prefer_plain = ps->force_no_prefer_plain = 0;
 
+    strcpy(ps->screen_name, "text");
+
     if(ps->ttyo->screen_rows - HEADER_ROWS(ps) - FOOTER_ROWS(ps) < 1){
 	q_status_message(SM_ORDER | SM_DING, 0, 3,
 			 _("Screen too small to view message"));
@@ -479,6 +481,8 @@ mail_view_screen(struct pine *ps)
 #endif
     }
     while(ps->next_screen == SCREEN_FUN_NULL);
+
+    strcpy(ps->screen_name, "unknown");
 
     if(we_cancel)
       cancel_busy_cue(-1);
