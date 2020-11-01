@@ -59,6 +59,7 @@ typedef	enum {    V_PERSONAL_NAME = 0
 		, V_SAVED_MSG_NAME_RULE
 		, V_FCC_RULE
 		, V_SORT_KEY
+		, V_THREAD_SORT_KEY
 		, V_AB_SORT_RULE
 		, V_FLD_SORT_RULE
 		, V_GOTO_DEFAULT_RULE
@@ -552,6 +553,7 @@ typedef enum {
 	F_QUELL_TIMEZONE,
 	F_QUELL_USERAGENT,
 	F_COLOR_LINE_IMPORTANT,
+	F_ENHANCED_THREAD,
 	F_SLASH_COLL_ENTIRE,
 	F_ENABLE_FULL_HDR_AND_TEXT,
 	F_QUELL_FULL_HDR_RESET,
@@ -817,5 +819,6 @@ typedef struct smime_stuff {
 
 /* exported prototypes */
 
+#define DF_THREAD_SORT_KEY  "thread"
 
 #endif /* PITH_CONFTYPE_INCLUDED */

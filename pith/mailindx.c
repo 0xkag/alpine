@@ -230,6 +230,7 @@ init_index_format(char *format, INDEX_COL_S **answer)
 	      case iSTime:
 	      case iKSize:
 	      case iSize:
+	      case iSizeThread:
 	      case iPrioAlpha:
 		(*answer)[column].req_width = 7;
 		break;
@@ -464,6 +465,7 @@ static INDEX_PARSE_T itokens[] = {
     {"FROMORTONOTNEWS",	iFromToNotNews,	FOR_INDEX},
     {"SIZE",		iSize,		FOR_INDEX},
     {"SIZECOMMA",	iSizeComma,	FOR_INDEX},
+    {"SIZETHREAD",	iSizeThread,	FOR_INDEX},
     {"SIZENARROW",	iSizeNarrow,	FOR_INDEX},
     {"KSIZE",		iKSize,		FOR_INDEX},
     {"SUBJECT",		iSubject,	FOR_INDEX|FOR_REPLY_INTRO|FOR_TEMPLATE|FOR_RULE|FOR_SAVE|FOR_TRIM},
@@ -981,7 +983,7 @@ static IndexColType fixed_ctypes[] = {
     iSDateTimeS1, iSDateTimeS2, iSDateTimeS3, iSDateTimeS4,
     iSDateTimeIso24, iSDateTimeIsoS24,
     iSDateTimeS124, iSDateTimeS224, iSDateTimeS324, iSDateTimeS424,
-    iSize, iSizeComma, iSizeNarrow, iKSize, iDescripSize,
+    iSize, iSizeComma, iSizeNarrow, iKSize, iDescripSize, iSizeThread,
     iPrio, iPrioBang, iPrioAlpha, iInit,
     iAtt, iTime24, iTime12, iTimezone, iMonAbb, iYear, iYear2Digit,
     iDay2Digit, iMon2Digit, iDayOfWeekAbb, iScore, iMonLong, iDayOfWeek
@@ -1174,6 +1176,7 @@ setup_index_header_widths(MAILSTREAM *stream)
 		  case iTime12:
 		  case iSize:
 		  case iKSize:
+		  case iSizeThread:
 		    cdesc->actual_length = 7;
 		    cdesc->adjustment = Right;
 		    break;
@@ -1268,7 +1271,7 @@ setup_index_header_widths(MAILSTREAM *stream)
 	cdesc->ctype != iNothing;
 	cdesc++)
       if(cdesc->ctype == iSize || cdesc->ctype == iKSize ||
-         cdesc->ctype == iSizeNarrow ||
+         cdesc->ctype == iSizeNarrow  || cdesc->ctype == iSizeThread ||
 	 cdesc->ctype == iSizeComma || cdesc->ctype == iDescripSize){
 	  if(cdesc->actual_length == 0){
 	      if((fix=cdesc->width) > 0){ /* had this reserved */
@@ -1654,10 +1657,12 @@ build_header_work(struct pine *state, MAILSTREAM *stream, MSGNO_S *msgmap,
 
 		/* find next thread which is visible */
 		do{
+		   unsigned long branch;
 		    if(mn_get_revsort(msgmap) && thrd->prevthd)
 		      thrd = fetch_thread(stream, thrd->prevthd);
-		    else if(!mn_get_revsort(msgmap) && thrd->nextthd)
-		      thrd = fetch_thread(stream, thrd->nextthd);
+			/*branch = get_branch(stream,thrd)*/
+		    else if(!mn_get_revsort(msgmap) && thrd->branch)
+		      thrd = fetch_thread(stream, thrd->branch);
 		    else
 		      thrd = NULL;
 		} while(thrd
@@ -2069,13 +2074,10 @@ format_index_index_line(INDEXDATA_S *idata)
      */
     ice = copy_ice(ice);
 
+    thrd = fetch_thread(idata->stream, idata->rawno);
     /* is this a collapsed thread index line? */
-    if(!idata->bogus && THREADING()){
-	thrd = fetch_thread(idata->stream, idata->rawno);
-	collapsed = thrd && thrd->next
-		    && get_lflag(idata->stream, NULL,
-				 idata->rawno, MN_COLL);
-    }
+    if(!idata->bogus && THREADING())
+	collapsed = thrd && thread_is_kolapsed(ps_global, idata->stream, ps_global->msgmap, idata->rawno);
 
     /* calculate contents of the required fields */
     for(cdesc = ps_global->index_disp_format; cdesc->ctype != iNothing; cdesc++)
@@ -2606,7 +2608,30 @@ format_index_index_line(INDEXDATA_S *idata)
 
 	        break;
 
+           case iSizeThread:
+              if (!THREADING()){
+                goto getsize;
+              } else if (collapsed){
+                   l =  count_flags_in_thread(idata->stream, thrd, F_NONE);
+                   snprintf(str, sizeof(str), "(%lu)", l);
+              }
+              else{
+                  thrd = fetch_thread(idata->stream, idata->rawno);
+                  if(!thrd)
+                         snprintf(str, sizeof(str), "%s", "Error");
+                  else{
+                      long lengthb;
+                      lengthb = get_length_branch(idata->stream, idata->rawno);
+                      if (lengthb > 0L)
+                         snprintf(str, sizeof(str), "(%lu)", lengthb);
+                      else
+                         snprintf(str,sizeof(str), "%s", " ");
+                    }
+              }
+             break;
+
 	      case iSize:
+getsize:
 		/* 0 ... 9999 */
 		if((l = fetch_size(idata)) < 10*1000L)
 		  snprintf(str, sizeof(str), "(%lu)", l);
@@ -5656,10 +5681,8 @@ subj_str(INDEXDATA_S *idata, char *str, size_t strsize, SubjKW kwtype, int openi
 
 	if(pith_opt_condense_thread_cue)
 	  width = (*pith_opt_condense_thread_cue)(thd, ice, &str, &strsize, width,
-						  thd && thd->next
-						  && get_lflag(idata->stream,
-							       NULL,idata->rawno,
-							       MN_COLL));
+	   this_thread_is_kolapsed(ps_global, idata->stream, ps_global->msgmap, idata->rawno) &&
+	   (count_thread(ps_global,idata->stream, ps_global->msgmap, idata->rawno) != 1));
 
 	/*
 	 * width is < available strsize and
@@ -6288,11 +6311,8 @@ from_str(IndexColType ctype, INDEXDATA_S *idata, char *str, size_t strsize, ICE_
 	border = str + width;
 	if(pith_opt_condense_thread_cue)
 	  width = (*pith_opt_condense_thread_cue)(thd, ice, &str, &strsize, width,
-						  thd && thd->next
-						  && get_lflag(idata->stream,
-							       NULL,idata->rawno,
-							       MN_COLL));
-
+	   this_thread_is_kolapsed(ps_global, idata->stream, ps_global->msgmap, idata->rawno) &&
+	     (count_thread(ps_global,idata->stream, ps_global->msgmap, idata->rawno) != 1));
 	fptr = str;
 
 	if(thd)

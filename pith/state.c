@@ -76,6 +76,7 @@ new_pine_struct(void)
 
     p		       = (struct pine *)fs_get(sizeof (struct pine));
     memset((void *) p, 0, sizeof(struct pine));
+    p->thread_def_sort = SortDate;
     p->def_sort        = SortArrival;
     p->sort_types[0]   = SortSubject;
     p->sort_types[1]   = SortArrival;

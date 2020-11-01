@@ -154,6 +154,8 @@ struct pine {
     unsigned     unseen_in_view:1;
     unsigned     start_in_context:1;	/* start fldr_scrn in current cntxt */
     unsigned     def_sort_rev:1;	/* true if reverse sort is default  */ 
+    unsigned	 thread_def_sort_rev:1; /* true if reverse sort is default in thread screen  */
+    unsigned	 msgmap_thread_def_sort_rev:1; /* true if reverse sort is being used in thread screen  */
     unsigned     restricted:1;
 
     unsigned     tcptimeout:1;		/* a tcp timeout is in progress  */
@@ -319,6 +321,9 @@ struct pine {
     EditWhich	 ew_for_srch_take;
 
     SortOrder    def_sort,	/* Default sort type */
+		 thread_def_sort, /* Default Sort Type in Thread Screen */
+		 thread_cur_sort, /* current sort style for threads */
+		 msgmap_thread_sort,
 		 sort_types[22];
 
     int          last_expire_year, last_expire_month;

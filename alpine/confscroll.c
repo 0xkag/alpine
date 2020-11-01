@@ -141,7 +141,7 @@ char    *yesno_pretty_value(struct pine *, CONF_S *);
 char    *radio_pretty_value(struct pine *, CONF_S *);
 char    *sigfile_pretty_value(struct pine *, CONF_S *);
 char    *color_pretty_value(struct pine *, CONF_S *);
-char    *sort_pretty_value(struct pine *, CONF_S *);
+char    *sort_pretty_value(struct pine *, CONF_S *, int);
 int      longest_feature_name(void);
 COLOR_PAIR *sample_color(struct pine *, struct variable *);
 COLOR_PAIR *sampleexc_color(struct pine *, struct variable *);
@@ -289,7 +289,8 @@ set_radio_pretty_vals(struct pine *ps, CONF_S **cl)
     CONF_S *ctmp;
 
     if(!(cl && *cl &&
-       ((*cl)->var == &ps->vars[V_SORT_KEY] ||
+        (((*cl)->var == &ps->vars[V_SORT_KEY]) || 
+        ((*cl)->var == &ps->vars[V_THREAD_SORT_KEY]) ||
         standard_radio_var(ps, (*cl)->var) ||
 	(*cl)->var == startup_ptr)))
       return;
@@ -2962,7 +2963,7 @@ radiobutton_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 	    }
 
 	    set_current_val((*cl)->var, TRUE, TRUE);
-	    if(decode_sort(ps->VAR_SORT_KEY, &def_sort, &def_sort_rev) != -1){
+	    if(decode_sort(ps->VAR_SORT_KEY, &def_sort, &def_sort_rev,0) != -1){
 		ps->def_sort     = def_sort;
 		ps->def_sort_rev = def_sort_rev;
 	    }
@@ -2971,6 +2972,37 @@ radiobutton_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 	    ps->mangled_body = 1;	/* BUG: redraw it all for now? */
 	    rv = 1;
 	}
+        else if((*cl)->var == &ps->vars[V_THREAD_SORT_KEY]){
+            SortOrder thread_def_sort;
+            int       thread_def_sort_rev;
+
+            thread_def_sort_rev  = (*cl)->varmem >= (short) EndofList;
+            thread_def_sort      = (SortOrder) ((*cl)->varmem - (thread_def_sort_rev
+                                                                 * EndofList));
+            sprintf(tmp_20k_buf, "%s%s", sort_name(thread_def_sort),
+                   (thread_def_sort_rev) ? "/Reverse" : "");
+
+            if((*cl)->var->cmdline_val.p)
+              fs_give((void **)&(*cl)->var->cmdline_val.p);
+
+            if(apval){
+                if(*apval)
+                  fs_give((void **)apval);
+
+                *apval = cpystr(tmp_20k_buf);
+            }
+
+            set_current_val((*cl)->var, TRUE, TRUE);
+            if(decode_sort(ps->VAR_THREAD_SORT_KEY, &thread_def_sort, 
+                                        &thread_def_sort_rev, 1) != -1){
+                ps->thread_def_sort     = thread_def_sort;
+                ps->thread_def_sort_rev = thread_def_sort_rev;
+            }
+
+            set_radio_pretty_vals(ps, cl);
+            ps->mangled_body = 1;       /* BUG: redraw it all for now? */
+            rv = 1;
+        }
 	else
 	  q_status_message(SM_ORDER | SM_DING, 3, 6,
 			   "Programmer botch!  Unknown radiobutton type.");
@@ -3834,7 +3866,9 @@ pretty_value(struct pine *ps, CONF_S *cl)
     else if(standard_radio_var(ps, v) || v == startup_ptr)
       return(radio_pretty_value(ps, cl));
     else if(v == &ps->vars[V_SORT_KEY])
-      return(sort_pretty_value(ps, cl));
+       return(sort_pretty_value(ps, cl, 0));
+     else if(v == &ps->vars[V_THREAD_SORT_KEY])
+       return(sort_pretty_value(ps, cl, 1));
     else if(v == &ps->vars[V_SIGNATURE_FILE])
       return(sigfile_pretty_value(ps, cl));
     else if(v == &ps->vars[V_USE_ONLY_DOMAIN_NAME])
@@ -4365,14 +4399,14 @@ color_pretty_value(struct pine *ps, CONF_S *cl)
 
 
 char *
-sort_pretty_value(struct pine *ps, CONF_S *cl)
+sort_pretty_value(struct pine *ps, CONF_S *cl, int thread)
 {
-    return(generalized_sort_pretty_value(ps, cl, 1));
+    return(generalized_sort_pretty_value(ps, cl, 1, thread));
 }
 
 
 char *
-generalized_sort_pretty_value(struct pine *ps, CONF_S *cl, int default_ok)
+generalized_sort_pretty_value(struct pine *ps, CONF_S *cl, int default_ok, int thread)
 {
     char  tmp[6*MAXPATH];
     char *pvalnorm, *pvalexc, *pval;
@@ -4422,7 +4456,7 @@ generalized_sort_pretty_value(struct pine *ps, CONF_S *cl, int default_ok)
     }
     else if(fixed){
 	pval = v->fixed_val.p;
-	decode_sort(pval, &var_sort, &var_sort_rev);
+	decode_sort(pval, &var_sort, &var_sort_rev, thread);
 	is_the_one = (var_sort_rev == line_sort_rev && var_sort == line_sort);
 
 	utf8_snprintf(tmp, sizeof(tmp), "(%c)  %s%-*w%*s%s",
@@ -4433,9 +4467,9 @@ generalized_sort_pretty_value(struct pine *ps, CONF_S *cl, int default_ok)
 		is_the_one ? "   (value is fixed)" : "");
     }
     else if(is_set_for_this_level){
-	decode_sort(pval, &var_sort, &var_sort_rev);
+	decode_sort(pval, &var_sort, &var_sort_rev, thread);
 	is_the_one = (var_sort_rev == line_sort_rev && var_sort == line_sort);
-	decode_sort(pvalexc, &exc_sort, &exc_sort_rev);
+	decode_sort(pvalexc, &exc_sort, &exc_sort_rev, thread);
 	the_exc_one = (editing_normal_which_isnt_except && pvalexc &&
 		       exc_sort_rev == line_sort_rev && exc_sort == line_sort);
 	utf8_snprintf(tmp, sizeof(tmp), "(%c)  %s%-*w%*s%s",
@@ -4453,7 +4487,7 @@ generalized_sort_pretty_value(struct pine *ps, CONF_S *cl, int default_ok)
     }
     else{
 	if(pvalexc){
-	    decode_sort(pvalexc, &exc_sort, &exc_sort_rev);
+	    decode_sort(pvalexc, &exc_sort, &exc_sort_rev, thread);
 	    is_the_one = (exc_sort_rev == line_sort_rev &&
 			  exc_sort == line_sort);
 	    utf8_snprintf(tmp, sizeof(tmp), "( )  %s%-*w%*s%s",
@@ -4464,7 +4498,7 @@ generalized_sort_pretty_value(struct pine *ps, CONF_S *cl, int default_ok)
 	}
 	else{
 	    pval = v->current_val.p;
-	    decode_sort(pval, &var_sort, &var_sort_rev);
+	    decode_sort(pval, &var_sort, &var_sort_rev, thread);
 	    is_the_one = ((pval || default_ok) &&
 			  var_sort_rev == line_sort_rev &&
 			  var_sort == line_sort);
@@ -5658,8 +5692,14 @@ fix_side_effects(struct pine *ps, struct variable *var, int revert)
     else if(revert && var == &ps->vars[V_SORT_KEY]){
 	int def_sort_rev;
 
-	decode_sort(VAR_SORT_KEY, &ps->def_sort, &def_sort_rev);
+	decode_sort(VAR_SORT_KEY, &ps->def_sort, &def_sort_rev, 0);
 	ps->def_sort_rev = def_sort_rev;
+    }
+    else if(revert && var == &ps->vars[V_THREAD_SORT_KEY]){
+      int thread_def_sort_rev;
+
+      decode_sort(VAR_THREAD_SORT_KEY, &ps->thread_def_sort, &thread_def_sort_rev, 1);
+      ps->thread_def_sort_rev = thread_def_sort_rev;
     }
     else if(var == &ps->vars[V_THREAD_MORE_CHAR] ||
             var == &ps->vars[V_THREAD_EXP_CHAR] ||
