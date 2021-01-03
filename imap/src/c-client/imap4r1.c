@@ -1216,17 +1216,17 @@ long imap_auth (MAILSTREAM *stream,NETMBX *mb,char *tmp,char *usr)
 			    net_port(LOCAL->netstream),&trial,usr);
 	LOCAL->sensitive = NIL;	/* unhide */
 
-	if(base && ok && !trial){	/* return now or see below for the same code */
-	    mm_log ("IMAP Authentication cancelled",ERROR);
-	    return NIL;
+	if(base && !trial){	/* do it now, instead of later */
+	  mm_log ("IMAP Authentication cancelled",ERROR);
+	  return NIL;
 	}
 				/* make sure have a response */
 	if (!(reply = &LOCAL->reply)->tag)
-	  reply = imap_fake (stream,tag,
+	    reply = imap_fake (stream,tag,
 			     "[CLOSED] IMAP connection broken (authenticate)");
 	else if (compare_cstring (reply->tag,tag))
-	  while (compare_cstring ((reply = imap_reply (stream,tag))->tag,tag))
-	    imap_soutr (stream,"*");
+	    while (compare_cstring ((reply = imap_reply (stream,tag))->tag,tag))
+	      imap_soutr (stream,"*");
 				/* good if SASL ok and success response */
 	if (ok && imap_OK (stream,reply)){
 	   if(stream->auth.name) fs_give((void **) &stream->auth.name);
