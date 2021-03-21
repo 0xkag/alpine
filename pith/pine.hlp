@@ -185,12 +185,27 @@ new additions to Alpine, please check it periodically.
 
 <P> These changes were made after the release of version 2.24.
 
+<P> 
+New features include:
+
+<UL>
+<LI> Experimental: The instruction to remove the double quotes from the processing of
+     customized headers existed in pine, but it was removed in alpine. Restoring
+     old Alpine behavior. See 
+     <A href="https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=981781">this</A>
+     report for more background information.
+</UL>
+
 <P>
 Bugs addressed:
 
 <UL>
 <LI> When forwarding a message, replacing an attachment might make Alpine
      re-attach the original attachment. Reported by Michael Traxler.
+
+<LI> When an attachment is deleted, the saved message with the deleted 
+attachment contains extra null characters after the end of the 
+attachment boundary. 
 </UL>
 
 <P> Version 2.24 adds new features and addresses bugs found in previous
