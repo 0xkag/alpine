@@ -175,7 +175,8 @@ OAUTH2_S alpine_oauth2_list[] =
     0, 		/* expiration time */
     0, 		/* first time indicator */
     1,		/* client secret required */
-    0		/* Cancel refresh token */
+    0,		/* Cancel refresh token */
+    GMAIL_FLAGS	/* default flags. For Gmail this should be set to OA2_AUTHORIZE */
   },
   {OUTLOOK_NAME,
    {"outlook.office365.com", "smtp.office365.com", NULL, NULL},
@@ -207,7 +208,8 @@ OAUTH2_S alpine_oauth2_list[] =
     0, 		/* expiration time */
     0, 		/* first time indicator */
     0,		/* client secret required */
-    0		/* Cancel refresh token */
+    0,		/* Cancel refresh token */
+    OUTLOOK_FLAGS /* default flags. For OUTLOOK this should be set to OA2_DEVICE */
   },
   {OUTLOOK_NAME,
    {"outlook.office365.com", "smtp.office365.com", NULL, NULL},
@@ -239,7 +241,8 @@ OAUTH2_S alpine_oauth2_list[] =
     0, 		/* expiration time */
     0, 		/* first time indicator */
     1,		/* client secret required */
-    0		/* Cancel refresh token */
+    0,		/* Cancel refresh token */
+    OUTLOOK_FLAGS /* default flags. For OUTLOOK this should be set to OA2_DEVICE */
   },
   {YAHOO_NAME,
    {"imap.mail.yahoo.com", "smtp.mail.yahoo.com", NULL, NULL},
@@ -271,7 +274,8 @@ OAUTH2_S alpine_oauth2_list[] =
     0, 		/* expiration time */
     0, 		/* first time indicator */
     1,		/* client secret required */
-    0		/* Cancel refresh token */
+    0,		/* Cancel refresh token */
+    YAHOO_FLAGS	/* default flags. For YAHOO this should be set to OA2_AUTHORIZE */
   },
   {YANDEX_NAME,
    {"imap.yandex.com", "smtp.yandex.com", NULL, NULL},
@@ -303,9 +307,10 @@ OAUTH2_S alpine_oauth2_list[] =
     0, 		/* expiration time */
     0, 		/* first time indicator */
     1,		/* client secret required */
-    0		/* Cancel refresh token */
+    0,		/* Cancel refresh token */
+    YANDEX_FLAGS /* default flags. For YANDEX this should be set to OA2_AUTHORIZE */
   },
-  { NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0},
+  { NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0},
 };
 
 int
@@ -1111,7 +1116,9 @@ mm_login_oauth2(NETMBX *mb, char *user, char *method,
 			&& oa2
 			&& oa2->host[j] != NULL
 			&& strucmp(oa2->host[j], mb->orighost) != 0; j++);
-	    if(oa2 && oa2->host && j < OAUTH2_TOT_EQUIV && oa2->host[j])
+	    if(oa2 && oa2->host && j < OAUTH2_TOT_EQUIV && oa2->host[j]
+		&& ((oa2->server_mthd[0].name && (oa2->flags & OA2_AUTHORIZE))
+			    || (oa2->server_mthd[1].name && (oa2->flags & OA2_DEVICE))))
 		nmethods++;
 	}
 
@@ -1265,7 +1272,7 @@ mm_notify(MAILSTREAM *stream, char *string, long int errflg)
     /* be sure to log the message... */
 #ifdef DEBUG
     if(ps_global->debug_imap || ps_global->debugmem)
-      dprint((errflg == TCPDEBUG ? 7 : 2,
+      dprint((errflg == TCPDEBUG || errflg == HTTPDEBUG ? 7 : 2,
 	      "IMAP %2.2d:%2.2d:%2.2d %d/%d mm_notify %s: %s: %s\n",
 	      tm_now->tm_hour, tm_now->tm_min, tm_now->tm_sec,
 	      tm_now->tm_mon+1, tm_now->tm_mday,
@@ -1274,7 +1281,8 @@ mm_notify(MAILSTREAM *stream, char *string, long int errflg)
 	        (errflg == WARN)     ? "warning" :
 	         (errflg == PARSE)    ? "parse"   :
 		  (errflg == TCPDEBUG) ? "tcp"     :
-		   (errflg == BYE)      ? "bye"     : "unknown",
+		   (errflg == HTTPDEBUG) ? "http"   :
+		    (errflg == BYE)      ? "bye"     : "unknown",
 	      (stream && stream->mailbox) ? stream->mailbox : "-no folder-",
 	      string ? string : "?"));
 #endif
@@ -1357,7 +1365,9 @@ mm_log(char *string, long int errflg)
     tm_now = localtime(&now);
 
     dprint((((errflg == TCPDEBUG) && ps_global->debug_tcp) ? 1 :
-           (errflg == TCPDEBUG) ? 10 : 2,
+           (errflg == TCPDEBUG) ? 10 : 
+	   ((errflg == HTTPDEBUG) && ps_global->debug_http) ? 1 :
+	   (errflg == HTTPDEBUG) ? 10 :  2,
 	    "IMAP %2.2d:%2.2d:%2.2d %d/%d mm_log %s: %s\n",
 	    tm_now->tm_hour, tm_now->tm_min, tm_now->tm_sec,
 	    tm_now->tm_mon+1, tm_now->tm_mday,
@@ -1366,7 +1376,8 @@ mm_log(char *string, long int errflg)
 	      (errflg == WARN)     ? "warning" :
 	       (errflg == PARSE)    ? "parse"   :
 		(errflg == TCPDEBUG) ? "tcp"     :
-		 (errflg == BYE)      ? "bye"     : "unknown",
+		 (errflg == HTTPDEBUG) ? "http"   :
+		  (errflg == BYE)       ? "bye"    : "unknown",
 	    string ? string : "?"));
 
     if(errflg == ERROR && !strncmp(string, "[TRYCREATE]", 11)){
@@ -1502,7 +1513,7 @@ mm_login_work(NETMBX *mb, char *user, char **pwd, long int trial,
     if(ps_global->ttyo)
       flush_status_messages(0);
 
-    /* redo app id in case we are loging in to an IMAP server that supports the IMAP ID extension */
+    /* redo app id in case we are logging in to an IMAP server that supports the IMAP ID extension */
     free_id(&ps_global->id);
     ps_global->id = set_alpine_id(PACKAGE_NAME, PACKAGE_VERSION);
     mail_parameters(NULL, SET_IDPARAMS, (void *) ps_global->id);
@@ -3931,7 +3942,7 @@ get_passfile_passwd(pinerc, passwd, user, hostlist, altflag)
 }
 
 /*
- * get_passfile_passwd_auth - return the password contained in the special passord
+ * get_passfile_passwd_auth - return the password contained in the special password
  *            cache.  The file is assumed to be in the same directory
  *            as the pinerc with the name defined above.
  */

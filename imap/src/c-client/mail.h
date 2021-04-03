@@ -160,6 +160,8 @@
 #define SET_OA2CLIENTINFO (long) 172
 #define GET_OA2DEVICEINFO (long) 173
 #define SET_OA2DEVICEINFO (long) 174
+#define GET_HTTPDEBUG	  (long) 175
+#define SET_HTTPDEBUG	  (long) 176
 
 	/* 2xx: environment */
 #define GET_USERNAME (long) 201
@@ -577,6 +579,7 @@
 #define PARSE (long) 3		/* mm_log parse error type */
 #define BYE (long) 4		/* mm_notify stream dying */
 #define TCPDEBUG (long) 5	/* mm_log TCP debug babble */
+#define HTTPDEBUG (long) 6	/* mm_log HTTP debug babble */
 
 
 /* Bits from mail_parse_flags().  Don't change these, since the header format
@@ -1942,6 +1945,10 @@ int PFLUSH (void);
 #define OAUTH2_TOT_EQUIV        (OAUTH2_MAX_EQUIV + 2)
 #define OAUTH2_PARAM_NUMBER	(7)
 
+#define OA2_UNKNOWN	0x00	/* We do not know what method this client-id uses */
+#define OA2_DEVICE	0x01	/* Client ID obtained by client uses Device Method */
+#define OA2_AUTHORIZE	0x10	/* Client ID obtained by client uses Authorize Method */
+
 typedef enum {OA2_Id = 0,
 	      OA2_Secret,
 	      OA2_Tenant,
@@ -1996,6 +2003,7 @@ typedef struct oauth2_s {
    unsigned int first_time:1;	/* this is the first time we get credentials for this account */
    unsigned int require_secret:1;	/* this server requires a client-secret */
    int cancel_refresh_token;	/* ask client to cancel refresh token */
+   int flags;			/* options to register for this method */
 } OAUTH2_S;
 
 typedef struct deviceproc_s {
