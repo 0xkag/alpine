@@ -1,7 +1,7 @@
 /*
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 #define XOAUTH2_CONFIG
 
 #include "confscroll.h"
-#include "xoauth2.h"
 #include "../pith/state.h"
 
 /* exported prototypes */

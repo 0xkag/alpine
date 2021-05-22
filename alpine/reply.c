@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: reply.c 1074 2008-06-04 00:08:43Z hubert@u.washingto
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,12 +102,11 @@ reply(struct pine *pine_state, ACTION_S *role_arg)
 {
     ADDRESS    *saved_from, *saved_to, *saved_cc, *saved_resent;
     ADDRESS    *us_in_to_and_cc, *ap;
-    ENVELOPE   *env, *outgoing;
+    ENVELOPE   *env = NULL, *outgoing;
     BODY       *body, *orig_body = NULL;
     REPLY_S     reply;
     void       *msgtext = NULL;
     char       *tmpfix = NULL, *prefix = NULL, *fcc = NULL, *errmsg = NULL;
-    char       *hostpart;
     long        msgno, j, totalm, rflags, *seq = NULL;
     int         i, include_text = 0, times = -1, warned = 0, rv = 0,
 		flags = RSF_QUERY_REPLY_ALL, reply_raw_body = 0;
@@ -1087,9 +1086,8 @@ reply_text_query(struct pine *ps, long int many, ENVELOPE *env, char **prefix)
     int ret, edited = 0, headers = 0;
     static ESCKEY_S compose_style[MAX_REPLY_OPTIONS];
     int	ekey_num;
-    int orig_sf;
 
-    orig_sf = ps->reply.use_flowed = *prefix && **prefix ? (F_OFF(F_QUELL_FLOWED_TEXT, ps)
+    ps->reply.use_flowed = *prefix && **prefix ? (F_OFF(F_QUELL_FLOWED_TEXT, ps)
 		&& F_OFF(F_STRIP_WS_BEFORE_SEND, ps)
 		&& (strcmp(*prefix, "> ") == 0
 			|| strcmp(*prefix, ">") == 0)) : 0;
@@ -1140,8 +1138,6 @@ reply_text_query(struct pine *ps, long int many, ENVELOPE *env, char **prefix)
 	       compose_style[ekey_num++].label = N_("Edit Indent String");
 	    }
 	} else { 	/***** Alternate Reply Menu ********/
-	   unsigned which_help;
-
 	   snprintf(tmp_20k_buf, SIZEOF_20KBUF, _("Include %s%soriginal message%s in Reply (using \"%s%s%s\")? "),
 		(many > 1L) ? comatose(many) : "",
 		(many > 1L) ? " " : "",
@@ -1270,7 +1266,7 @@ reply_text_query(struct pine *ps, long int many, ENVELOPE *env, char **prefix)
 			if(flags & OE_USER_MODIFIED){
 			    fs_give((void **)prefix);
 			    *prefix = removing_quotes(cpystr(buf));
-			    orig_sf = ps->reply.use_flowed = *prefix && **prefix ?
+			    ps->reply.use_flowed = *prefix && **prefix ?
 					(F_OFF(F_QUELL_FLOWED_TEXT, ps)
 					&& F_OFF(F_STRIP_WS_BEFORE_SEND, ps)
 					&& (strcmp(*prefix, "> ") == 0
@@ -1573,8 +1569,8 @@ forward(struct pine *ps, ACTION_S *role_arg)
 {
     char	  *sig;
     int		   ret, forward_raw_body = 0, rv = 0, i;
-    long	   msgno, j, totalmsgs, rflags;
-    ENVELOPE	  *env, *outgoing;
+    long	   msgno = 0L, j, totalmsgs, rflags;
+    ENVELOPE	  *env = NULL, *outgoing;
     BODY	  *orig_body, *body = NULL;
     REPLY_S        reply;
     void	  *msgtext = NULL;

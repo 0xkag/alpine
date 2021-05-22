@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: display.c 1025 2008-04-08 22:59:38Z hubert@u.washing
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -375,7 +375,7 @@ int
 window_signature_block(WINDOW *wp)
 {
   LINE *lp, *llp;
-  int in_sig, is_sig_start;
+  int in_sig, is_sig_start = 0;
   int change = 0;
 
   llp = wp->w_linep;
@@ -425,7 +425,6 @@ update(void)
     int     j;
     int     scroll = 0;
     int     repaint= 0;
-    int	    quoted;
     CELL	     c;
     PCOLORS *pcolors = Pmaster && Pmaster->colors ? Pmaster->colors : Pcolors;
 
@@ -989,12 +988,12 @@ updext(void)
 void
 updatelinecolor (int row, CELL vline[], CELL pline[], short *flags, int len)
 {
-    CELL *cp1, *cp2, *cp3, *cp4, *cp5, *cp6, *cp7;
+    CELL *cp1, *cp2, *cp3, *cp4, *cp5;
     int   nbflag;		/* non-blanks to the right flag? */
     int   cleartoeol = 0;
-    int   in_quote, quote_found = 0, level;
+    int   in_quote, level;
     PCOLORS *pcolors = Pmaster && Pmaster->colors ? Pmaster->colors : Pcolors;
-    COLOR_PAIR *qcolor = NULL, *lastc = NULL, *pcolor = NULL;
+    COLOR_PAIR *lastc = NULL, *pcolor = NULL;
     int first = 1, lastattr = -1, change = 0;
 
     if(pcolors == NULL){
@@ -1394,7 +1393,7 @@ modeline(WINDOW *wp)
 
 	bp = wp->w_bufp;
 	if(bp->b_fname[0])				/* File name? */
-	  snprintf(t2, sizeof(t2), "File: %s", bp->b_fname);
+	  snprintf(t2, sizeof(t2), "File: %.*s", (int) sizeof(t2) - 7, bp->b_fname);
         else{
 	    strncpy(t2, PICO_NEWBUF_MSG, sizeof(t2));
 	    t2[sizeof(t2)-1] = '\0';
@@ -1431,7 +1430,7 @@ modeline(WINDOW *wp)
 	      w2_to_3 = term.t_ncol - (ALLBUTSPACE + w1_to_2);
 	    else{
 	      if(bp->b_fname[0]){
-	        snprintf(t2, sizeof(t2), "%s", bp->b_fname);
+	        snprintf(t2, sizeof(t2), "%.*s", (int) sizeof(t2) - 1, bp->b_fname);
 	        w2 = utf8_width(t2);
 	      }
 
@@ -1585,9 +1584,7 @@ speller_choice(char **sp_list, int *choice)
 	ch_dict = -1;
 
     if(ch_dict < 0){		/* not a choice yet? do one now! */
-	UCS buf[128];
 	int i;
-	char *utf8_prompt;
 	UCS  *ucs4_prompt;
 	EXTRAKEYS    menu_dictionary[] = {
 		{"0", NULL, '0'},
@@ -1608,7 +1605,6 @@ speller_choice(char **sp_list, int *choice)
 	if(cnt < 10)
 	  menu_dictionary[cnt].name = NULL;
 
-	buf[0] = '\0';
 	/* write the prompt in utf8, and let internal functions translate it to ucs4 */
 	ucs4_prompt = utf8_to_ucs4_cpystr(_("Choose Dictionary: "));
 
@@ -1638,7 +1634,6 @@ mlchoose(UCS *prompt, EXTRAKEYS *extras)
     UCS      c;
     UCS      buf[NLINE];
     int      i;
-    int      changed = FALSE;
     int      return_val = 0;
     KEYMENU  menu_choose[12];
     COLOR_PAIR *lastc = NULL;

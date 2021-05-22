@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: mailview.c 1266 2009-07-14 18:39:12Z hubert@u.washin
 /*
  * ========================================================================
  * Copyright 2006-2009 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -391,8 +391,6 @@ format_calendar_vevent(VCALENDAR_S *vcal, ATTACH_S *a, HANDLE_S **handlesp, int 
 
       if(cflags & FC_SUMMARY){
 	COLOR_PAIR *lastc = NULL;
-	char numbuf[50];
-	int thisdescwid;
 	COLOR_PAIR *hdrcolor = NULL;
 
 	if((flgs & FM_DISPLAY)
@@ -512,7 +510,7 @@ format_calendar(long int msgno, BODY *body, HANDLE_S **handlesp, int flgs, int w
 
   for(a = ps_global->atmts; a->description != NULL; a++){
      if(MIME_VCALENDAR(a->body->type, a->body->subtype)){
-	b = mail_body (ps_global->mail_stream, msgno, a->number);
+	b = mail_body (ps_global->mail_stream, msgno, (unsigned char *) a->number);
 	if(b == NULL){
 	   gf_puts(_("Error fetching calendar body part"), pc);
 	   gf_puts(NEWLINE, pc);
@@ -528,7 +526,7 @@ format_calendar(long int msgno, BODY *body, HANDLE_S **handlesp, int flgs, int w
 	  rawtext[callen] = '\0';	/* chop off cookie */
 	  switch(b->encoding){
 	     case ENCBASE64:
-		caltext = rfc822_base64(rawtext, strlen(rawtext), &callen);
+		caltext = rfc822_base64((unsigned char *) rawtext, strlen(rawtext), &callen);
 		if(caltext == NULL){
 		  gf_puts(_("Error in calendar base64 encoding"), pc);
 		  gf_puts(NEWLINE, pc);

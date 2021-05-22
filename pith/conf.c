@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: conf.c 1266 2009-07-14 18:39:12Z hubert@u.washington
 
 /*
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2006-2009 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -419,7 +419,9 @@ CONF_TXT_T cf_text_system_certs_file[] = "Sets the path for the system ssl file 
 
 CONF_TXT_T cf_text_user_certs_path[] = "Sets the path for additional ssl certificates that the user trusts. Note\n#that this could be a list of paths, if the same\n# pinerc is used in different systems. Alpine always chooses the first one that\n# it finds. Value must be an absolute path.";
 
-CONF_TXT_T cf_text_user_certs_file[] = "Sets the path for a file that contains certificates that a user trusts.\nNote that this could be a list of container files,\n# if the same pinerc is used in different systems. Alpine always chooses the,\n# first one that it finds. Value must be an absolute path.";
+CONF_TXT_T cf_text_user_certs_file[] = "Sets the path for a file that contains certificates that a user trusts.\n#Note that this could be a list of container files,\n# if the same pinerc is used in different systems. Alpine always chooses the,\n# first one that it finds. Value must be an absolute path.";
+
+CONF_TXT_T cf_text_ciphers[] = "Colon separated list of ciphers that should be negotiated with the remote\n# ssl server upon connection.";
 #endif
 
 CONF_TXT_T cf_text_newmail_fifo_path[] = "Sets the filename for the newmail fifo (named pipe). Unix only.";
@@ -752,6 +754,8 @@ static struct variable variables[] = {
 	"User Certs Dir", cf_text_user_certs_file},
 {"user-certs-file",			0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
 	"User Certs File", cf_text_user_certs_file},
+{"ssl-ciphers",				0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
+	"SSL Ciphers", cf_text_ciphers},
 #endif
 {"url-viewers",				0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
 	"URL-Viewers",		cf_text_browser},
@@ -2524,6 +2528,7 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
     set_current_val(&vars[V_SSLCAFILE], TRUE, TRUE);
     set_current_val(&vars[V_USERSSLCAPATH], TRUE, TRUE);
     set_current_val(&vars[V_USERSSLCAFILE], TRUE, TRUE);
+    set_current_val(&vars[V_SSLCIPHERS], TRUE, TRUE);
 #endif
 #if !defined(DOS) && !defined(OS2) && !defined(LEAVEOUTFIFO)
     set_current_val(&vars[V_FIFOPATH], TRUE, TRUE);
@@ -3495,6 +3500,8 @@ feature_list(int index)
 	 F_DISABLE_SHARED_NAMESPACES, h_config_disable_shared, PREF_HIDDEN, 0},
 	{"disable-signature-edit-cmd", NULL,
 	 F_DISABLE_SIGEDIT_CMD, h_config_disable_signature_edit, PREF_HIDDEN, 0},
+	{"enable-delete-before-writing", NULL,
+	 F_ENABLE_DEL_WHEN_WRITING, h_config_delete_before_writing, PREF_HIDDEN, 0},
 	{"new-thread-on-blank-subject", "New Thread on Blank Subject",
 	 F_NEW_THREAD_ON_BLANK_SUBJECT, h_config_new_thread_blank_subject, PREF_HIDDEN, 1},
 	{"quell-personal-name-prompt", NULL,
@@ -8203,6 +8210,8 @@ config_help(int var, int feature)
 	return(h_config_user_certs_path);
       case V_USERSSLCAFILE :
 	return(h_config_user_certs_file);
+      case V_SSLCIPHERS :
+	return(h_config_ssl_ciphers);
 #endif
 #if !defined(DOS) && !defined(OS2) && !defined(LEAVEOUTFIFO)
       case V_FIFOPATH :

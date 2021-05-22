@@ -1,6 +1,6 @@
 /*
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -178,6 +178,7 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
 			    break;
 	      case JLong  : oauth2->devicecode.expires_in = *(long *) jx->value;
 			    break;
+		default   : break;
 	   }
 
 	if((jx = json_body_value(json, "interval")) != NULL)
@@ -186,6 +187,7 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
 			    break;
 	      case JLong  : oauth2->devicecode.interval = *(long *) jx->value;
 			    break;
+		default   : break;
 	   }
 
 	jx = json_body_value(json, "message");
@@ -224,6 +226,7 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
 				    break;
 			      case JLong  : oauth2->expiration = time(0) + *(long *) jx->value;
 				    break;
+				default   : break;
 			 }
 			 oauth2->cancel_refresh_token = 0;	/* do not cancel this token. It is good */
 			 break;
@@ -282,6 +285,7 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
 				    break;
 				case JLong  : oauth2->expiration = time(0) + *(long *) jx->value;
 				    break;
+				default   : break;
 			     }
 
 			     jx = json_body_value(json, "expires_in");
@@ -360,6 +364,7 @@ void oauth2deviceinfo_get_accesscode(void *inp, void *outp)
 				   break;
 				case JLong  : oauth2->expiration = time(0) + *(long *) jx->value;
 				   break;
+				default   : break;
 			  }
 
 			rv = OA2_CODE_SUCCESS;

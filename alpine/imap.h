@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ char   *pine_newsrcquery(MAILSTREAM *, char *, char *);
 int     url_local_certdetails(char *);
 void    pine_sslfailure(char *, char *, unsigned long);
 void	mm_expunged_current(long unsigned int);
-IDLIST *set_alpine_id(unsigned char *, unsigned char *);
+IDLIST *set_alpine_id(char *, char *);
 char   *oauth2_get_access_code(unsigned char *, char *, OAUTH2_S *, int *);
 void    oauth2_set_device_info(OAUTH2_S *, char *);
 int     oauth2_elapsed_done(void *);

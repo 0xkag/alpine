@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: utf8.c 1184 2008-12-16 23:52:15Z hubert@u.washington
 
 /*
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -125,6 +125,7 @@ pith_ucs4width(UCS ucs)
 int
 wtomb(char *dest, UCS ucs)
 {
+    int rv;
     /*
      * We believe that on modern unix systems wchar_t is a UCS-4 character.
      * That's the assumption here.
@@ -150,7 +151,14 @@ wtomb(char *dest, UCS ucs)
 	return(ret);
     }
     else
-      return(wcrtomb(dest, (wchar_t) ucs, NULL));
+#if defined(HAVE_WCRTOMB)
+       rv = wcrtomb(dest, (wchar_t) ucs, NULL);
+#elif defined(HAVE_WCTOMB)
+       rv = wctomb(dest, (wchar_t) ucs);
+#else
+       rv = -1;
+#endif
+   return rv;
 }
 
 

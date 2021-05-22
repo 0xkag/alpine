@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: pipe.c 1204 2009-02-02 19:54:23Z hubert@u.washington
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -481,10 +481,11 @@ open_system_pipe(char *command, char **outfile, char **errfile, int mode,
 char *
 pipe_error_msg(char *cmd, char *op, char *res)
 {
-    static char ebuf[512];
+    static char ebuf[512 + 16 + 1];
 
-    snprintf(ebuf, 256, "Pipe can't %.256s \"%.32sb\": %.223s",
+    snprintf(ebuf, sizeof(ebuf), "Pipe can't %.256s \"%.32sb\": %.223s",
 	     op ? op : "?", cmd ? cmd : "?", res ? res : "?");
+    ebuf[sizeof(ebuf) - 1] = '\0';
 
     return(ebuf);
 }

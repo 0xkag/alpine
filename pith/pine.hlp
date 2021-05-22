@@ -3,7 +3,7 @@
 #        T H E   A L P I N E    M E S S A G E   S Y S T E M
 #
 #/* ========================================================================
-# * Copyright 2013-2020 Eduardo Chappa
+# * Copyright 2013-2021 Eduardo Chappa
 # * Copyright 2006-2008 University of Washington
 # *
 # * Licensed under the Apache License, Version 2.0 (the "License");
@@ -156,7 +156,7 @@ Version <!--#echo var="ALPINE_VERSION"--> (<!--#echo var="ALPINE_REVISION"-->)
 <!--chtml endif-->
 
 <BR>
-<BR>Copyright 2013-2020 Eduardo Chappa
+<BR>Copyright 2013-2021 Eduardo Chappa
 <BR>Copyright 2006-2008 University of Washington
 </DIV>
 
@@ -183,7 +183,28 @@ it for you. Please take some time to read it and understand it.
 Since the Privacy Policy could be amended to take into consideration
 new additions to Alpine, please check it periodically.
 
-<P> These changes were made after the release of version 2.24.
+<P> These changes were added after the release of version <!--#echo var="ALPINE_VERSION"-->.
+
+<P>
+New features include:
+<UL>
+<LI> Unix Alpine: New configuration variable <a href="h_config_ssl_ciphers"><!--#echo var="VAR_ssl-ciphers"--></a> that allows
+users to list the ciphers to use when connecting to a SSL server.
+Based on a collaboration with Professor Martin Trusler.
+<LI> New hidden feature <a href="h_config_delete_before_writing"><!--#echo var="FEAT_enable-delete-before-writing"--></a>
+to add support for terminals that need lines to be deleted before being written. Based
+on a collaboration with Professor Martin Trusler.
+</UL>
+
+<P>
+Bugs addressed include:
+
+<UL>
+<LI> Crash in the ntlm authenticator when the user name does not include
+a domain. Reported and fixed by Anders Skargren.
+</UL>
+
+<P> The changes in version <!--#echo var="ALPINE_VERSION"--> are as follows:
 
 <P> 
 New features include:
@@ -201,6 +222,23 @@ New features include:
      to login to outlook, since the original client-id can only be used
      for the device method. One needs a special client-id and client-secret
      to use the authorize method in Outlook.
+<LI> PC-Alpine only: Some service providers produce access tokens that are
+     too long to save in the Windows Credentials, so the access tokens will
+     be split and saved as several pieces. This means that old versions of
+     Alpine will NOT be able to use saved passwords once this new version of
+     Alpine is used.
+<LI> PC-Alpine: Debug files used to be created with extension .txt1, .txt2, etc.
+     Rename those files so that they have extension .txt.
+<LI> Always follow ‘suppress-asterisks-in-password-prompt’ setting in the
+     various password prompts. Submitted by &Eacute;tienne Deparis.
+<LI> Use 'alpine -F' instead of 'pine -F' as the browser default pager.
+     Submitted by &Eacute;tienne Deparis.
+<LI> Introduction of OTHER CMDS menu for the browser/pilot to let
+     people discover the two new commands: &quot;1&quot; is a toggle that 
+     switches between 1 column and multicolumn mode. The &quot;.&quot; command 
+     toggles between hiding or showing hidden files, and the &quot;G&quot; 
+     command to travel between directories. Contributed by &Eacute;tienne 
+     Deparis.
 </UL>
 
 <P>
@@ -1555,7 +1593,7 @@ Since then, the effort of developing Alpine has been continued by
 a community of volunteers who make good software even better!
 
 <P>
-Alpine Copyright 2013-2020 Eduardo Chappa, 
+Alpine Copyright 2013-2021 Eduardo Chappa, 
 <BR> Copyright 2006-2008 University of Washington.
 
 <P>
@@ -2915,7 +2953,7 @@ Version <!--#echo var="ALPINE_VERSION"-->
 <BR>(built <!--#echo var=ALPINE_COMPILE_DATE-->)
 <!--chtml endif-->
 </DIV>
-<CENTER>Copyright 2013-2020 Eduardo Chappa,
+<CENTER>Copyright 2013-2021 Eduardo Chappa,
 <BR>Copyright 2006-2008 University of Washington.
 </CENTER>
 
@@ -4672,6 +4710,7 @@ There are also additional details on
 <li><a href="h_config_disable_collate">FEATURE: <!--#echo var="FEAT_disable-setlocale-collate"--></a>
 <li><a href="h_config_disable_shared">FEATURE: <!--#echo var="FEAT_disable-shared-namespaces"--></a>
 <li><a href="h_config_disable_signature_edit">FEATURE: <!--#echo var="FEAT_disable-signature-edit-cmd"--></a>
+<li><a href="h_config_delete_before_writing">FEATURE: <!--#echo var="FEAT_enable-delete-before-writing"--></a>
 <li><a href="h_config_take_fullname">FEATURE: <!--#echo var="FEAT_disable-take-fullname-in-addresses"--></a>
 <li><a href="h_config_take_lastfirst">FEATURE: <!--#echo var="FEAT_disable-take-last-comma-first"--></a>
 <li><a href="h_config_disable_reset_disp">FEATURE: <!--#echo var="FEAT_disable-terminal-reset-for-display-filters"--></a>
@@ -23143,6 +23182,34 @@ User Certs File = /home/fred/.alpine-certs/certs.pem
 <P>
 &lt;End of help on this topic&gt;
 </BODY></HTML>
+====== h_config_ssl_ciphers ======
+<HTML>
+<HEAD>
+<TITLE>OPTION: <!--#echo var="VAR_ssl-ciphers"--></TITLE>
+</HEAD>
+<BODY>
+<H1>OPTION: <!--#echo var="VAR_ssl-ciphers"--></H1>
+
+(UNIX ALPINE ONLY)
+This is a colon separated list of ciphers that your openssl or libressl
+library supports and should use to negotiate a secure connection with a
+remote SSL server.
+
+<P>
+The list of ciphers supported by openssl can be obtained with the command
+line command
+
+<P>
+openssl ciphers
+
+<P>
+Consult the manual page of the openssl ciphers command to see more
+ways to specify groups of ciphers, such as RSA, or other groups of
+ciphers.
+
+<P>
+&lt;End of help on this topic&gt;
+</BODY></HTML>
 ====== h_config_set_att_ansi ======
 <HTML><HEAD>
 <TITLE>OPTION: Set printer to attached ansi printer</TITLE>
@@ -36175,6 +36242,29 @@ the Setup/Config screen.
 &lt;End of help on this topic&gt;
 </BODY>
 </HTML>
+====== h_config_delete_before_writing =====
+<HTML>
+<HEAD>
+<TITLE>FEATURE: <!--#echo var="FEAT_enable-delete-before-writing"--></TITLE>
+</HEAD>
+<BODY>
+<H1>FEATURE: <!--#echo var="FEAT_enable-delete-before-writing"--></H1>
+
+This feature controls a behavior of Alpine intended to workaround problems in
+terminals where the marker for the end of inverse video cannot be overwritten,
+but must be deleted, as a way to start inverse video again.
+
+<P>
+When this feature is enabled, Alpine will delete a line before writing it,
+therefore deleting the end of reverse video. Modern terminals do not require
+enabling of this feature, but some old terminals might require it.
+<P>
+<UL>
+<LI><A HREF="h_finding_help">Finding more information and requesting help</A>
+</UL><P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
 ====== h_config_disable_roles_templateedit =====
 <HTML>
 <HEAD>
@@ -36901,7 +36991,14 @@ To convert from Unicode to multi-byte the routine
 <CENTER><SAMP>wcrtomb</SAMP></CENTER>
 <P>
 
+is used, if available, otherwise
+
+<P>
+<CENTER><SAMP>wctomb</SAMP></CENTER>
+<P>
+
 is used.
+
 And to find the screen width a particular Unicode character will
 occupy the routine used is
 

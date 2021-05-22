@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: tty.c 769 2007-10-24 00:15:40Z hubert@u.washington.e
 /*
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -291,7 +291,8 @@ TERM    term    = {
         mswin_eeol,
         mswin_eeop,
         mswin_beep,
-	mswin_rev
+	mswin_rev,
+	NULL		/* no standout glitch in Windows */
 };
 
 /*

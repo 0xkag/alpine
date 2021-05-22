@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,9 +118,12 @@
  * an unsigned long, too. If it is an unsigned int, then a_c_arg_t could
  * be an unsigned int, too. However, if we just make it unsigned long, then
  * it will be the same in all cases and big enough in all cases.
+ * For most people SUINT32 is UINT32, but users can define at configure stage
+ * that SUINT32 could be something different, by means of defining an environment
+ * variable SUINT32 as, say, unsigned long.
  */
 
-#define adrbk_cntr_t UINT32  /* addrbook counter type                */
+#define adrbk_cntr_t SUINT32  /* addrbook counter type                */
 typedef unsigned long a_c_arg_t;     /* type of arg passed for adrbk_cntr_t  */
 #define NO_NEXT ((adrbk_cntr_t)-1)
 #define MAX_ADRBK_SIZE (2000000000L) /* leave room for extra display lines   */

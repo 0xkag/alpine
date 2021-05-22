@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: alpine.c 1266 2009-07-14 18:39:12Z hubert@u.washingt
 
 /*
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -474,6 +474,7 @@ main(int argc, char **argv)
     set_system_certs_container(pine_state);
     set_user_certs_path(pine_state);
     set_user_certs_container(pine_state);
+    mail_parameters(NULL, SET_SSLCIPHERS, (void *) pine_state->VAR_SSLCIPHERS);
 #endif
 
 #ifdef SMIME
@@ -1103,7 +1104,7 @@ main(int argc, char **argv)
 					args.data.mail.attachlist)
 			     && pine_state->next_screen))
 			  free_attachment_list(&args.data.mail.attachlist);
-			  goodnight_gracey(pine_state, 0);
+			goodnight_gracey(pine_state, 0);
 		    }
 		    else {
 			q_status_message(SM_ORDER | SM_DING, 3, 4,

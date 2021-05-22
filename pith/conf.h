@@ -2,7 +2,7 @@
  * $Id: conf.h 1155 2008-08-21 18:33:21Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -142,6 +142,7 @@
 #define GLO_SSLUSERCAPATH	     vars[V_USERSSLCAPATH].global_val.l
 #define VAR_SSLUSERCAFILE	     vars[V_USERSSLCAFILE].current_val.l
 #define GLO_SSLUSERCAFILE	     vars[V_USERSSLCAFILE].global_val.l
+#define VAR_SSLCIPHERS		     vars[V_SSLCIPHERS].current_val.p
 #endif
 #define VAR_INDEX_COLOR_STYLE	     vars[V_INDEX_COLOR_STYLE].current_val.p
 #define GLO_INDEX_COLOR_STYLE	     vars[V_INDEX_COLOR_STYLE].global_val.p

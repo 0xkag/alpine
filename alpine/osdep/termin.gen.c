@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: termin.gen.c 1025 2008-04-08 22:59:38Z hubert@u.wash
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -470,6 +470,8 @@ optionally_enter(char *utf8string, int y_base, int x_base, int utf8string_size,
 	draw_keymenu(km, bitmap, cols, 1-FOOTER_ROWS(ps_global), 0, FirstMenu);
     }
     
+    if(F_ON(F_ENABLE_DEL_WHEN_WRITING, ps_global))
+       ClearLine(real_y_base);
     if(pico_usingcolor() && VAR_PROMPT_FORE_COLOR &&
        VAR_PROMPT_BACK_COLOR &&
        pico_is_good_color(VAR_PROMPT_FORE_COLOR) &&

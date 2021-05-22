@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: mailindx.c 1142 2008-08-13 17:22:21Z hubert@u.washin
 
 /*
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -325,7 +325,7 @@ index_lister(struct pine *state, CONTEXT_S *cntxt, char *folder, MAILSTREAM *str
 {
     UCS          ch;
     int		 cmd, which_keys, force,
-		 cur_row, cur_col, km_popped, paint_status;
+		 cur_row, cur_col = 0, km_popped, paint_status = 0;
     static int   old_day = -1;
     long	 i, j, k, old_max_msgno;
     long	 lflagged, old_lflagged = 0L;
@@ -813,6 +813,8 @@ mc_thrdindx:
 		    thrd = fetch_thread(stream, i);
 		    if(thrd && thrd->top)
 		      topthrd = fetch_thread(stream, thrd->top);
+		    else
+		      topthrd = NULL;
 		    if(topthrd){
 		       set_thread_lflags(stream, topthrd, msgmap, MN_CHID, 1);
 		       set_thread_lflags(stream, topthrd, msgmap, MN_CHID2, 0);
@@ -842,7 +844,7 @@ mc_thrdindx:
 	  case MC_MOUSE:
 	    {
 	      MOUSEPRESS mp;
-	      int	 new_cur;
+	      int	 new_cur = 0;
 
 	      mouse_get_last (NULL, &mp);
 	      mp.row -= 2;
@@ -1950,6 +1952,8 @@ paint_index_line(ICE_S *argice, int line, long int msgno, IndexColType sfld,
       do_arrow = (afld != iNothing);
 
       MoveCursor(HEADER_ROWS(ps_global) + line, 0);
+      if(F_ON(F_ENABLE_DEL_WHEN_WRITING, ps_global))
+	 CleartoEOLN();
 
       /* find the base color for the whole line */
       if(cur && !ac && !do_arrow){
@@ -2531,7 +2535,7 @@ int
 index_scroll_to_pos (long int pos)
 {
     static short bad_timing = 0;
-    long	i, j, k;
+    long	i, j, k = 0;
     
     if(bad_timing)
       return (FALSE);

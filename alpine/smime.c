@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: smime.c 1074 2008-06-04 00:08:43Z hubert@u.washingto
 
 /*
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -87,7 +87,8 @@ smime_get_passphrase(void)
             _("Enter passphrase for <%s>: "), (ps_global->smime && ps_global->smime->passphrase_emailaddr) ? ps_global->smime->passphrase_emailaddr[0] : "unknown");
 
     do {
-        flags = OE_PASSWD | OE_DISALLOW_HELP;
+        flags = F_ON(F_QUELL_ASTERISKS, ps_global) ? OE_PASSWD_NOAST : OE_PASSWD;
+        flags |= OE_DISALLOW_HELP;
 	((char *) ps_global->smime->passphrase)[0] = '\0';
         rc =  optionally_enter((char *) ps_global->smime->passphrase,
 			       -FOOTER_ROWS(ps_global), 0,
@@ -478,7 +479,7 @@ output_cert_info(X509 *cert, gf_io_t pc)
     gf_puts(NEWLINE, pc);
     
     if((chain = get_chain_for_cert(cert, &error, &len)) != NULL){
-       X509 *x;
+       X509 *x = NULL;
        X509_NAME_ENTRY *e;
        int i, offset = 2;
        char space[256];
@@ -1638,14 +1639,13 @@ void
 smime_manage_certs_init(struct pine *ps, CONF_S **ctmp, CONF_S **first_line, WhichCerts ctype, int fline)
 {
     char            tmp[200];
-    char	   *ext;
     CertList	   *data;
     int		    i;
 
     smime_init();
 
     data = DATACERT(ctype);
-    ext  = EXTCERT(ctype);
+//    ext  = EXTCERT(ctype);
 
     if(data == NULL || RENEWCERT(data))
       renew_cert_data(&data, ctype);
@@ -1710,8 +1710,6 @@ smime_manage_certs_init(struct pine *ps, CONF_S **ctmp, CONF_S **first_line, Whi
 
       for(cl = data, i = 0; cl; cl = cl->next)
 	 if(cl->name){
-	    char *s, *t;
-
 	    new_confline(ctmp);
 	    (*ctmp)->d.s.ctype  = ctype;
 	    (*ctmp)->d.s.deleted = get_cert_deleted(ctype, i);

@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: mailpart.c 1074 2008-06-04 00:08:43Z hubert@u.washin
 
 /*
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1016,6 +1016,8 @@ attachment_screen_updater(struct pine *ps, ATDISP_S *current, ATT_SCREEN_S *scre
 	if(!(!screen->current || ctmp == screen->current || ctmp == current))
 	  continue;
 
+	if(F_ON(F_ENABLE_DEL_WHEN_WRITING, ps_global))
+	   ClearLine(dline + HEADER_ROWS(ps));
 	if(ctmp && ctmp->dstring){
 	    char *p = tmp_20k_buf;
 	    int   i, col, x = 0, totlen;
@@ -1071,7 +1073,7 @@ attachment_screen_updater(struct pine *ps, ATDISP_S *current, ATT_SCREEN_S *scre
 	       && !(F_ON(F_FORCE_LOW_SPEED,ps) || ps->low_speed))
 	      EndInverse();
 	}
-	else
+	else if(F_OFF(F_ENABLE_DEL_WHEN_WRITING, ps_global))
 	  ClearLine(dline + HEADER_ROWS(ps));
     }
 
@@ -2972,7 +2974,7 @@ display_vcard_att(long int msgno, ATTACH_S *a, int flags)
     URL_HILITE_S uh;
     gf_io_t    gc, pc;
     char     **lines, **ll, *errstr = NULL, tmp[MAILTMPLEN], *p;
-    int	       cmd, indent, begins = 0;
+    int	       cmd = MC_RESIZE, indent, begins = 0;
 
     lines = detach_vcard_att(ps_global->mail_stream,
 			     msgno, a->body, a->number);

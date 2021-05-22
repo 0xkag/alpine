@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: random.c 769 2007-10-24 00:15:40Z hubert@u.washingto
 /*
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,8 +47,8 @@ showcpos(int f, int n)
     register int    cbo;
     register long   nbc;
     register int    lines;
-    register int    thisline;
-    char     buffer[80];
+    register int    thisline = 0;
+    char     buffer[100];
 
     clp = lforw(curbp->b_linep);            /* Grovel the data.     */
     cbo = 0;

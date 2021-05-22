@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: adrbkcmd.c 1074 2008-06-04 00:08:43Z hubert@u.washin
 
 /*
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -321,7 +321,7 @@ view_abook_entry(struct pine *ps, long int cur_line)
     so_give(&in_store);
 
     if(sargs.proc.data.i != VIEW_ABOOK_NONE){
-	long old_l_p_p, old_top_ent, old_cur_row;
+	long old_l_p_p = 0, old_top_ent = 0, old_cur_row = 0;
 
 	if(sargs.proc.data.i == VIEW_ABOOK_WARPED){
 	    /*
@@ -1684,7 +1684,7 @@ ab_modify_abook_list(int edit, int global, int abook_num, char *def_serv, char *
     struct headerentry *he;
     PICO pbf;
     STORE_S *msgso;
-    int editor_result, i, how_many_in_list, new_abook_num, num_in_list;
+    int editor_result, i, how_many_in_list = 0, new_abook_num, num_in_list;
     int ret = 0;
     char *server, *folder, *nickname;
     char *new_item = NULL;
@@ -2185,11 +2185,12 @@ convert_abook_to_remote(struct pine *ps, PerAddrBook *pab, char *rem_folder_pref
     if(*rem_abook){
 	file = cpystr(rem_abook);
 	if(pab->abnick){
-	    nick = (char *)fs_get((MAX(strlen(pab->abnick),strlen("Address Book"))+8) * sizeof(char));
-	    snprintf(nick, sizeof(nick), "Remote %s",
+	    int len = MAX(strlen(pab->abnick),strlen("Address Book"))+8;
+	    nick = (char *)fs_get(len * sizeof(char));
+	    snprintf(nick, len, "Remote %s",
 	            (pab->abnick && !strcmp(pab->abnick, DF_ADDRESSBOOK))
 			? "Address Book" : pab->abnick);
-	    nick[sizeof(nick)-1] = '\0';
+	    nick[len-1] = '\0';
 	}
 	else
 	  nick = cpystr("Remote Address Book");
@@ -2629,7 +2630,7 @@ convert_to_remote_config(struct pine *ps, int edit_exceptions)
     char       rem_pinerc_prefix[MAILTMPLEN];
     char      *beg, *end;
     CONTEXT_S *context;
-    int        abooks, sigs;
+    int        abooks = 0, sigs = 0;
 
     if(edit_exceptions){
 	/* TRANSLATORS: The exceptions command (X) was typed but it doesn't make sense */
@@ -3029,7 +3030,7 @@ int
 ab_del_abook(long int cur_line, int command_line, char **err)
 {
     int          abook_num, varnum, delete_data = 0,
-		 num_in_list, how_many_in_list, i, cnt, warn_about_revert = 0;
+		 num_in_list, how_many_in_list = 0, i, cnt, warn_about_revert = 0;
     char       **list, **new_list, **t, **lval;
     char         tmp[200];
     PerAddrBook *pab;
@@ -4164,7 +4165,7 @@ int
 ab_export(struct pine *ps, long int cur_line, int command_line, int agg)
 {
     int		   ret = 0, i, retflags = GER_NONE;
-    int            r, orig_errno, failure = 0;
+    int            r, orig_errno = 0, failure = 0;
     struct variable *vars = ps->vars;
     char     filename[MAXPATH+1], full_filename[MAXPATH+1];
     STORE_S *store;
@@ -4506,7 +4507,7 @@ int
 ab_forward(struct pine *ps, long int cur_line, int agg)
 {
     AddrScrn_Disp *dl;
-    AdrBk_Entry   *abe;
+    AdrBk_Entry   *abe = NULL;
     ENVELOPE      *outgoing = NULL;
     BODY          *pb, *body = NULL;
     PART         **pp;
@@ -6162,7 +6163,7 @@ ab_agg_delete(struct pine *ps, int agg)
 	prompt[sizeof(prompt)-1] = '\0';
 	ch = want_to(prompt, 'n', 'n', NO_HELP, WT_NORM);
 	if(ch == 'y'){
-	    adrbk_cntr_t   newelnum, flushelnum = NO_NEXT;
+	    adrbk_cntr_t   newelnum = NO_NEXT, flushelnum = NO_NEXT;
 	    DL_CACHE_S     dlc_save, dlc_restart, *dlc;
 	    int            we_cancel = 0;
 	    int            top_level_display;
@@ -6344,7 +6345,7 @@ ab_agg_delete(struct pine *ps, int agg)
 int
 single_entry_delete(AdrBk *abook, long int cur_line, int *warped)
 {
-    char   ch, *cmd, *dname;
+    char   ch, *cmd = NULL, *dname = NULL;
     char   prompt[200];
     int    rc;
     register AddrScrn_Disp *dl;

@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: search.c 1266 2009-07-14 18:39:12Z hubert@u.washingt
 
 /*
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -472,7 +472,7 @@ replace_pat(UCS *defpat, int *wrapt, int bsearch)
   char             utf8tmp[NPMT];
   UCS              prompt[NPMT];
   UCS             *promptp;
-  int		   i, flags;
+  int		   flags;
 
     if(bsearch){
 	flags = SR_BACKWRD;
@@ -1209,7 +1209,7 @@ forscan(int *wrapt,	/* boolean indicating search wrapped */
     UCS *patptr;	/* pointer into pattern */
     int stopoff;	/* offset to stop search */
     LINE *stopline;	/* line to stop search */
-    int ftest;		/* position of first character of test */
+    int ftest = 0;	/* position of first character of test */
     int bsearch;
     int bol;
     int eol;

@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: rpload.c 1074 2008-06-04 00:08:43Z hubert@u.washingt
 
 /*
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1004,7 +1004,8 @@ opt_enter(string, field_len, prompt, flags)
 	    char *p;
 
 	    fputs(prompt, stdout);
-	    fgets(string, field_len, stdin);
+	    if(!fgets(string, field_len, stdin))
+		return_v = 1;	/* cancel? */
 	    string[field_len-1] = '\0';
 	    if((p = strpbrk(string, "\r\n")) != NULL)
 	      *p = '\0';

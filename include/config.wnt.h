@@ -24,7 +24,10 @@
 #define DEBUG
 
 /* Default configuration value */
-#define DEBUGFILE "pinedebg.txt"
+#define DEBUGFILE "pinedebg"
+
+/* Default extension for debug files */
+#define DEBUGFILEEXT ".txt"
 
 /* Display debug messages in journal */
 #define DEBUGJOURNAL
@@ -463,13 +466,13 @@
 #define PACKAGE_NAME "alpine"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "alpine 2.24"
+#define PACKAGE_STRING "alpine 2.24.1"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "alpine"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.24"
+#define PACKAGE_VERSION "2.24.1"
 
 /* Program users use to change their password */
 /* #undef PASSWD_PROG */
@@ -586,6 +589,7 @@
 /* System defined unsigned 32 bit integer */
 /* #define UINT32 uint32_t */
 /* #define UINT32 unsigned long */
+#define SUINT32 UINT32
 
 /* Compile in quota check on startup */
 /* #define USE_QUOTAS */
@@ -594,7 +598,7 @@
 #define UTF8_INTERNAL
 
 /* Version number of package */
-#define VERSION "2.24"
+#define VERSION "2.24.1"
 
 /* Windows is just too different */
 #ifndef _WINDOWS

@@ -2,7 +2,7 @@
  * $Id: conftype.h 1155 2008-08-21 18:33:21Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -148,6 +148,7 @@ typedef	enum {    V_PERSONAL_NAME = 0
 		, V_SSLCAFILE
 		, V_USERSSLCAPATH
 		, V_USERSSLCAFILE
+		, V_SSLCIPHERS
 #endif
 		, V_BROWSER
 		, V_HISTORY
@@ -396,6 +397,7 @@ typedef enum {
 	F_DISABLE_UPDATE_CMD,
 	F_DISABLE_KBLOCK_CMD,
 	F_DISABLE_SIGEDIT_CMD,
+	F_ENABLE_DEL_WHEN_WRITING,
 	F_DISABLE_ROLES_SETUP,
 	F_DISABLE_ROLES_SIGEDIT,
 	F_DISABLE_ROLES_TEMPLEDIT,

@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: takeaddr.c 1012 2008-03-26 00:44:22Z hubert@u.washin
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1130,7 +1130,7 @@ takeaddr_screen(struct pine *ps, TA_S *ta_list, int how_many_selected,
     TA_SCREEN_S   screen;
     Pos           cursor_pos;
     char         *utf8str;
-    struct key_menu *km;
+    struct key_menu *km = NULL;
 
     dprint((2, "- takeaddr_screen -\n"));
 
@@ -2069,7 +2069,7 @@ take_without_edit(TA_S *ta_list, int num_in_list, int command_line, TA_STATE_S *
 #define OURTMPBUFLEN 200
     PerAddrBook   *pab_dst;
     SAVE_STATE_S   state;  /* For saving state of addrbooks temporarily */
-    int            rc, total_to_copy;
+    int            rc, total_to_copy = 0;
     int		   how_many_dups = 0, how_many_to_copy = 0, skip_dups = 0;
     int		   ret = 0;
     int		   err = 0, need_write = 0, we_cancel = 0;

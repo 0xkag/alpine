@@ -1,7 +1,7 @@
 dbl Process this file with autoconf to produce a configure script.
 
 dnl /* ========================================================================
-dnl  * Copyright 2013-2020 Eduardo Chappa
+dnl  * Copyright 2013-2021 Eduardo Chappa
 dnl  * Copyright 2006-2008 University of Washington
 dnl  *
 dnl  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -243,7 +243,8 @@ AC_ARG_ENABLE(optimization, AS_HELP_STRING([--disable-optimization],[Exclude opt
 if test x$enable_optimization != "xno" ; then
   AC_MSG_RESULT([yes])
 else
-  CFLAGS="`echo $AM_CFLAGS | ${SED} 's/-O2//'`"
+  C_FLAGS="`echo $AM_CFLAGS | ${SED} 's/-O2//'`"
+  CFLAGS="$CFLAGS $C_FLAGS"
   alpine_c_client_gccoptlevel="-O0"
   AC_MSG_RESULT([no])
 fi
@@ -1935,6 +1936,12 @@ AC_CHECK_HEADERS([stdint.h], [uint32=uint32_t], [
 ])
 AC_DEFINE_UNQUOTED([UINT32], $uint32, [System defined unsigned 32 bit integer])
 
+if test -z "$SUINT32" ; then
+   SUINT32="$uint32"
+fi
+
+AC_DEFINE_UNQUOTED([SUINT32], $SUINT32, [System defined for shorter than unsigned 32 bit integer])
+
 AC_CACHE_CHECK(argument pointer type of qsort compare function and base,
 ac_cv_func_qsort_argtype,
 [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
@@ -1992,6 +1999,7 @@ AC_CHECK_FUNCS([strchr \
 		wcwidth \
 		mbstowcs \
 		wcrtomb \
+		wctomb \
 		putenv \
 		setenv])
 

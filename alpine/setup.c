@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: setup.c 918 2008-01-23 19:39:38Z hubert@u.washington
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,10 +61,10 @@ int      to_charsets_text_tool(struct pine *, int, CONF_S **, unsigned);
 void
 option_screen(struct pine *ps, int edit_exceptions)
 {
-    char	    tmp[MAXPATH+1], *pval, **lval;
+    char	    tmp[MAXPATH+1], *pval = NULL, **lval = NULL;
     int		    i, j, ln = 0, readonly_warning = 0, pos;
     struct	    variable  *vtmp;
-    CONF_S	   *ctmpa = NULL, *ctmpb, *first_line = NULL;
+    CONF_S	   *ctmpa = NULL, *ctmpb = NULL, *first_line = NULL;
     FEATURE_S	   *feature;
     PINERC_S       *prc = NULL;
     SAVED_CONFIG_S *vsave;

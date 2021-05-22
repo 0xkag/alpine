@@ -469,6 +469,9 @@
 /* Define to 1 if you have the `wcrtomb' function. */
 #undef HAVE_WCRTOMB
 
+/* Define to 1 if you have the `wctomb' function. */
+#undef HAVE_WCTOMB
+
 /* Define to 1 if you have the `wcwidth' function. */
 #undef HAVE_WCWIDTH
 
@@ -607,6 +610,9 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
+
+/* System defined for shorter than unsigned 32 bit integer */
+#undef SUINT32
 
 /* System pinerc */
 #undef SYSTEM_PINERC

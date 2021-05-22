@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: browse.c 942 2008-03-04 18:21:33Z hubert@u.washingto
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,6 +77,7 @@ static struct bmaster {
     int    longest;				/* longest file name (in screen width) */
     int	   fpl;					/* file names per line */
     int    cpf;					/* chars / file / line */
+    int    menu;					/* current menu to display */
     int    flags;
     char   dname[NLINE];			/* this dir's name (UTF-8) */
     char   *names;				/* malloc'd name array (UTF-8) */
@@ -93,6 +94,7 @@ static	char	*browser_title = NULL;
 struct bmaster *getfcells(char *, int);
 void   PaintCell(int, int, int, struct fcell *, int);
 void   PaintBrowser(struct bmaster *, int, int *, int *);
+struct bmaster *RepaintBrowser(struct bmaster *, int);
 void   BrowserKeys(void);
 void   layoutcells(struct bmaster *);
 void   percdircells(struct bmaster *);
@@ -110,17 +112,27 @@ void   add_cell_to_lmlist(struct fcell *, struct bmaster *);
 void   del_cell_from_lmlist(struct fcell *, struct bmaster *);
 
 
+#define	HELP_MENU	{"?", N_("Get Help"), KS_SCREENHELP}
+#define	OTHER_MENU	{"O", N_("OTHER CMDS"), KS_NONE}
 static	KEYMENU menu_browse[] = {
-    {"?", N_("Get Help"), KS_SCREENHELP},	{NULL, NULL, KS_NONE},
+    HELP_MENU,		{NULL, NULL, KS_NONE},
     {NULL, NULL, KS_NONE},		{"-", N_("Prev Pg"), KS_PREVPAGE},
     {"D", N_("Delete"), KS_NONE},		{"C",N_("Copy"), KS_NONE},
-    {NULL, NULL, KS_NONE},		{NULL, NULL, KS_NONE},
+    OTHER_MENU,		{NULL, NULL, KS_NONE},
     {"W", N_("Where is"), KS_NONE},		{"Spc", N_("Next Pg"), KS_NEXTPAGE},
     {"R", N_("Rename"), KS_NONE},		{NULL, NULL, KS_NONE}
 };
+static	KEYMENU menu_other[] = {
+    HELP_MENU,		{NULL, NULL, KS_NONE},
+    {NULL, NULL, KS_NONE},		{NULL, NULL, KS_NONE},
+    {NULL, NULL, KS_NONE},		{"1", N_("One Col"), KS_NONE},
+    OTHER_MENU,		{NULL, NULL, KS_NONE},
+    {NULL, NULL, KS_NONE},		{NULL, NULL, KS_NONE},
+    {NULL, NULL, KS_NONE},		{".", N_("Dot files"), KS_NONE}
+};
 #define	QUIT_KEY	1
 #define	EXEC_KEY	2
-#define	GOTO_KEY	6
+#define	GOTO_KEY	10
 #define	SELECT_KEY	7
 #define	PICO_KEY	11
 
@@ -133,7 +145,7 @@ static	KEYMENU menu_browse[] = {
 /*
  * Default pager used by the stand-alone file browser.
  */
-#define	BROWSER_PAGER	((gmode & MDFKEY) ? "pine -k -F" : "pine -F")
+#define	BROWSER_PAGER	((gmode & MDFKEY) ? "alpine -k -F" : "alpine -F")
 
 
 /*
@@ -217,24 +229,26 @@ N_("~        ~?        Display this help text."),
 N_("~        ~Q        Quit Pilot."),
 " ",
 N_("~        ~V        View the currently selected file or open the selected directory."),
-N_("~                Note: Pilot invokes ~p~i~n~e ~-~F, or the program defined by the ~P~A~G~E~R"),
-N_("~                      environment variable, to view the file."),
+N_("~                 Note: Pilot invokes ~a~l~p~i~n~e ~-~F, or the program defined by the ~P~A~G~E~R"),
+N_("~                       environment variable, to view the file."),
 N_("~        ~L        Launch an external application program."),
 " ",
 N_("~        ~W        Search for a file by name."),
 N_("~        ~-        Scroll up one page."),
-N_("~        ~S~p~a~c~e        Scroll down one page."),
-N_("~        ~N,~^~F        Move forward (right) one column."),
-N_("~        ~P,~^~B        Move back (left) one column."),
-N_("~        ~^~N        Move down one row."),
-N_("~        ~^~P        Move up one row."),
+N_("~        ~S~p~a~c~e    Scroll down one page."),
+N_("~        ~N,~^~F     Move forward (right) one column."),
+N_("~        ~P,~^~B     Move back (left) one column."),
+N_("~        ~^~N       Move down one row."),
+N_("~        ~^~P       Move up one row."),
+N_("~        ~.        Switch show dot files."),
+N_("~        ~1        Switch single column display."),
 " ",
 N_("~        ~D        Delete the selected file."),
 N_("~        ~R        Rename the selected file or directory."),
 N_("~        ~C        Copy the selected file."),
 N_("~        ~E        Edit the selected file."),
-N_("~                Note: Pilot invokes ~p~i~c~o, or the program defined by the ~E~D~I~T~O~R"),
-N_("~                      environment variable, to edit the file."),
+N_("~                 Note: Pilot invokes ~p~i~c~o, or the program defined by the ~E~D~I~T~O~R"),
+N_("~                       environment variable, to edit the file."),
 " ",
 N_("End of Pilot Help."),
 NULL
@@ -319,7 +333,7 @@ FileBrowse(char *dir, size_t dirlen, char *fn, size_t fnlen,
     int row, col, crow, ccol;
     int flags;
     int add_file;
-    char *p, *envp, child[NLINE], tmp[NLINE];
+    char *p, *envp, child[2*NLINE+2], tmp[2*NLINE+1];
     struct bmaster *mp;
     struct fcell *tp;
     EML eml;
@@ -707,8 +721,8 @@ FileBrowse(char *dir, size_t dirlen, char *fn, size_t fnlen,
 	  case 'e':					/* exit or edit */
 	  case 'E':
 	    if(gmode&MDBRONLY){				/* run "pico" */
-		snprintf(child, sizeof(child), "%s%c%s", gmp->dname, C_FILESEP,
-			gmp->current->fname);
+		snprintf(child, sizeof(child), "%.*s%c%.*s", NLINE, gmp->dname, C_FILESEP,
+			NLINE, gmp->current->fname);
 		/* make sure selected isn't a directory or executable */
 		if(!LikelyASCII(child)){
 		    emlwrite(_("Can't edit non-text file.  Try Launch."), NULL);
@@ -798,8 +812,8 @@ FileBrowse(char *dir, size_t dirlen, char *fn, size_t fnlen,
 
 	    tmp[0] = '\0';
 	    i = 0;
-	    snprintf(child, sizeof(child), "%s%c%s", gmp->dname, C_FILESEP,
-		    gmp->current->fname);
+	    snprintf(child, sizeof(child), "%.*s%c%.*s", NLINE, gmp->dname, C_FILESEP,
+		    NLINE, gmp->current->fname);
 	    while(!i){
 		static EXTRAKEYS opts[] = {
 		    {"^X", N_("Add Name"), CTRL|'X', KS_NONE},
@@ -1046,6 +1060,28 @@ FileBrowse(char *dir, size_t dirlen, char *fn, size_t fnlen,
 	    BrowserKeys();
 	    break;
 
+	  case '.':					/* display dot files */
+		gmode ^= MDDOTSOK;
+		gmp = RepaintBrowser(gmp, fb_flags);
+		break;
+
+	  case '1':					/* One column mode */
+		gmode ^= MDONECOL;
+		gmp = RepaintBrowser(gmp, fb_flags);
+		break;
+
+	  case 'o':					/* Other menu */
+	  case 'O':
+		if (gmp){
+		  if(gmp->menu == 0){
+			gmp->menu = 1;
+		  } else {
+			gmp->menu = 0;
+		  }
+		  BrowserKeys();
+		}
+		break;
+
 	  case 'a':					/* Add */
 	  case 'A':
 	    if(gmode&MDSCUR){				/* not allowed! */
@@ -1270,8 +1306,8 @@ FileBrowse(char *dir, size_t dirlen, char *fn, size_t fnlen,
 			break;
 		    }
 
-		    snprintf(tmp, sizeof(tmp), "%s%c%s", gmp->dname, C_FILESEP, 
-			    gmp->current->fname);
+		    snprintf(tmp, sizeof(tmp), "%.*s%c%.*s", NLINE, gmp->dname, C_FILESEP,
+			    NLINE, gmp->current->fname);
 
 		    if(copy(tmp, child) < 0){
 			/* copy()  will report any error messages */
@@ -1388,8 +1424,8 @@ FileBrowse(char *dir, size_t dirlen, char *fn, size_t fnlen,
 			    }
 			}
 
-			snprintf(tmp, sizeof(tmp), "%s%c%s", gmp->dname, C_FILESEP, 
-				gmp->current->fname);
+			snprintf(tmp, sizeof(tmp), "%.*s%c%.*s", NLINE, gmp->dname, C_FILESEP,
+				NLINE, gmp->current->fname);
 
 			if(our_rename(tmp, child) < 0){
 			    eml.s = errstr(errno);
@@ -1545,8 +1581,8 @@ FileBrowse(char *dir, size_t dirlen, char *fn, size_t fnlen,
 		break;
 	    }
 	    else if(gmode&MDBRONLY){
-		snprintf(child, sizeof(child), "%s%c%s", gmp->dname, C_FILESEP, 
-			gmp->current->fname);
+		snprintf(child, sizeof(child), "%.*s%c%.*s", NLINE, gmp->dname, C_FILESEP,
+			NLINE, gmp->current->fname);
 
 		if(LikelyASCII(child)){
 		    snprintf(tmp, sizeof(tmp), "%s \'%s\'",
@@ -1818,7 +1854,7 @@ getfcells(char *dname, int fb_flags)
     }
 
     mp->bottom = mp->head = mp->top = NULL;
-    mp->cpf = mp->fpl = 0;
+    mp->menu = mp->cpf = mp->fpl = 0;
     mp->longest = 5;				/* .. must be labeled! */
     mp->flags = fb_flags;
 
@@ -2159,6 +2195,8 @@ PaintCell(int row, int col,
 
     if(inverted)
       (*term.t_rev)(1);
+    else if (*term.t_eri)
+      (*term.t_eri)();
 
     ucs = utf8_to_ucs4_cpystr(buf2);
     if(ucs){
@@ -2224,6 +2262,37 @@ PaintBrowser(struct bmaster *mp, int level, int *row, int *col)
     }
 }
 
+/*
+ * RepaintBrowser - factorized method to just repaint everything
+ */
+struct bmaster *
+RepaintBrowser(struct bmaster *gmp, int fb_flags)
+{
+	struct bmaster *mp;
+	struct fcell *tp;
+	int row, col;
+	char *fn;
+	fn = gmp->current->fname;
+
+	if((mp = getfcells(gmp->dname, fb_flags)) == NULL){
+	  /* getfcells should explain what happened */
+	  return(gmp);
+	}
+	zotmaster(&gmp);
+	gmp = mp;
+
+	tp = NULL;
+	if(*fn){
+	if((tp = FindCell(gmp, fn, 0)) != NULL){
+	  gmp->current = tp;
+	  PlaceCell(gmp, gmp->current, &row, &col);
+	}
+	}
+
+	PaintBrowser(gmp, 0, NULL, NULL);
+	return(gmp);
+}
+
 
 /*
  * BrowserKeys - just paints the keyhelp at the bottom of the display
@@ -2231,12 +2300,16 @@ PaintBrowser(struct bmaster *mp, int level, int *row, int *col)
 void
 BrowserKeys(void)
 {
+    if (gmp && gmp->menu == 1){
+	menu_other[GOTO_KEY].name  = (gmode&MDGOTO) ? "G" : NULL;
+	menu_other[GOTO_KEY].label = (gmode&MDGOTO) ? N_("Goto") : NULL;
+	wkeyhelp(menu_other);
+	return;
+    }
     menu_browse[QUIT_KEY].name  = (gmode&MDBRONLY) ? "Q" : "E";
     /* TRANSLATORS: Brwsr is an abbreviation for Browser, which is
        a command used to look through something */
     menu_browse[QUIT_KEY].label = (gmode&MDBRONLY) ? N_("Quit") : N_("Exit Brwsr");
-    menu_browse[GOTO_KEY].name  = (gmode&MDGOTO) ? "G" : NULL;
-    menu_browse[GOTO_KEY].label = (gmode&MDGOTO) ? N_("Goto") : NULL;
     if(gmode & MDBRONLY){
 	menu_browse[EXEC_KEY].name  = "L";
 	menu_browse[EXEC_KEY].label = N_("Launch");

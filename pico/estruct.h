@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2007 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -310,6 +310,7 @@ typedef struct  {
         int     (*t_eeop)(void);        /* Erase to end of page.        */
         int     (*t_beep)(void);        /* Beep.                        */
 	int	(*t_rev)(int);		/* set reverse video state	*/
+	int	(*t_eri)(void);		/* erase reverse inverse	*/
 }       TERM;
 
 /*	structure for the table of initial key bindings		*/

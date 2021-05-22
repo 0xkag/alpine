@@ -5,7 +5,7 @@ static char rcsid[] = "$Id: main.c 1184 2008-12-16 23:52:15Z hubert@u.washington
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -495,10 +495,9 @@ void
 display_color_codes(void)
 {
 #define SPACES "   "
-  int i, j, k, l, a, len, len_entry, row;
+  int i, k, l, a;
   int ncolors;
   COLOR_PAIR *lastc = NULL, *newcp;
-  char *fg;
 
   /* this is the format "SPACE COLORED_SPACES = CODE SPACE" */
   vtterminalinfo(gmode & MDTCAPWINS);

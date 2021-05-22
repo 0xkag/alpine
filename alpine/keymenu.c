@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: keymenu.c 1074 2008-06-04 00:08:43Z hubert@u.washing
 
 /*
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -3313,7 +3313,7 @@ output_keymenu(struct key_menu *km, unsigned char *bm, int row, int column)
 	      len = strlen(keystr);
 	      while(keystr[len-1] == SPACE)
 		len--;
-		len--;
+	      len--;
 
 	      register_key(j, ufk ? PF1 + fkey - 1
 				  : (k->name[0] == '^')

@@ -4,7 +4,7 @@ static char rcsid[] = "$Id: mailcmd.c 1266 2009-07-14 18:39:12Z hubert@u.washing
 
 /*
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2006-2009 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -367,7 +367,8 @@ alpine_smime_confirm_save(char *email)
 int 
 alpine_get_password(char *prompt, char *pass, size_t len)
 {
-  int flags = OE_PASSWD | OE_DISALLOW_HELP;
+  int flags = F_ON(F_QUELL_ASTERISKS, ps_global) ? OE_PASSWD_NOAST : OE_PASSWD;
+  flags |= OE_DISALLOW_HELP;
   pass[0] = '\0';
   return optionally_enter(pass, 
 			-(ps_global->ttyo ? FOOTER_ROWS(ps_global) : 3),
@@ -662,6 +663,8 @@ view_text:
 				thrd = fetch_thread(stream, mn_m2raw(msgmap, new_msgno));
 				if(thrd && thrd->top)
 				  topthrd = fetch_thread(stream, thrd->top);
+				else
+				  topthrd = NULL;
 
 				if(topthrd)
 				j = count_lflags_in_thread(stream, topthrd, msgmap, MN_NONE);
@@ -1340,7 +1343,7 @@ get_out:
 	    if(del_count > 0L){
 		state->mangled_footer = 1;		/* MAX_SCREEN_COLS+1 = sizeof(prompt) */
 		snprintf(prompt, sizeof(prompt), "UNexclude %ld message%s in %.*s", del_count,
-			plural(del_count), MAX_SCREEN_COLS+1-40,
+			plural(del_count), MAX_SCREEN_COLS+1-45,
 			pretty_fn(state->cur_folder));
 		prompt[sizeof(prompt)-1] = '\0';
 		if(F_ON(F_FULL_AUTO_EXPUNGE, state)
@@ -1730,6 +1733,7 @@ cmd_flag(struct pine *state, MSGNO_S *msgmap, int aopt)
     char          *keyword_array[2];
     int            user_defined_flags = 0, mailbox_flags = 0;
     int            directly_to_maint_screen = 0;
+    int 	   use_maint_screen = F_ON(F_FLAG_SCREEN_DFLT, ps_global);
     long	   unflagged, flagged, flags, rawno;
     MESSAGECACHE  *mc = NULL;
     KEYWORD_S     *kw;
@@ -1961,10 +1965,7 @@ go_again:
     else
 #endif	    
     {
-	int use_maint_screen;
 	int keyword_shortcut = 0;
-
-	use_maint_screen = F_ON(F_FLAG_SCREEN_DFLT, ps_global);
 
 	if(!use_maint_screen){
 	    /*
@@ -2776,7 +2777,7 @@ save_prompt(struct pine *state, CONTEXT_S **cntxt, char *nfldr, size_t len_nfldr
 	    SaveDel *dela, SavePreserveOrder *prea)
 {
     int		      rc, ku = -1, n = 0, flags, last_rc = 0, saveable_count = 0, done = 0;
-    int		      delindex, preindex, r;
+    int		      delindex = 0, preindex = 0, r;
     char	      prompt[6*MAX_SCREEN_COLS+1], *p, expanded[MAILTMPLEN];
     char              *buf = tmp_20k_buf;
     char              shortbuf[200];
@@ -3280,7 +3281,7 @@ create_for_save_prompt(CONTEXT_S *context, char *folder, int sequence_sensitive)
 int
 cmd_expunge(struct pine *state, MAILSTREAM *stream, MSGNO_S *msgmap, int agg)
 {
-    long del_count, prefilter_del_count;
+    long del_count, prefilter_del_count = 0;
     int we_cancel = 0, rv = 0;
     char prompt[MAX_SCREEN_COLS+1];
     char *sequence;
@@ -3619,12 +3620,12 @@ cmd_export(struct pine *state, MSGNO_S *msgmap, int qline, int aopt)
 {
     char      filename[MAXPATH+1], full_filename[MAXPATH+1], *err;
     char      nmsgs[80];
-    int       r, leading_nl, failure = 0, orig_errno, rflags = GER_NONE;
+    int       r, leading_nl, failure = 0, orig_errno = 0, rflags = GER_NONE;
     int       flags = GE_IS_EXPORT | GE_SEQ_SENSITIVE, rv = 0;
     ENVELOPE *env;
     MESSAGECACHE *mc;
     BODY     *b;
-    long      i, count = 0L, start_of_append, rawno;
+    long      i, count = 0L, start_of_append = 0, rawno;
     gf_io_t   pc;
     STORE_S  *store;
     struct variable *vars = state ? ps_global->vars : NULL;
@@ -8308,7 +8309,7 @@ select_by_gm_content(MAILSTREAM *stream, MSGNO_S *msgmap, long int msgno, SEARCH
 int
 select_by_text(MAILSTREAM *stream, MSGNO_S *msgmap, long int msgno, SEARCHSET **limitsrch)
 {
-    int          r, ku, type, we_cancel = 0, flags, rv, ekeyi = 0;
+    int          r = '\0', ku, type, we_cancel = 0, flags, rv, ekeyi = 0;
     int          not = 0, me = 0;
     char         sstring[80], tmp[128];
     char        *p, *sval = NULL;

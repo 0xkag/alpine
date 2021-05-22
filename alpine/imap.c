@@ -1,10 +1,6 @@
-#if !defined(lint) && !defined(DOS)
-static char rcsid[] = "$Id: imap.c 1266 2009-07-14 18:39:12Z hubert@u.washington.edu $";
-#endif
-
 /*
  * ========================================================================
- * Copyright 2013-2020 Eduardo Chappa
+ * Copyright 2013-2021 Eduardo Chappa
  * Copyright 2006-2009 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,6 +55,8 @@ static char rcsid[] = "$Id: imap.c 1266 2009-07-14 18:39:12Z hubert@u.washington
 #include <wincred.h>
 #define TNAME     "UWash_Alpine_"
 #define TNAMESTAR "UWash_Alpine_*"
+#define PWDBUFFERSIZE (250)
+#define MAXPWDBUFFERSIZE (2*PWDBUFFERSIZE)	/* This number must be less than 512 */
 
 /*
  * WinCred Function prototypes
@@ -137,181 +135,7 @@ int   init_wincred_funcs(void);
 static	char *details_cert, *details_host, *details_reason;
 
 extern XOAUTH2_INFO_S xoauth_default[];
-
-/*
- * This is the private information of the client, which is passed to
- * c-client for processing. Every c-client application must have its
- * own.
- */
-OAUTH2_S alpine_oauth2_list[] =
-{
-  {GMAIL_NAME,
-   {"imap.gmail.com", "smtp.gmail.com", NULL, NULL},
-   {{"client_id", NULL},
-    {"client_secret", NULL},
-    {"tenant", NULL},		/* not used */
-    {"code", NULL},		/* access code from the authorization process */
-    {"refresh_token", NULL},
-    {"scope", "https://mail.google.com/"},
-    {"redirect_uri", "urn:ietf:wg:oauth:2.0:oob"},
-    {"grant_type", "authorization_code"},
-    {"grant_type", "refresh_token"},
-    {"response_type", "code"},
-    {"state", NULL},
-    {"device_code", NULL}	/* not used */
-   },
-   {{"GET", "https://accounts.google.com/o/oauth2/auth",	/* authorization address, get access code */
-	{OA2_Id, OA2_Scope, OA2_Redirect, OA2_Response, OA2_End, OA2_End, OA2_End}},
-    {NULL, NULL, {OA2_End, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End}},	/* Device Info information, not used */
-    {"POST", "https://accounts.google.com/o/oauth2/token",	/* Address to get refresh token from access code */
-	{OA2_Id, OA2_Secret, OA2_Redirect, OA2_GrantTypeforAccessToken, OA2_Code, OA2_End, OA2_End}},
-    {"POST", "https://accounts.google.com/o/oauth2/token",	/* access token from refresh token */
-	{OA2_Id, OA2_Secret, OA2_RefreshToken, OA2_GrantTypefromRefreshToken, OA2_End, OA2_End, OA2_End}}
-   },
-   {NULL, NULL, NULL, 0, 0, NULL},	/* device_code information */
-    NULL, 	/* access token */
-    NULL,	/* special IMAP ID */
-    0,		/* do not hide */
-    0, 		/* expiration time */
-    0, 		/* first time indicator */
-    1,		/* client secret required */
-    0,		/* Cancel refresh token */
-    GMAIL_FLAGS	/* default flags. For Gmail this should be set to OA2_AUTHORIZE */
-  },
-  {OUTLOOK_NAME,
-   {"outlook.office365.com", "smtp.office365.com", NULL, NULL},
-   {{"client_id", NULL},
-    {"client_secret", NULL},		/* not used, but needed */
-    {"tenant", NULL},			/* used */
-    {"code", NULL},			/* not used, not needed */
-    {"refresh_token", NULL},
-    {"scope", "offline_access https://outlook.office.com/IMAP.AccessAsUser.All https://outlook.office.com/SMTP.Send"},
-    {"grant_type", "urn:ietf:params:oauth:grant-type:device_code"},
-    {"scope", NULL},			/* not used */
-    {"grant_type", "refresh_token"},
-    {"response_type", "code"},		/* not used */
-    {"state", NULL},			/* not used */
-    {"device_code", NULL}		/* only used for frst time set up */
-   },
-   {{NULL, NULL, {OA2_End, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End}}, /* Get Access Code, Not used */
-    {"POST", "https://login.microsoftonline.com/\001/oauth2/v2.0/devicecode",	/* first time use and get device code information */
-	{OA2_Id, OA2_Scope, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End}},
-    {"POST", "https://login.microsoftonline.com/\001/oauth2/v2.0/token",	/* Get first Refresh Token and Access token  */
-	{OA2_Id, OA2_Redirect, OA2_DeviceCode, OA2_End, OA2_End, OA2_End, OA2_End}},
-    {"POST", "https://login.microsoftonline.com/\001/oauth2/v2.0/token",	/* Get access token from refresh token */
-	{OA2_Id, OA2_RefreshToken, OA2_Scope, OA2_GrantTypefromRefreshToken, OA2_End, OA2_End, OA2_End}}
-   },
-   {NULL, NULL, NULL, 0, 0, NULL},	/* device_code information */
-    NULL, 	/* access token */
-    NULL,	/* special IMAP ID */
-    0,		/* do not hide */
-    0, 		/* expiration time */
-    0, 		/* first time indicator */
-    0,		/* client secret required */
-    0,		/* Cancel refresh token */
-    OUTLOOK_FLAGS /* default flags. For OUTLOOK this should be set to OA2_DEVICE */
-  },
-  {OUTLOOK_NAME,
-   {"outlook.office365.com", "smtp.office365.com", NULL, NULL},
-   {{"client_id", NULL},
-    {"client_secret", NULL},		/* not used, but needed */
-    {"tenant", NULL},			/* used */
-    {"code", NULL},			/* used during authorization */
-    {"refresh_token", NULL},
-    {"scope", "offline_access https://outlook.office.com/IMAP.AccessAsUser.All https://outlook.office.com/SMTP.Send"},
-    {"redirect_uri", "http://localhost"},
-    {"grant_type", "authorization_code"},
-    {"grant_type", "refresh_token"},
-    {"response_type", "code"},
-    {"state", NULL},			/* not used */
-    {"device_code", NULL}		/* not used */
-   },
-   {{"GET", "https://login.microsoftonline.com/\001/oauth2/v2.0/authorize",	/* Get Access Code */
-	{OA2_Id, OA2_Scope, OA2_Redirect, OA2_Response, OA2_End, OA2_End, OA2_End}},
-    {NULL, NULL, {OA2_End, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End}}, /* device code, not used */
-    {"POST", "https://login.microsoftonline.com/\001/oauth2/v2.0/token",	/* Get first Refresh Token and Access token  */
-	{OA2_Id, OA2_Redirect, OA2_Scope, OA2_GrantTypeforAccessToken, OA2_Secret, OA2_Code, OA2_End}},
-    {"POST", "https://login.microsoftonline.com/\001/oauth2/v2.0/token",	/* Get access token from refresh token */
-	{OA2_Id, OA2_RefreshToken, OA2_Scope, OA2_GrantTypefromRefreshToken, OA2_Secret, OA2_End, OA2_End}}
-   },
-   {NULL, NULL, NULL, 0, 0, NULL},	/* device_code information, not used */
-    NULL, 	/* access token */
-    NULL,	/* special IMAP ID */
-    0,		/* do not hide */
-    0, 		/* expiration time */
-    0, 		/* first time indicator */
-    1,		/* client secret required */
-    0,		/* Cancel refresh token */
-    OUTLOOK_FLAGS /* default flags. For OUTLOOK this should be set to OA2_DEVICE */
-  },
-  {YAHOO_NAME,
-   {"imap.mail.yahoo.com", "smtp.mail.yahoo.com", NULL, NULL},
-   {{"client_id", NULL},
-    {"client_secret", NULL},		/* used */
-    {"tenant", NULL},			/* not used */
-    {"code", NULL},			/* used during authorization */
-    {"refresh_token", NULL},
-    {"scope", NULL},			/* not used! */
-    {"redirect_uri", "oob"},		/* https://localhost */
-    {"grant_type", "authorization_code"},
-    {"grant_type", "refresh_token"},
-    {"response_type", "code"},
-    {"state", NULL},			/* used */
-    {"device_code", NULL}		/* not used */
-   },
-   {{"GET", "https://api.login.yahoo.com/oauth2/request_auth",	/* Get Access Code */
-	{OA2_Id, OA2_Redirect, OA2_Response, OA2_State, OA2_End, OA2_End, OA2_End}},
-    {NULL, NULL, {OA2_End, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End}}, /* device code, not used */
-    {"POST", "https://api.login.yahoo.com/oauth2/get_token",	/* Get first Refresh Token and Access token  */
-	{OA2_Id, OA2_Secret, OA2_Redirect, OA2_Code, OA2_GrantTypeforAccessToken, OA2_End, OA2_End}},
-    {"POST", "https://api.login.yahoo.com/oauth2/get_token",	/* Get access token from refresh token */
-	{OA2_Id, OA2_Secret, OA2_Redirect, OA2_RefreshToken, OA2_GrantTypefromRefreshToken, OA2_End, OA2_End}}
-   },
-   {NULL, NULL, NULL, 0, 0, NULL},	/* device_code information, not used */
-    NULL, 	/* access token */
-    "ALPINE_V1",	/* special IMAP ID */
-    1,		/* hide */
-    0, 		/* expiration time */
-    0, 		/* first time indicator */
-    1,		/* client secret required */
-    0,		/* Cancel refresh token */
-    YAHOO_FLAGS	/* default flags. For YAHOO this should be set to OA2_AUTHORIZE */
-  },
-  {YANDEX_NAME,
-   {"imap.yandex.com", "smtp.yandex.com", NULL, NULL},
-   {{"client_id", NULL},
-    {"client_secret", NULL},		/* not used, but needed */
-    {"tenant", NULL},			/* not used */
-    {"code", NULL},			/* used during authorization */
-    {"refresh_token", NULL},
-    {"scope", NULL},			/* not needed, so not used */
-    {"redirect_uri", "https://oauth.yandex.ru/verification_code"},
-    {"grant_type", "authorization_code"},
-    {"grant_type", "refresh_token"},
-    {"response_type", "code"},
-    {"state", NULL},			/* not used */
-    {"device_code", NULL}		/* not used */
-   },
-   {{"GET", "https://oauth.yandex.com/authorize",	/* Get Access Code */
-	{OA2_Id, OA2_Redirect, OA2_Response, OA2_End, OA2_End, OA2_End, OA2_End}},
-    {NULL, NULL, {OA2_End, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End}}, /* device code, not used */
-    {"POST", "https://oauth.yandex.com/token",	/* Get first Refresh Token and Access token  */
-	{OA2_Id, OA2_Redirect, OA2_GrantTypeforAccessToken, OA2_Secret, OA2_Code, OA2_End, OA2_End}},
-    {"POST", "https://oauth.yandex.com/token",	/* Get access token from refresh token */
-	{OA2_Id, OA2_RefreshToken, OA2_GrantTypefromRefreshToken, OA2_Secret, OA2_End, OA2_End, OA2_End}}
-   },
-   {NULL, NULL, NULL, 0, 0, NULL},	/* device_code information, not used */
-    NULL, 	/* access token */
-    NULL,	/* special IMAP ID */
-    0,		/* do not hide */
-    0, 		/* expiration time */
-    0, 		/* first time indicator */
-    1,		/* client secret required */
-    0,		/* Cancel refresh token */
-    YANDEX_FLAGS /* default flags. For YANDEX this should be set to OA2_AUTHORIZE */
-  },
-  { NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0},
-};
+extern OAUTH2_S alpine_oauth2_list[];
 
 int
 xoauth2_flow_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
@@ -341,7 +165,7 @@ OAUTH2_S *
 oauth2_select_flow(char *host)
 {
    OAUTH2_S *oa2list, *oa2;
-   int i, rv;
+   int i = 0, rv;
    char *method;
 
    if(ps_global->ttyo){
@@ -402,15 +226,15 @@ oauth2_select_flow(char *host)
       int sel, n = 0, j;
 
       for(oa2list = alpine_oauth2_list; oa2list && oa2list->name ;oa2list++)
-           n += strlen(oa2list->name); + 5;       /* number, parenthesis, space */
-      n += 1024;      /* large enough to display to lines of 80 characters in UTF-8 */
+           n += strlen((char *) oa2list->name) + 5;       /* number, parenthesis, space */
+      n += 1024;      /* large enough to display lines of 80 characters in UTF-8 */
       s = fs_get(n*sizeof(char));
       strcpy(s, _("Please select below the authorization flow you would like to follow:"));
       sprintf(s + strlen(s), _("Please select the client-id to use from the following list.\n\n"));
       for(j = 1, oa2list = alpine_oauth2_list; oa2list && oa2list->name ;oa2list++){
          for(i = 0; oa2list && oa2list->host && oa2list->host[i] && strucmp(oa2list->host[i], host); i++);
-	    if(oa2list && oa2list->host && i < OAUTH2_TOT_EQUIV && oa2list->host[i])
-	       sprintf(s + strlen(s), " %d) %.70s\n", j++, oa2list->name);
+	 if(oa2list && oa2list->host && i < OAUTH2_TOT_EQUIV && oa2list->host[i])
+	    sprintf(s + strlen(s), " %d) %.70s\n", j++, oa2list->name);
       }
       display_init_err(s, 0);
 
@@ -470,8 +294,7 @@ void
 oauth2_set_device_info(OAUTH2_S *oa2, char *method)
 {
    char tmp[MAILTMPLEN];
-   char *code;
-   char *name = oa2->name;
+   char *name = (char *) oa2->name;
    int aux_rv_value;
    OAUTH2_DEVICECODE_S *deviceinfo = &oa2->devicecode;
    OAUTH2_DEVICEPROC_S aux_value;
@@ -506,7 +329,7 @@ oauth2_set_device_info(OAUTH2_S *oa2, char *method)
 	}
 	else{
 	   so_puts(in_store, "</P><P>");
-	   so_puts(in_store, deviceinfo->message);
+	   so_puts(in_store, (char *) deviceinfo->message);
 	}
 	so_puts(in_store, _("</P><P> Alpine will try to use your URL Viewers setting to find a browser to open this URL."));
 	sprintf(tmp, _(" When you open this link, you will be sent to %s's servers to complete this process."), name);
@@ -567,9 +390,6 @@ oauth2_set_device_info(OAUTH2_S *oa2, char *method)
 	oauth2_elapsed_done(NULL);
     }
     else{
-	int flags, rc, q_line;
-	/* TRANSLATORS: user needs to input an access code from the server */
-	char prompt[MAILTMPLEN], token[MAILTMPLEN];
 	/*
 	 * If screen hasn't been initialized yet, use want_to.
 	 */
@@ -628,8 +448,6 @@ try_wantto:
 	if(want_to(tmp, 'n', 'x', NO_HELP, WT_NORM) == 'y'){
 	   int rv;
 	   UCS ch;
-	   q_line = -(ps_global->ttyo ? ps_global->ttyo->footer_rows : 3);
-	   flags = OE_APPEND_CURRENT;
 
 	   snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf),
 		"%s", _("After you are done going through the process described above, press \'y\' to continue, or \'n\' to cancel\n"));
@@ -656,7 +474,7 @@ char *
 oauth2_get_access_code(unsigned char *url, char *method, OAUTH2_S *oauth2, int *tryanother)
 {
    char tmp[MAILTMPLEN];
-   char *code;
+   char *code = NULL;
 
    if(ps_global->ttyo){
 	SCROLL_S  sargs;
@@ -675,7 +493,7 @@ oauth2_get_access_code(unsigned char *url, char *method, OAUTH2_S *oauth2, int *
 	sprintf(tmp, _("<P>Alpine is attempting to log you into your %s account, using the %s method."), oauth2->name, method),
 	so_puts(in_store, tmp);
 
-        if(strucmp(oauth2->name, GMAIL_NAME) == 0){
+        if(strucmp((char *) oauth2->name, (char *) GMAIL_NAME) == 0){
 	   so_puts(in_store, _(" If this is your first time setting up this type of authentication, please follow the steps below. "));
 	   so_puts(in_store, _("</P><P> First you must register Alpine with Google and create a client-id and client-secret. If you already did that, then you can skip to the authorization step, and continue with the process outlined below."));
 	   so_puts(in_store, _("<UL> "));
@@ -893,12 +711,7 @@ mm_login_oauth2(NETMBX *mb, char *user, char *method,
 	        char *usethisprompt, char *altuserforcache)
 {
     char      *token, tmp[MAILTMPLEN];
-    char      prompt[4*MAILTMPLEN], value[4*MAILTMPLEN], *last;
-    char      defuser[NETMAXUSER];
-    char      hostleadin[80], hostname[200], defubuf[200];
-    char      logleadin[80], pwleadin[50];
-    char     *url_oauth2;
-    char     *tool = NULL;
+    char      prompt[4*MAILTMPLEN];
     char     *OldRefreshToken, *OldAccessToken;
     char     *NewRefreshToken, *NewAccessToken;
     char     *SaveRefreshToken, *SaveAccessToken;
@@ -908,9 +721,7 @@ mm_login_oauth2(NETMBX *mb, char *user, char *method,
        login name), this is just labelling that user name. */
     char     *userlabel = _("USER");
     STRLIST_S hostlist[2], hostlist2[OAUTH2_TOT_EQUIV+1];
-    HelpType  help ;
-    int       len, rc, q_line, flags, i, j;
-    int       oespace, avail, need, save_dont_use;
+    int       len, q_line, flags, i, j;
     int       save_in_init;
     int	      registered;
     int       ChangeAccessToken, ChangeRefreshToken, ChangeExpirationTime;
@@ -965,8 +776,7 @@ mm_login_oauth2(NETMBX *mb, char *user, char *method,
 	else{
 	   flags = OE_APPEND_CURRENT;
 	   sprintf(prompt, "%s: %s - %s: ", hostlabel, mb->orighost, userlabel);
-	   rc = optionally_enter(user, q_line, 0, NETMAXUSER,
-			   prompt, NULL, NO_HELP, &flags);
+	   optionally_enter(user, q_line, 0, NETMAXUSER, prompt, NULL, NO_HELP, &flags);
 	}
 	user[NETMAXUSER-1] = '\0';
    }
@@ -1109,7 +919,7 @@ mm_login_oauth2(NETMBX *mb, char *user, char *method,
        login->first_time++;
 
     if(login->first_time){	/* count how many authorization methods we support */
-	int nmethods, i, j;
+	int nmethods, j;
 
 	for(nmethods = 0, oa2 = alpine_oauth2_list; oa2 && oa2->name ; oa2++){
 	    for(j = 0; j < OAUTH2_TOT_EQUIV
@@ -1232,7 +1042,7 @@ mm_login_oauth2(NETMBX *mb, char *user, char *method,
 }
 
 IDLIST *
-set_alpine_id(unsigned char *pname, unsigned char *pversion)
+set_alpine_id(char *pname, char *pversion)
 {
    IDLIST *id;
 
@@ -1527,8 +1337,7 @@ mm_login_work(NETMBX *mb, char *user, char **pwd, long int trial,
        (mb->port != ntohs(sv->s_port))){
 	snprintf(non_def_port, sizeof(non_def_port), ":%lu", mb->port);
 	non_def_port[sizeof(non_def_port)-1] = '\0';
-	dprint((9, "mm_login: using non-default port=%s\n",
-		   non_def_port ? non_def_port : "?"));
+	dprint((9, "mm_login: using non-default port=%s\n", non_def_port));
     }
 
     /*
@@ -3216,6 +3025,20 @@ line_get(char *tmp, size_t len, char **textp)
 
   return 1;
 }
+
+typedef struct pwd_s {
+	char *blob;
+	char **blobarray;
+	char *host;
+	char *user;
+	char *sflags;
+	char *passwd;
+	char *orighost;
+} ALPINE_PWD_S;
+
+#define SAME_VALUE(X, Y) ((((X) == NULL && (Y) == NULL) \
+		 || ((X) && (Y) && !strcmp((X), (Y)))) ? 1 : 0)
+
 /*
  * For UNIX:
  * Passfile lines are
@@ -3227,7 +3050,7 @@ line_get(char *tmp, size_t len, char **textp)
  *
  * else for WINDOWS:
  * Use Windows credentials. The TargetName of the credential is
- * UWash_Alpine_<hostname:port>\tuser\taltflag
+ * UWash_Alpine_.partnumber-totalparts_<hostname:port>\tuser\taltflag
  * and the blob consists of
  * passwd\torighost (if different from host)
  *
@@ -3247,15 +3070,16 @@ read_passfile(pinerc, l)
     DWORD count, k;
     PCREDENTIAL *pcred;
     char *tmp, *blob, *target = NULL;
-    char *host, *user, *sflags, *passwd, *orighost;
+    ALPINE_PWD_S **pwd;
     char *ui[5];
     int i, j;
+    unsigned long m, n, p, loc;
 
     if(using_passfile == 0)
       return(using_passfile);
 
     if(!g_CredInited){
-	if(init_wincred_funcs() != 1){
+	if (init_wincred_funcs() != 1) {
 	    using_passfile = 0;
 	    return(using_passfile);
 	}
@@ -3265,72 +3089,139 @@ read_passfile(pinerc, l)
 
     using_passfile = 1;
 
-    if(g_CredEnumerateW(lfilter, 0, &count, &pcred)){
-	if(pcred){
-	    for(k = 0; k < count; k++){
-
-		host = user = sflags = passwd = orighost = NULL;
-		ui[0] = ui[1] = ui[2] = ui[3] = ui[4] = NULL;
-
+    /*  this code exists because the XOAUTH2 support makes us save
+     *	access tokens as if they were passwords. However, some servers
+     *	produce extremely long access-tokens that do not fit in the credentials
+     *	and therefore need to be split into several entries.
+     *
+     *	The plan is the following:
+     *	   step 1: Read and save all the information in the credentials
+     *	   step 2: flatten the information into one line
+     *	   step 3: process that line.
+     */
+     if (g_CredEnumerateW(lfilter, 0, &count, &pcred)) {
+	pwd = fs_get((count + 1)*sizeof(ALPINE_PWD_S *));
+	memset((void *)pwd, 0, (count + 1)*sizeof(ALPINE_PWD_S *));
+	if (pwd && pcred) {
+	    /* this is step 1 */
+	    for (k = 0; k < count; k++) {	/* go through each credential */
 		target = lptstr_to_utf8(pcred[k]->TargetName);
 		tmp = srchstr(target, TNAME);
-
-		if(tmp){
+		if (tmp) {
 		    tmp += strlen(TNAME);
-		    for(i = 0, j = 0; tmp[i] && j < 3; j++){
-			for(ui[j] = &tmp[i]; tmp[i] && tmp[i] != '\t'; i++)
-			  ;					/* find end of data */
-
-			if(tmp[i])
-			  tmp[i++] = '\0';			/* tie off data */
+		    if (*tmp == '.') {
+			tmp++;
+			m = strtoul(tmp, &tmp, 10);
+			if (*tmp == '-') {
+			    tmp++;
+			    n = strtol(tmp, &tmp, 10);
+			    if (*tmp == '_') tmp++;
+			}
+		    }
+		    else {
+			m = n = 1;
 		    }
 
-		    host   = ui[0];
-		    user   = ui[1];
-		    sflags = ui[2];
-		}
+		    ui[0] = ui[1] = ui[2] = ui[3] = ui[4] = NULL;
+		    for (i = 0, j = 0; tmp[i] && j < 3; j++) {
+			 for (ui[j] = &tmp[i]; tmp[i] && tmp[i] != '\t'; i++)
+				 ;		/* find end of data */
 
-		blob = (char *) pcred[k]->CredentialBlob;
-		if(blob){
-		    for(i = 0, j = 3; blob[i] && j < 5; j++){
-			for(ui[j] = &blob[i]; blob[i] && blob[i] != '\t'; i++)
-			  ;					/* find end of data */
-
-			if(blob[i])
-			  blob[i++] = '\0';			/* tie off data */
+			 if (tmp[i])
+			     tmp[i++] = '\0';	/* tie off data */
 		    }
 
-		    passwd   = ui[3];
-		    orighost = ui[4];
-		}
+		    /* improve this. We are trying to find where we saved
+		     * this data, and in general this is fast if there is
+		     * only a few data, which is not unreasonable, but probably
+		     * can be done better.
+		     */
+		    for (loc = 0; pwd[loc]
+			 && !(SAME_VALUE(ui[0], pwd[loc]->host)
+			      && SAME_VALUE(ui[1], pwd[loc]->user)
+			      && SAME_VALUE(ui[2], pwd[loc]->sflags)); loc++);
 
-		if(passwd && host && user){		/* valid field? */
+		    if (pwd[loc] == NULL) {
+			pwd[loc] = fs_get(sizeof(ALPINE_PWD_S));
+			memset((void *) pwd[loc], 0, sizeof(ALPINE_PWD_S));
+			pwd[loc]->blobarray = fs_get((n + 1) * sizeof(char*));
+			memset((void *) pwd[loc]->blobarray, 0, (n + 1) * sizeof(char*));
+		    }
+
+		    if (pwd[loc]->host == NULL)
+			pwd[loc]->host = ui[0] ? cpystr(ui[0]) : NULL;
+		    if (pwd[loc]->user == NULL)
+			pwd[loc]->user = ui[1] ? cpystr(ui[1]) : NULL;
+		    if (pwd[loc]->sflags == NULL)
+			pwd[loc]->sflags = ui[2] ? cpystr(ui[2]) : NULL;
+		    blob = (char *) pcred[k]->CredentialBlob;
+		    pwd[loc]->blobarray[m - 1] = blob ? cpystr(blob) : NULL;
+		}
+		if (target)  fs_give((void**)&target);
+	    }
+	    /* step 2 */
+	    for (k = 0; k < count; k++) {
+		if (pwd[k]) {
+		    for (i = 0, j = 0; pwd[k]->blobarray[j]; j++)
+			 i += strlen(pwd[k]->blobarray[j]);
+		    pwd[k]->blob = fs_get(i + 1);
+		    pwd[k]->blob[0] = '\0';
+		    for (j = 0; pwd[k]->blobarray[j]; j++) {
+			strcat(pwd[k]->blob, pwd[k]->blobarray[j]);
+			fs_give((void **) &pwd[k]->blobarray[j]);
+		    }
+		    fs_give((void **) pwd[k]->blobarray);
+		}
+		else k = count;	/* we are done with this step! */
+	    }
+	    /* step 3 */
+	    for (k = 0; k < count; k++) {
+		if (pwd[k] && pwd[k]->blob) {
+		    blob = pwd[k]->blob;
+		    for (i = 0, j = 3; blob[i] && j < 5; j++) {
+			for (ui[j] = &blob[i]; blob[i] && blob[i] != '\t'; i++)
+				  ;	/* find end of data */
+
+			if (blob[i])
+			    blob[i++] = '\0';	/* tie off data */
+		    }
+		    if (pwd[k]->passwd == NULL)
+			pwd[k]->passwd = ui[3] ? cpystr(ui[3]) : NULL;
+		    if (pwd[k]->orighost == NULL)
+			pwd[k]->orighost = ui[4] ? cpystr(ui[4]) : NULL;
+		    fs_give((void **) &pwd[k]->blob);
+		}
+	    }
+	    /* now process all lines, and free memory */
+	    for (k = 0; k < count && pwd[k] != NULL; k++){
+		if (pwd[k]->passwd && pwd[k]->host && pwd[k]->user) { /* valid field? */
 		    STRLIST_S hostlist[2];
 		    int	      flags;
 
-		    tmp = sflags ? strchr(sflags, PWDAUTHSEP) : NULL;
-		    flags = sflags ? atoi(tmp ? ++tmp : sflags) : 0;
-		    hostlist[0].name = host;
-		    if(orighost){
+		    tmp = pwd[k]->sflags ? strchr(pwd[k]->sflags, PWDAUTHSEP) : NULL;
+		    flags = pwd[k]->sflags ? atoi(tmp ? ++tmp : pwd[k]->sflags) : 0;
+		    hostlist[0].name = pwd[k]->host;
+		    if (pwd[k]->orighost) {
 			hostlist[0].next = &hostlist[1];
-			hostlist[1].name = orighost;
+			hostlist[1].name = pwd[k]->orighost;
 			hostlist[1].next = NULL;
 		    }
-		    else{
+		    else {
 			hostlist[0].next = NULL;
 		    }
-
-		    imap_set_passwd(l, passwd, user, hostlist, flags & 0x01, 0, 0);
+		    imap_set_passwd(l, pwd[k]->passwd, pwd[k]->user, hostlist, flags & 0x01, 0, 0);
 		}
-
-		if(target)
-		  fs_give((void **) &target);
+		if (pwd[k]->passwd)   fs_give((void **) &pwd[k]->passwd);
+		if (pwd[k]->user)     fs_give((void **) &pwd[k]->user);
+		if (pwd[k]->host)     fs_give((void **) &pwd[k]->host);
+		if (pwd[k]->sflags)   fs_give((void **) &pwd[k]->sflags);
+		if (pwd[k]->orighost) fs_give((void **) &pwd[k]->orighost);
+		fs_give((void **) &pwd[k]);
 	    }
-
-	    g_CredFree((PVOID) pcred);
+	    g_CredFree((PVOID)pcred);
 	}
-    }
-
+	fs_give((void **) pwd);
+     }
     return(1);
 
 # else /* old windows */
@@ -3693,8 +3584,10 @@ write_passfile(pinerc, l)
    char *authend, *authtype;
 #ifdef	WINCRED
 # if	(WINCRED > 0)
+    int i, j, k;
     char  target[10*MAILTMPLEN];
-    char  blob[10*MAILTMPLEN];
+	char  blob[10 * MAILTMPLEN], blob2[10*MAILTMPLEN], *blobp;
+	char  part[MAILTMPLEN];
     CREDENTIAL cred;
     LPTSTR ltarget = 0;
 
@@ -3704,40 +3597,51 @@ write_passfile(pinerc, l)
     dprint((9, "write_passfile\n"));
 
     for(; l; l = l->next){
+	/* determine how many parts to create first */
+	snprintf(blob, sizeof(blob), "%s%s%s",
+			l->passwd ? l->passwd : "",
+			(l->hosts&& l->hosts->next&& l->hosts->next->name)
+			? "\t" : "",
+			(l->hosts&& l->hosts->next&& l->hosts->next->name)
+			? l->hosts->next->name : "");
+	i = strlen(blob);
+	blobp = blob;
+	for (j = 1; i > MAXPWDBUFFERSIZE; j++, i -= PWDBUFFERSIZE);
 	authtype = l->passwd;
 	authend = strchr(l->passwd, PWDAUTHSEP);
-	if(authend != NULL){
-	   *authend = '\0';
-	   sprintf(blob, "%s%c%d", authtype, PWDAUTHSEP, l->altflag);
-	   *authend = PWDAUTHSEP;
+	if (authend != NULL){
+	    *authend = '\0';
+	    sprintf(blob2, "%s%c%d", authtype, PWDAUTHSEP, l->altflag);
+			*authend = PWDAUTHSEP;
         }
 	else
-	   sprintf(blob, "%d", l->altflag);
-
-	snprintf(target, sizeof(target), "%s%s\t%s\t%s",
-		 TNAME,
-		 (l->hosts && l->hosts->name) ? l->hosts->name : "",
-		 l->user ? l->user : "",
-		 blob);
-	ltarget = utf8_to_lptstr((LPSTR) target);
-
-	if(ltarget){
-	    snprintf(blob, sizeof(blob), "%s%s%s",
-		     l->passwd ? l->passwd : "", 
-		     (l->hosts && l->hosts->next && l->hosts->next->name)
-			 ? "\t" : "",
-		     (l->hosts && l->hosts->next && l->hosts->next->name)
-			 ? l->hosts->next->name : "");
-	    memset((void *) &cred, 0, sizeof(cred));
-	    cred.Flags = 0;
-	    cred.Type = CRED_TYPE_GENERIC;
-	    cred.TargetName = ltarget;
-	    cred.CredentialBlobSize = strlen(blob)+1;
-	    cred.CredentialBlob = (LPBYTE) &blob;
-	    cred.Persist = CRED_PERSIST_ENTERPRISE;
-	    g_CredWriteW(&cred, 0);
-
-	    fs_give((void **) &ltarget);
+	    sprintf(blob2, "%d", l->altflag);
+	for (k = 1, i = strlen(blob), blobp = blob; k <= j; k++) {
+	    snprintf(target, sizeof(target), "%s.%d-%d_%s\t%s\t%s",
+				TNAME, k, j,
+				(l->hosts && l->hosts->name) ? l->hosts->name : "",
+				l->user ? l->user : "",
+				blob2);
+	    ltarget = utf8_to_lptstr((LPSTR)target);
+	    if (ltarget) {
+		memset((void*)&cred, 0, sizeof(cred));
+		cred.Flags = 0;
+		cred.Type = CRED_TYPE_GENERIC;
+		cred.TargetName = ltarget;
+		if (i > MAXPWDBUFFERSIZE) {
+		    strncpy(part, blobp, PWDBUFFERSIZE);
+		    part[PWDBUFFERSIZE] = '\0';
+		    blobp += PWDBUFFERSIZE;
+		    i -= PWDBUFFERSIZE;
+		}
+		else
+		    strcpy(part, blobp);
+		cred.CredentialBlobSize = strlen(part) + 1;
+		cred.CredentialBlob = (LPBYTE)&part;
+		cred.Persist = CRED_PERSIST_ENTERPRISE;
+		g_CredWriteW(&cred, 0);
+	        fs_give((void**)&ltarget);
+	    }
 	}
     }
  #endif	/* WINCRED > 0 */
@@ -3871,6 +3775,7 @@ write_passfile(pinerc, l)
     fclose(fp);
 #ifdef SMIME
     if(text != NULL){
+       i = 0;	/* to quell gcc */
        if(ps_global->pwdcert == NULL){
 	  q_status_message(SM_ORDER, 3, 3, "Attempting to encrypt password file");
 	  i = setup_pwdcert(&ps_global->pwdcert);
