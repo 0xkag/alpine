@@ -7274,7 +7274,7 @@ aggregate_select(struct pine *state, MSGNO_S *msgmap, int q_line, CmdWhere in_in
 	q_status_message(SM_ORDER, 3, 3, tmp_20k_buf);
     }
     else
-      q_status_message2(SM_ORDER, 3, 3, _("Select matched %s message%s!"),
+      q_status_message2(SM_ORDER, 0, 3, _("Select matched %s message%s!"),
 			comatose(diff), plural(diff));
 
     return(ret);
