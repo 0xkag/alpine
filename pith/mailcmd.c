@@ -2364,7 +2364,7 @@ agg_text_select(MAILSTREAM *stream, MSGNO_S *msgmap, char type, char *namehdr,
     srchpgm->msgno = (limitsrch ? *limitsrch : NULL);
 
     /* TRANSLATORS: warning to user that we're busy selecting messages */
-    we_cancel = busy_cue(_("Busy Selecting"), NULL, 1);
+    we_cancel = busy_cue(_("Busy Selecting"), NULL, 0);
 
     searchflags = SE_NOPREFETCH | (secondpgm ? 0 : SE_FREE);
 
