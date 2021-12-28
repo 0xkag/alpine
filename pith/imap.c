@@ -450,6 +450,8 @@ mm_list(MAILSTREAM *stream, int delimiter, char *mailbox, long int attributes)
 	       (attributes & LATT_HASNOCHILDREN) ? ", has no children" : ""));
 #endif
 
+    if(!mm_list_info || !mm_list_info->filter) return;
+
     if(!mm_list_info->stream || stream == mm_list_info->stream)
       (*mm_list_info->filter)(stream, mailbox, delimiter,
 			      attributes, mm_list_info->data,
@@ -471,6 +473,8 @@ mm_lsub(MAILSTREAM *stream, int delimiter, char *mailbox, long int attributes)
 	       (attributes & LATT_HASCHILDREN) ? ", has children" : "",
 	       (attributes & LATT_HASNOCHILDREN) ? ", has no children" : ""));
 #endif
+
+    if(!mm_list_info || !mm_list_info->filter) return;
 
     if(!mm_list_info->stream || stream == mm_list_info->stream)
       (*mm_list_info->filter)(stream, mailbox, delimiter,
@@ -1121,6 +1125,10 @@ imap_flush_passwd_cache(int dumpcache)
 	    if(l->user)
 	      fs_give((void **) &l->user);
 
+	    if(!(l->passwd >= (char *) private_store
+		 && l->passwd <= p))
+	      fs_give((void **) &l->passwd);
+
 	    free_strlist(&l->hosts);
 
 	    fs_give((void **) &l);
@@ -1130,6 +1138,9 @@ imap_flush_passwd_cache(int dumpcache)
 	    cert_failure_list = cert_failure_list->next;
 	    if(l->user)
 	      fs_give((void **) &l->user);
+	    if(!(l->passwd >= (char *) private_store
+		 && l->passwd <= p))
+	      fs_give((void **) &l->passwd);
 
 	    free_strlist(&l->hosts);
 
@@ -1138,6 +1149,64 @@ imap_flush_passwd_cache(int dumpcache)
     }
 }
 
+void
+imap_delete_passwd(MMLOGIN_S **m_list, char *user, STRLIST_S *hostlist, int altflag)
+{
+  if(m_list == NULL || *m_list == NULL) return;
+  imap_delete_passwd_auth(m_list, user, hostlist, altflag,
+		strchr((*m_list)->user, PWDAUTHSEP) != NULL ? OA2NAME : NULL);
+}
+
+void
+imap_delete_passwd_auth(MMLOGIN_S **m_list, char *user,
+	STRLIST_S *hostlist, int altflag, char *authtype)
+{
+   MMLOGIN_S *l, *p;
+   int len, offset;
+
+   if(m_list == NULL || *m_list == NULL) return;
+
+   dprint((9, "imap_delete_password: user=%s, host=%s, authtype=%s.",
+		user ? user : "no user!?",
+		hostlist && hostlist->name ? hostlist->name : "unknown host",
+		authtype ? authtype : "password authentication"));
+
+   len = authtype ? strlen(authtype) : 0;
+   offset = authtype ? 1 : 0;
+   for(p = *m_list; p; p = p->next){
+       if(imap_same_host_auth(p->hosts, hostlist, authtype)
+	  && *user
+	  && (len == 0 || (!struncmp(p->user, authtype, len)
+			   && p->user[len] == PWDAUTHSEP))
+	  && !strcmp(user, p->user + len + offset)
+	  && p->altflag == altflag)
+	  break;
+   }
+
+   dprint((9, "imap_delete_password: %s", 
+		p ? "found a match!" : "did not find a match!"));
+
+   if(!p) return;
+
+   /* relink *mlist */
+   if(p == *m_list)
+      *m_list = (*m_list)->next;
+   else{
+      for(l = *m_list; l && l->next != p; l = l->next);
+      l->next = p->next;
+   }
+   /* so now p is out of the list. Free it */
+   p->next = NULL;
+   if(p->user) fs_give((void **) &p->user);
+
+   if(!(p->passwd >= (char *) private_store
+	&& p->passwd <= (char *) private_store + sizeof(private_store)))
+     fs_give((void **) &p->passwd);
+
+   free_strlist(&p->hosts);
+   fs_give((void **) &p);
+   dprint((9, "imap_delete_password: done with deletion."));
+}
 
 /*
  * Mimics fs_get except it only works for char * (no alignment hacks), it

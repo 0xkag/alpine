@@ -2580,12 +2580,12 @@ forward_subject(ENVELOPE *env, int flags)
 	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
 
 	removing_trailing_white_space(tmp_20k_buf);
-	if((l = strlen(tmp_20k_buf)) < 1000 &&
-	   (l < 5 || strcmp(tmp_20k_buf+l-5,"(fwd)"))){
-	    snprintf(tmp_20k_buf+2000, SIZEOF_20KBUF-2000, "%s (fwd)", tmp_20k_buf);
-	    tmp_20k_buf[SIZEOF_20KBUF-2000-1] = '\0';
-	    memmove(tmp_20k_buf, tmp_20k_buf+2000, strlen(tmp_20k_buf+2000));
-	    tmp_20k_buf[strlen(tmp_20k_buf+2000)] = '\0';
+	l = strlen(tmp_20k_buf);
+	if(l < 5 || strcmp(tmp_20k_buf+l-5,"(fwd)")){
+	    char *s = cpystr(tmp_20k_buf);
+	    snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%.1000s (fwd)", s);
+	    tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
+	    fs_give((void **) &s);
 	}
 
 	/*

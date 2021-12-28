@@ -104,6 +104,7 @@ JSON_S *oauth2_json_reply(OAUTH2_SERVER_METHOD_S RefreshMethod, OAUTH2_S *oauth2
 {
     JSON_S *json = NULL;
     HTTP_PARAM_S params[OAUTH2_PARAM_NUMBER];
+    HTTPSTREAM *stream = NIL;
     unsigned char *s;
     char *server = NULL;
 
@@ -111,11 +112,13 @@ JSON_S *oauth2_json_reply(OAUTH2_SERVER_METHOD_S RefreshMethod, OAUTH2_S *oauth2
     *status = 0;
     server = xoauth2_server(RefreshMethod.urlserver, oauth2->param[OA2_Tenant].value);
     if(strcmp(RefreshMethod.name, "POST") == 0
-	&& ((s = http_post_param(server, params, status)) != NULL)){
-	unsigned char *u = s;
-	json = json_parse(&u);
+	&& ((stream = http_open(server)) != NULL)
+	&& ((s = http_post_param(stream, params)) != NULL)){
+	json = json_parse(s);
 	fs_give((void **) &s);
     }
+    *status = stream && stream->status ? stream->status->code : -1;
+    if(stream) http_close(stream);
     if(server)
 	fs_give((void **) &server);
 
@@ -140,6 +143,7 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
      if(ogci && (x = (*ogci)(oauth2->name, user)) != NULL){
 	 oauth2->param[OA2_Id].value = cpystr(x->client_id);
 	 oauth2->param[OA2_Secret].value = x->client_secret ? cpystr(x->client_secret) : NULL;
+	 if(oauth2->param[OA2_Tenant].value) fs_give((void **) &oauth2->param[OA2_Tenant].value);
 	 oauth2->param[OA2_Tenant].value = x->tenant ? cpystr(x->tenant) : NULL;
 	 free_xoauth2_info(&x);
      }
@@ -158,20 +162,11 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
      json = oauth2_json_reply(oauth2->server_mthd[OA2_GetDeviceCode], oauth2, &status);
 
      if(json != NULL){
-	JSON_X *jx;
+	JSON_S *jx;
 
-	jx = json_body_value(json, "device_code");
-	if(jx && jx->jtype == JString)
-	   oauth2->devicecode.device_code = cpystr((char *) jx->value);
-
-	jx = json_body_value(json, "user_code");
-	if(jx && jx->jtype == JString)
-	   oauth2->devicecode.user_code = cpystr((char *) jx->value);
-
-	jx = json_body_value(json, "verification_uri");
-	if(jx && jx->jtype == JString)
-	   oauth2->devicecode.verification_uri = cpystr((char *) jx->value);
-
+        json_assign ((void **) &oauth2->devicecode.device_code, json, "device_code", JString);
+        json_assign ((void **) &oauth2->devicecode.user_code, json, "user_code", JString);
+        json_assign ((void **) &oauth2->devicecode.verification_uri, json, "verification_uri", JString);
 	if((jx = json_body_value(json, "expires_in")) != NULL)
 	   switch(jx->jtype){
 	      case JString: oauth2->devicecode.expires_in = atoi((char *) jx->value);
@@ -190,10 +185,7 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
 		default   : break;
 	   }
 
-	jx = json_body_value(json, "message");
-	if(jx && jx->jtype == JString)
-	   oauth2->devicecode.message = cpystr((char *) jx->value);
-
+        json_assign ((void **) &oauth2->devicecode.message, json, "message", JString);
 	json_free(&json);
 
 	if(oauth2->devicecode.verification_uri && oauth2->devicecode.user_code){
@@ -210,16 +202,15 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
      json = oauth2_json_reply(oauth2->server_mthd[OA2_GetAccessTokenFromRefreshToken], oauth2, &status);
 
      if(json != NULL){
-	JSON_X *jx;
+	JSON_S *jx;
 
 	switch(status){
 	   case HTTP_UNAUTHORIZED:
 			mm_log("Client not authorized (wrong client-id?)", ERROR);
 			break;
-	   case HTTP_OK: jx = json_body_value(json, "access_token");
-			 if(jx && jx->jtype == JString)
-			   oauth2->access_token = cpystr((char *) jx->value);
-
+	   case HTTP_OK: if(oauth2->access_token)
+			    fs_give((void **) &oauth2->access_token);
+			 json_assign ((void **) &oauth2->access_token, json, "access_token", JString);
 			 if((jx = json_body_value(json, "expires_in")) != NULL)
 			 switch(jx->jtype){
 			      case JString: oauth2->expiration = time(0) + atol((char *) jx->value);
@@ -231,9 +222,16 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
 			 oauth2->cancel_refresh_token = 0;	/* do not cancel this token. It is good */
 			 break;
 
-	     default :  { char tmp[100];
-			  sprintf(tmp, "Oauth2 client Received Code %d", status);
+	     default :  { char tmp[200];
+			  char *err, *err_desc;
+			  jx = json_body_value(json, "error");
+			  err = cpystr(jx && jx->jtype == JString ? (char *) jx->value : "Unknown error");
+			  jx = json_body_value(json, "error_description");
+			  err_desc = cpystr(jx && jx->jtype == JString ? (char *) jx->value : "No description");
+			  sprintf(tmp, "Code %d: %.80s: %.80s", status, err, err_desc);
 			  mm_log (tmp, ERROR);
+			  if(err) fs_give((void **) &err);
+			  if(err_desc) fs_give((void **) &err_desc);
 			  oauth2->cancel_refresh_token++;
 			}
 			break;
@@ -268,39 +266,41 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
 	json = oauth2_json_reply(oauth2->server_mthd[OA2_GetAccessTokenFromAccessCode], oauth2, &status);
 
 	if(json != NULL){
-	   JSON_X *jx;
+	   JSON_S *jx;
 
 	  switch(status){
-	     case HTTP_OK : jx = json_body_value(json, "refresh_token");
-			     if(jx && jx->jtype == JString)
-			       oauth2->param[OA2_RefreshToken].value = cpystr((char *) jx->value);
+	     case HTTP_OK : if(oauth2->param[OA2_RefreshToken].value)
+			       fs_give((void **) &oauth2->param[OA2_RefreshToken].value);
+			    json_assign ((void **) &oauth2->param[OA2_RefreshToken].value, json, "refresh_token", JString);
+			    if(oauth2->access_token)
+			       fs_give((void **) &oauth2->access_token);
+			    json_assign ((void **) &oauth2->access_token, json, "access_token", JString);
 
-			     jx = json_body_value(json, "access_token");
-			     if(jx && jx->jtype == JString)
-			       oauth2->access_token = cpystr((char *) jx->value);
-
-			     if((jx = json_body_value(json, "expires_in")) != NULL)
-			     switch(jx->jtype){
+			    if((jx = json_body_value(json, "expires_in")) != NULL)
+			      switch(jx->jtype){
 				case JString: oauth2->expiration = time(0) + atol((char *) jx->value);
 				    break;
 				case JLong  : oauth2->expiration = time(0) + *(long *) jx->value;
 				    break;
 				default   : break;
-			     }
+			      }
 
-			     jx = json_body_value(json, "expires_in");
-			     if(jx && jx->jtype == JString)
-			       oauth2->expiration = time(0) + atol((char *) jx->value);
+			    oauth2->cancel_refresh_token = 0;	/* do not cancel this token. It is good */
 
-			     oauth2->cancel_refresh_token = 0;	/* do not cancel this token. It is good */
-
-			     break;
+			    break;
 
 	     case HTTP_BAD :  break;
 
-		default   :  { char tmp[100];
-			       sprintf(tmp, "Oauth2 Client Received Code %d", status);
+		default   :  { char tmp[200];
+			       char *err, *err_desc;
+			       jx = json_body_value(json, "error");
+			       err = cpystr(jx && jx->jtype == JString ? (char *) jx->value : "Unknown error");
+			       jx = json_body_value(json, "error_description");
+			       err_desc = cpystr(jx && jx->jtype == JString ? (char *) jx->value : "No description");
+			       sprintf(tmp, "Code %d: %.80s: %.80s", status, err, err_desc);
 			       mm_log (tmp, ERROR);
+			       if(err) fs_give((void **) &err);
+			       if(err_desc) fs_give((void **) &err_desc);
 			       oauth2->cancel_refresh_token++;
 			     }
 	  }
@@ -327,16 +327,12 @@ void oauth2deviceinfo_get_accesscode(void *inp, void *outp)
   json = oauth2_json_reply(oauth2->server_mthd[OA2_GetAccessTokenFromAccessCode], oauth2, &status);
 
   if(json != NULL){
-     JSON_X *jx;
-     char *error;
+     JSON_S *jx;
+     char *error = NIL;
 
      switch(status){
-	case HTTP_BAD : jx = json_body_value(json, "error");
-			if(jx && jx->jtype == JString)
-			  error = cpystr((char *) jx->value);
-			else
-			  break;
-
+	case HTTP_BAD : json_assign ((void **) &error, json, "error", JString);
+		        if(!error) break;
 			if(compare_cstring(error, "authorization_pending") == 0)
 			   rv = OA2_CODE_WAIT;
 			else if(compare_cstring(error, "authorization_declined") == 0)
@@ -350,13 +346,12 @@ void oauth2deviceinfo_get_accesscode(void *inp, void *outp)
 
 			break;
 
-	case HTTP_OK :  jx = json_body_value(json, "refresh_token");
-		        if(jx && jx->jtype == JString)
-			   oauth2->param[OA2_RefreshToken].value = cpystr((char *) jx->value);
-
-			jx = json_body_value(json, "access_token");
-			if(jx && jx->jtype == JString)
-			  oauth2->access_token = cpystr((char *) jx->value);
+	case HTTP_OK :   if(oauth2->param[OA2_RefreshToken].value)
+			   fs_give((void **) &oauth2->param[OA2_RefreshToken].value);
+			 json_assign ((void **) &oauth2->param[OA2_RefreshToken].value, json, "refresh_token", JString);
+			 if(oauth2->access_token)
+			       fs_give((void **) &oauth2->access_token);
+			 json_assign ((void **) &oauth2->access_token, json, "access_token", JString);
 
 			if((jx = json_body_value(json, "expires_in")) != NULL)
 			  switch(jx->jtype){
@@ -441,16 +436,14 @@ void renew_accesstoken(MAILSTREAM *stream)
     user[0] = '\0';
     mm_login_method (&mb, user, (void *) &oauth2, trial, stream->auth.name);
 
-    if(oauth2.param[OA2_State].value)
-      fs_give((void **) &oauth2.param[OA2_State].value);
+    if(oauth2.access_token)	/* we need a new one */
+      fs_give((void **) &oauth2.access_token);
 
     if(stream->auth.expiration == 0){
        stream->auth.expiration = oauth2.expiration;
+       if(oauth2.param[OA2_RefreshToken].value) fs_give((void **) &oauth2.param[OA2_RefreshToken].value);
        return;
     }
-
-    if(oauth2.access_token)
-      fs_give((void **) &oauth2.access_token);
 
     oauth2.param[OA2_State].value = oauth2_generate_state();
 
@@ -463,4 +456,7 @@ void renew_accesstoken(MAILSTREAM *stream)
     if(oauth2.param[OA2_Id].value) fs_give((void **) &oauth2.param[OA2_Id].value);
     if(oauth2.param[OA2_Secret].value) fs_give((void **) &oauth2.param[OA2_Secret].value);
     if(oauth2.param[OA2_Tenant].value) fs_give((void **) &oauth2.param[OA2_Tenant].value);
+    if(oauth2.param[OA2_State].value) fs_give((void **) &oauth2.param[OA2_State].value);
+    if(oauth2.param[OA2_RefreshToken].value) fs_give((void **) &oauth2.param[OA2_RefreshToken].value);
+    if(oauth2.access_token) fs_give((void **) &oauth2.access_token);
 }

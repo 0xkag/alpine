@@ -281,7 +281,7 @@ void dummy_list_work (MAILSTREAM *stream,char *dir,char *pat,char *contents,
   DIR *dp;
   struct direct *d;
   struct stat sbuf;
-  char tmp[MAILTMPLEN],path[MAILTMPLEN];
+  char tmp[MAILTMPLEN],path[MAILTMPLEN + 1];
   size_t len = 0;
 				/* punt if bogus name */
   if (!mailboxdir (tmp,dir,NIL)) return;
@@ -536,7 +536,7 @@ long dummy_delete (MAILSTREAM *stream,char *mailbox)
      return maildir_delete(stream, tmp);
   }
   if (!(s = dummy_file (tmp,mailbox))) {
-    sprintf (tmp,"Can't delete - invalid name: %.80s",s);
+    sprintf (tmp,"Can't delete - invalid name: %.80s",mailbox);
     MM_LOG (tmp,ERROR);
   }
 				/* no trailing / (workaround BSD kernel bug) */
@@ -754,8 +754,11 @@ long dummy_append (MAILSTREAM *stream,char *mailbox,append_t af,void *data)
 				/* append to INBOX? */
   if (!compare_cstring (mailbox,"INBOX")) {
 				/* yes, if no empty proto try creating */
-    if (!ts && !(*(ts = default_proto (NIL))->dtb->create) (ts,"INBOX"))
-      ts = NIL;
+    if (!ts){
+	ts = default_proto (NIL);
+	if(!(*ts->dtb->create)(ts,"INBOX"))
+	   ts = NIL;
+    }
   }
   else if (dummy_file (tmp,mailbox) && ((fd = open (tmp,O_RDONLY,NIL)) < 0)) {
     if ((e = errno) == ENOENT) /* failed, was it no such file? */

@@ -64,7 +64,6 @@ static char rcsid[] = "$Id: alpine.c 1266 2009-07-14 18:39:12Z hubert@u.washingt
 #include "after.h"
 #include "smime.h"
 #include "newmail.h"
-#include "xoauth2conf.h"
 #ifndef _WINDOWS
 #include "../pico/osdep/raw.h"	/* for STD*_FD */
 #endif
@@ -334,6 +333,7 @@ main(int argc, char **argv)
     mail_parameters(NULL, SET_FREESTREAMSPAREP, (void *) sp_free_callback);
     mail_parameters(NULL, SET_FREEELTSPAREP,    (void *) free_pine_elt);
     mail_parameters(NULL, SET_FREEBODYSPAREP,   (void *) free_body_sparep);
+    mail_parameters(NULL, SET_ERASEPASSWORD, (void *) pine_delete_pwd);
     mail_parameters(NULL, SET_OA2CLIENTGETACCESSCODE, (void *) oauth2_get_access_code);
     mail_parameters(NULL, SET_OA2CLIENTINFO, (void *) oauth2_get_client_info);
     mail_parameters(NULL, SET_OA2DEVICEINFO, (void *) oauth2_set_device_info);
@@ -698,6 +698,9 @@ main(int argc, char **argv)
 
 	   min_v = pith_ssl_encryption_version(min_s);
 	   max_v = pith_ssl_encryption_version(max_s);
+
+	   if(min_s != NULL) fs_give((void **) &min_s);
+	   if(max_s != NULL) fs_give((void **) &max_s);
 
 	   if(min_v < 0 || max_v < 0){
 	      snprintf(tmp_20k_buf, SIZEOF_20KBUF,
@@ -3662,10 +3665,7 @@ prune_folders_ok(void)
 
 void  
 free_alpine_module_globals(void)
-{   
-#ifdef  LOCAL_PASSWD_CACHE
-    free_passfile_cache();
-#endif
+{
     free_message_queue();
     free_titlebar_globals();
 }

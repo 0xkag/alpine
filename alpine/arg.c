@@ -88,7 +88,8 @@ static char args_err_missing_client_id[] =	N_("missing client-id name. Example: 
 static char args_err_missing_client_secret[] =	N_("missing client-secret name. Example: -xoauth2-client-secret V56i0fa_");
 static char args_err_missing_tenant[] =	N_("missing tenant value. Example: -xoauth2-tenant common");
 static char args_err_missing_user[] =	N_("missing username value. Example: -xoauth2-user user@example.com");
-static char args_err_missing_xoauth_option[] =  N_("at least one of the arguments -xoauth2-server, or -xoauth2-client-id, xoauth2-tenant, or -xoauth2-client-secret is missing.");
+static char args_err_missing_flow[] =	N_("missing flow. Example: -xoauth2-client-flow Authorize");
+static char args_err_missing_xoauth_option[] =  N_("you must set all options -xoauth2-server, -xoauth2-client-id and -xoauth2-client-secret if you use any of them");
 
 static char *args_pine_args[] = {
 N_("Possible Starting Arguments for Alpine program:"),
@@ -186,6 +187,10 @@ N_(" -xoauth2-server <value>"),
 N_(" -xoauth2-client-id <value>"),
 N_(" -xoauth2-client-secret <value>"),
 N_("\tNote: All of -xoauth options above must be used, if any of them is used"),
+N_(" -xoauth2-tenant <value>"),
+N_(" -xoauth2-user <value>"),
+N_(" -xoauth2-flow <value>"),
+N_("\tNote: The previous two options are optional and if not used, Alpine resorts to their default values"),
 " -<option>=<value>   Assign <value> to the pinerc option <option>",
 "\t\t     e.g. -signature-file=sig1",
 "\t\t     e.g. -color-style=no-color",
@@ -631,7 +636,7 @@ Loop: while(--ac > 0)
 		  do_version = 1;
 		  goto Loop;
 	      }
-	      else if(strcmp(*av, "xoauth2-server") == 0){
+	      else if(strcmp(*av, "xoauth2-server") == 0 || strcmp(*av, "x-s") == 0){
 		  if(--ac){
 		      if((str = *++av) != NULL){
 			  if(x.name)
@@ -645,7 +650,7 @@ Loop: while(--ac > 0)
 		  }
 		  goto Loop;
 	      }
-	      else if(strcmp(*av, "xoauth2-client-id") == 0){
+	      else if(strcmp(*av, "xoauth2-client-id") == 0 || strcmp(*av, "x-c-i") == 0){
 		  if(--ac){
 		      if((str = *++av) != NULL){
 			  if(x.client_id)
@@ -659,7 +664,7 @@ Loop: while(--ac > 0)
 		  }
 		  goto Loop;
 	      }
-	      else if(strcmp(*av, "xoauth2-client-secret") == 0){
+	      else if(strcmp(*av, "xoauth2-client-secret") == 0 || strcmp(*av, "x-c-s") == 0){
 		  if(--ac){
 		      if((str = *++av) != NULL){
 			  if(x.client_secret)
@@ -673,7 +678,7 @@ Loop: while(--ac > 0)
 		  }
 		  goto Loop;
 	      }
-	      else if(strcmp(*av, "xoauth2-tenant") == 0){
+	      else if(strcmp(*av, "xoauth2-tenant") == 0 || strcmp(*av, "x-t") == 0){
 		  if(--ac){
 		      if((str = *++av) != NULL){
 			  if(x.tenant)
@@ -687,7 +692,7 @@ Loop: while(--ac > 0)
 		  }
 		  goto Loop;
 	      }
-	      else if(strcmp(*av, "xoauth2-user") == 0){
+	      else if(strcmp(*av, "xoauth2-user") == 0 || strcmp(*av, "x-u") == 0){
 		  if(--ac){
 		      if((str = *++av) != NULL){
 			  if(x.users)
@@ -697,6 +702,20 @@ Loop: while(--ac > 0)
 		  }
 		  else{
 		      display_args_err(_(args_err_missing_user), NULL, 1);
+		      ++usage;
+		  }
+		  goto Loop;
+	      }
+	      else if(strcmp(*av, "xoauth2-flow") == 0 || strcmp(*av, "x-f") == 0){
+		  if(--ac){
+		      if((str = *++av) != NULL){
+			  if(x.flow)
+			     fs_give((void **) &x.flow);
+			  x.flow = cpystr(str);
+		      }
+		  }
+		  else{
+		      display_args_err(_(args_err_missing_flow), NULL, 1);
 		      ++usage;
 		  }
 		  goto Loop;
@@ -1042,6 +1061,12 @@ Loop: while(--ac > 0)
 	}
     }
 
+    if((x.name || x.client_id || x.client_secret)
+	&& !(x.name && x.client_id && x.client_secret)){
+	display_args_err(_(args_err_missing_xoauth_option), NULL, 1);
+	++usage;
+    }
+
     if(((do_conf ? 1 : 0)+(pinerc_file ? 1 : 0)) > 1){
 	display_args_err(_("May only have one of -conf and -pinerc"),
 			 NULL, 1);
@@ -1062,6 +1087,7 @@ Loop: while(--ac > 0)
 	if(tmp1){
 	  sprintf(tmp1,"%s=%s", ps_global->vars[V_XOAUTH2_INFO].name, tmp2);
           pinerc_cmdline_opt(tmp1);
+	  set_current_val(&ps_global->vars[V_XOAUTH2_INFO], TRUE, TRUE);
 	  fs_give((void **) &tmp1);
 	}
 	fs_give((void **) &tmp2);
