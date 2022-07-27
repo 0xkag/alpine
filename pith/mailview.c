@@ -1918,18 +1918,78 @@ color_headers(long int linenum, char *line, LT_INS_S **ins, void *local)
     return(0);
 }
 
+int
+incomplete_url(char *up, int n, int delim)
+{
+  char *line, *line2;
+  int rv = 0, len;
+
+  if(*(up + n) != '\0')
+    return 0;
+
+  if(delim > 0)
+   return 1;
+
+  if(F_ON(F_VIEW_LONG_URL, ps_global)){
+    line = up;
+    if(!strncmp(line, "http://", 7))
+      line += 7;
+    else if(!strncmp(line, "https://", 8))
+      line += 8;
+    if(strchr(line, '/') != NULL && (line = strrchr(line, '/')) != NULL){
+      line++;
+      line2 = strrchr(line, '.');
+      rv = (strpbrk(line,"+#?=&") != NULL) 
+	    || (!line2 || line-line2 > 4);
+    }
+  }
+  return rv;
+}
+
 
 int
 url_hilite(long int linenum, char *line, LT_INS_S **ins, void *local)
 {
     register char *lp, *up = NULL, *urlp = NULL,
 		  *weburlp = NULL, *mailurlp = NULL;
-    int		   n, n1, n2, n3, l;
+    char *use_this_line, c, *begin_line, *end_line;
+    static int scannextline, delim = -1;
+    int		   n, n1, n2, n3, l, len;
+    int		   we_clear = 0, newhandle = 1, tie_off = 0;
     char	   buf[256], color[256];
     HANDLE_S	  *h;
     URL_HILITE_S  *uh;
 
-    for(lp = line; ; lp = up + n){
+    uh = (URL_HILITE_S *) local;
+    if(((uh && uh->handlesp && ((h = *(uh->handlesp)) == NULL)) || h->key == 0) ||
+	(!line || !*line) || linenum == 0)
+      scannextline = 0;		/* initialize scannextline */
+
+    if(scannextline != 0){
+	up = rfc1738_scan(line, &n1);
+
+	/* if we found a url in the current line, but it is not at the beginning of 
+	 * the next line, or if there is no url in this line, we check if the url 
+	 * in the previous line continues in this line.
+	 */
+
+	if(line != up){
+	  if(*uh->handlesp == NULL)
+	    h = new_handle(uh->handlesp);
+	  for(h = *uh->handlesp; h->next; h = h->next);	/* get last handle */
+	  len = h->h.url.path ? strlen(h->h.url.path) : 0;
+	  use_this_line = (char *) fs_get((len + strlen(line) + 1)*sizeof(char));
+	  sprintf(use_this_line,"%s%s", (h->h.url.path ? h->h.url.path : ""), line);
+	  we_clear++;
+	  newhandle = 0;
+	}
+	else
+	  use_this_line = line;
+    }
+    else
+       use_this_line = line;
+
+    for(lp = use_this_line; ; lp = up + n){
 	/* scan for all of them so we can choose the first */
 	if(F_ON(F_VIEW_SEL_URL,ps_global))
 	  urlp = rfc1738_scan(lp, &n1);
@@ -1939,6 +1999,10 @@ url_hilite(long int linenum, char *line, LT_INS_S **ins, void *local)
 	  mailurlp = mail_addr_scan(lp, &n3);
 	
 	if(urlp || weburlp || mailurlp){
+	    if(scannextline == 0){
+		newhandle++;
+		delim = -1;
+	    }
 	    up = urlp ? urlp : 
 		  weburlp ? weburlp : mailurlp;
 	    if(up == urlp && weburlp && weburlp < up)
@@ -1946,8 +2010,22 @@ url_hilite(long int linenum, char *line, LT_INS_S **ins, void *local)
 	    if(mailurlp && mailurlp < up)
 	      up = mailurlp;
 
-	    if(up == urlp){
+	    if(scannextline != 0 && up == use_this_line){
+		scannextline = 0;
+		newhandle++;
 		n = n1;
+            }
+            else if(up == urlp){
+		if(delim < 0)
+		   delim = up > use_this_line && *(up - 1) == '<';
+		n = n1;
+		if(incomplete_url(up,n, delim))
+		   scannextline++;
+		else{
+		   if(scannextline)
+		     tie_off++;
+		   scannextline = 0;
+		}
 		weburlp = mailurlp = NULL;
 	    }
 	    else if(up == weburlp){
@@ -1964,35 +2042,58 @@ url_hilite(long int linenum, char *line, LT_INS_S **ins, void *local)
 
 	uh = (URL_HILITE_S *) local;
 
-	h	      = new_handle(uh->handlesp);
-	h->type	      = URL;
-	h->h.url.path = (char *) fs_get((n + 10) * sizeof(char));
-	snprintf(h->h.url.path, n+10, "%s%.*s",
+	if(tie_off){
+	   for(;h->next; h = h->next);
+	   tie_off = 0;	/* do only once */
+	   begin_line = line;
+	   end_line = line + n - strlen(h->h.url.path);
+	   fs_give((void **)&(h->h.url.path));
+	   c = *(use_this_line + n);
+	   *(use_this_line+n) = '\0';
+	   h->h.url.path = cpystr(use_this_line);
+	   *(use_this_line+n) = c;
+	}
+	else{
+	   if(newhandle){
+	     h = new_handle(uh->handlesp);
+	     h->type = URL;
+	   }
+	   begin_line = newhandle ? (we_clear ? line + strlen(line) - strlen(up) 
+					      : up) : line;
+	   end_line = newhandle ? begin_line + n : line + strlen(line);
+	   if(scannextline && h->h.url.path)
+	     fs_give((void **)&(h->h.url.path));
+	   h->h.url.path = (char *) fs_get((n + 10) * sizeof(char));
+	   snprintf(h->h.url.path, n+10, "%s%.*s",
 		weburlp ? "http://" : (mailurlp ? "mailto:" : ""), n, up);
-	h->h.url.path[n+10-1] = '\0';
+	   h->h.url.path[n+10-1] = '\0';
+	}
 
 	if(handle_start_color(color, sizeof(color), &l, uh->hdr_color))
-	  ins = gf_line_test_new_ins(ins, up, color, l);
+	  ins = gf_line_test_new_ins(ins, begin_line, color, l);
 	else if(F_OFF(F_SLCTBL_ITEM_NOBOLD, ps_global))
-	  ins = gf_line_test_new_ins(ins, up, url_embed(TAG_BOLDON), 2);
+	  ins = gf_line_test_new_ins(ins, begin_line, url_embed(TAG_BOLDON), 2);
 
 	buf[0] = TAG_EMBED;
 	buf[1] = TAG_HANDLE;
 	snprintf(&buf[3], sizeof(buf)-3, "%d", h->key);
 	buf[sizeof(buf)-1] = '\0';
 	buf[2] = strlen(&buf[3]);
-	ins = gf_line_test_new_ins(ins, up, buf, (int) buf[2] + 3);
+	ins = gf_line_test_new_ins(ins, begin_line, buf, (int) buf[2] + 3);
 
 	/* in case it was the current selection */
-	ins = gf_line_test_new_ins(ins, up + n, url_embed(TAG_INVOFF), 2);
+	ins = gf_line_test_new_ins(ins, end_line, url_embed(TAG_INVOFF), 2);
 
 	if(scroll_handle_end_color(color, sizeof(color), &l, uh->hdr_color))
-	  ins = gf_line_test_new_ins(ins, up + n, color, l);
+	  ins = gf_line_test_new_ins(ins, end_line, color, l);
 	else
-	  ins = gf_line_test_new_ins(ins, up + n, url_embed(TAG_BOLDOFF), 2);
+	  ins = gf_line_test_new_ins(ins, end_line, url_embed(TAG_BOLDOFF), 2);
 
 	urlp = weburlp = mailurlp = NULL;
     }
+
+    if(we_clear)
+	fs_give((void **)&use_this_line);
 
     return(0);
 }

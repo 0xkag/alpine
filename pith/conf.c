@@ -3178,6 +3178,8 @@ feature_list(int index)
 	 F_VIEW_SEL_URL, h_config_enable_view_url, PREF_VIEW, 1},
 	{"enable-msg-view-web-hostnames", "Enable Message View Web Hostname Links",
 	 F_VIEW_SEL_URL_HOST, h_config_enable_view_web_host, PREF_VIEW, 1},
+	{"enable-msg-view-long-url", "Enable Recognition of Long URLS without Delimiter",
+	 F_VIEW_LONG_URL, h_config_enable_long_url, PREF_VIEW, 0},
 	{"enable-msg-view-forced-arrows", "Enable Message View Forced Arrows",
 	 F_FORCE_ARROWS, h_config_enable_view_arrows, PREF_VIEW, 0},
 	{"external-command-loads-inline-images-only", NULL,
