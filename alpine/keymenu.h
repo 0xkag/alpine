@@ -220,6 +220,19 @@ struct key_menu {
 #define MC_XSADD	807
 #define MC_XSDELETE	808
 #define MC_XSHELP	809
+#define MC_DELTHREAD	810
+#define MC_UNDTHREAD	811
+#define MC_SELTHREAD	812
+#define MC_SSUTHREAD	813
+#define MC_DSUTHREAD	814
+#define MC_USUTHREAD	815
+#define MC_SORTHREAD	816
+#define MC_NEXTHREAD	817
+#define MC_KOLAPSE	818
+#define MC_EXPTHREAD	819
+#define MC_PRETHREAD	820
+#define MC_CTHREAD	821
+#define MC_OTHREAD	822
 
 /* Commands for S/MIME screens */
 #define MC_TRUST	900

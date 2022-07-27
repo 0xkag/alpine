@@ -4473,11 +4473,11 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
 	ctmp->tool		  = role_sort_tool;
 	ctmp->valoffset	    	  = rindent;
 	ctmp->flags              |= CF_NOSELECT;
-	ctmp->value     = cpystr(set_choose);				\
+	ctmp->value     = cpystr(set_choose);
 
 	pval = PVAL(&sort_act_var, ew);
 	if(pval)
-	  decode_sort(pval, &def_sort, &def_sort_rev);
+	  decode_sort(pval, &def_sort, &def_sort_rev, 0);
 
 	/* allow user to set their default sort order */
 	new_confline(&ctmp)->var = &sort_act_var;
@@ -4487,7 +4487,7 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
 	ctmp->tool	      = role_sort_tool;
 	ctmp->valoffset	      = rindent;
 	ctmp->varmem	      = -1;
-	ctmp->value	      = generalized_sort_pretty_value(ps, ctmp, 0);
+	ctmp->value	      = generalized_sort_pretty_value(ps, ctmp, 0, 0);
 
 	for(j = 0; j < 2; j++){
 	    for(i = 0; ps->sort_types[i] != EndofList; i++){
@@ -4499,7 +4499,7 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
 		ctmp->valoffset	      = rindent;
 		ctmp->varmem	      = i + (j * EndofList);
 		ctmp->value	      = generalized_sort_pretty_value(ps, ctmp,
-								      0);
+								      0, 0);
 	    }
 	}
 
@@ -5432,7 +5432,7 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
 	  (*result)->patgrp->stat_boy = PAT_STAT_EITHER;
 
 	if(sort_act){
-	    decode_sort(sort_act, &def_sort, &def_sort_rev);
+	    decode_sort(sort_act, &def_sort, &def_sort_rev, 0);
 	    (*result)->action->sort_is_set = 1;
 	    (*result)->action->sortorder = def_sort;
 	    (*result)->action->revsort = (def_sort_rev ? 1 : 0);

@@ -3696,6 +3696,52 @@ scrolltool(SCROLL_S *sparms)
 	    print_to_printer(sparms);
 	    break;
 
+          case MC_NEXTHREAD:
+          case MC_PRETHREAD:
+             if (THREADING()){
+                if (any_messages(ps_global->msgmap, NULL,
+                                        "to move to other thread"))
+                  move_thread(ps_global, ps_global->mail_stream, ps_global->msgmap,
+                                                cmd == MC_NEXTHREAD ? 1 : -1);
+		done = 1;
+             }
+             else
+                q_status_message(SM_ORDER, 0, 1,
+                         "Command available in threaded mode only");
+          break;
+
+          case MC_DELTHREAD:
+             if (THREADING()){
+                if (any_messages(ps_global->msgmap, NULL, "to delete"))
+                    cmd_delete_thread(ps_global, ps_global->mail_stream, ps_global->msgmap);
+		done = 1;
+             }
+             else
+                q_status_message(SM_ORDER, 0, 1,
+                         "Command available in threaded mode only");
+          break;  
+                
+          case MC_UNDTHREAD:
+             if (THREADING()){
+                if (any_messages(ps_global->msgmap, NULL, "to undelete"))
+                    cmd_undelete_thread(ps_global, ps_global->mail_stream, ps_global->msgmap);
+		done = 1;
+             }
+             else
+                q_status_message(SM_ORDER, 0, 1,
+                         "Command available in threaded mode only");   
+          break;
+             
+          case MC_SELTHREAD:
+             if (THREADING()){
+                if (any_messages(ps_global->msgmap, NULL, "to undelete"))
+                    cmd_select_thread(ps_global, ps_global->mail_stream, ps_global->msgmap);
+		done = 1;
+             }
+             else
+                q_status_message(SM_ORDER, 0, 1,
+                         "Command available in threaded mode only");
+          break;
 
 	    /* ------- First handle on Line ------ */
 	  case MC_GOTOBOL :
