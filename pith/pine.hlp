@@ -32215,6 +32215,20 @@ to those explained by the postponed option.
 <P>
 setRole, for selecting a role to apply to a composition.
 
+<P> 
+To Sender, creates a new message, but sets the To: field of the outgoing 
+message to the value of the From: field of the message that is currently 
+being read or where the cursor is positioned in the index screen. This 
+option allows you to compose a message and set the To: field faster than 
+using your addressbook, and helps you create a new conversation with the 
+person in the From: field, without having to use the Reply command. Using 
+the Reply command is many times undesirable because the way a reply is 
+handled by Alpine is different than a new message. For example, text of 
+the original message and attachments of the original message might be 
+included in a reply, and this is not desirable in a new composition. This 
+command is intended to be used to create a fresh, new message, by filling 
+out the To: field automatically.
+
 <P>
 &lt;End of help on this topic&gt;
 </BODY>
@@ -40056,25 +40070,25 @@ Send using UTF-8 character set; Send but replace untranslatable characters
 with question marks; return to the composer; or cancel message altogether.
 ========== h_compose_intrptd ==========
 N, compose a new msg. I, continue interrupted msg. R, set a role.
-^C to cancel.
+S, compose msg to sender. ^C to cancel.
 ========== h_compose_postponed ==========
 N, compose a new message. P, continue postponed msg. R, set a role.
-^C to cancel.
+S, compose msg to sender. ^C to cancel.
 ========== h_compose_intrptd_postponed ==========
 N, compose a new msg. I, continue interrupted msg. P, continue postponed msg.
-R, set a role. ^C to cancel.
+S, compose msg to sender. R, set a role. ^C to cancel.
 ========== h_compose_form ==========
 N, compose a new message. F, use form letter. R, set a role.
-^C to cancel.
+S, compose msg to sender. ^C to cancel.
 ========== h_compose_intrptd_form ==========
 N, compose a new msg. I, continue interrupted msg. F, use form letter.
-R, set a role. ^C to cancel.
+S, compose msg to sender. R, set a role. ^C to cancel.
 ========== h_compose_postponed_form ==========
 N, compose a new message. P, continue postponed msg. F, use form letter.
-R, set a role. ^C to cancel.
+S, compose msg to sender. R, set a role. ^C to cancel.
 ========== h_compose_intrptd_postponed_form ==========
 N, compose a new msg. I, continue interrupted msg. P, continue postponed msg.
-F, use form letter. R, set a role. ^C to cancel.
+S, compose msg to sender. F, use form letter. R, set a role. ^C to cancel.
 ========== h_config_context_del_except ==========
 If you delete the last exceptional collection you can only add it back by
 manually editing the exceptions config file.
