@@ -5361,11 +5361,13 @@ cancel_for_pico(void (*redraw_pico)(void))
 	{'c', 'c', "C", N_("Confirm")},
 	{'n', 'n', "N", N_("No")},
 	{'y', 'y', "", ""},
+	{'t', 't', "T", N_("CounT")},
 	{-1, 0, NULL, NULL}
     };
 
     ps_global->redrawer = redraw_pico;
     fix_windsize(ps_global);
+    pbf->curpos[0] = '\0';
     
     while(1){
 	rv = radio_buttons(prompt, -FOOTER_ROWS(ps_global), opts,
@@ -5378,12 +5380,16 @@ cancel_for_pico(void (*redraw_pico)(void))
 	    q_status_message(SM_INFO, 1, 3, _(" Type \"C\" to cancel message "));
 	    display_message('x');
 	}
+	else if(rv == 't'){
+	    showcpos(1,0);
+	    break;
+	}
 	else
 	  break;
     }
 
     ps_global->redrawer = redraw;
-    return(rstr);
+    return(pbf->curpos[0] ? pbf->curpos : rstr);
 }
 
 

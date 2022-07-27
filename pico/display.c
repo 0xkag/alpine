@@ -1797,6 +1797,10 @@ mlyesno(UCS *prompt, int dflt)
     menu_yesno[6].label = N_("Cancel");
     menu_yesno[7].name  = "N";
     menu_yesno[7].label = (dflt == FALSE) ? "[" N_("No") "]" : N_("No");
+    if(Pmaster && Pmaster->onctrlc){
+      menu_yesno[8].name  = "T";
+      menu_yesno[8].label = N_("counT");
+    }
     wkeyhelp(menu_yesno);		/* paint generic menu */
     sgarbk = TRUE;			/* mark menu dirty */
     if(Pmaster && curwp)
@@ -1873,6 +1877,14 @@ mlyesno(UCS *prompt, int dflt)
 		sgarbk = TRUE;			/* mark menu dirty */
 		km_popped++;
 		break;
+	    }
+
+	  case 'T':
+	  case 't':
+	    if(Pmaster && Pmaster->onctrlc){
+	      pputs_utf8(_("counT"), 1);
+	      rv = COUNT;
+	      break;
 	    }
 	    /* else fall through */
 
