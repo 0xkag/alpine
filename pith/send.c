@@ -44,6 +44,9 @@
 
 #include "../c-client/smtp.h"
 #include "../c-client/nntp.h"
+#ifndef _WINDOWS
+int maildir_file_path(char *name, char *tmp, size_t sizeoftmp);
+#endif /* _WINDOWS */
 
 
 /* this is used in pine_send and pine_simple_send */
@@ -247,6 +250,13 @@ postponed_stream(MAILSTREAM **streamp, char *mbox, char *type, int checknmsgs)
 
     if(exists & FEX_ISFILE){
 	context_apply(tmp, p_cntxt, mbox, sizeof(tmp));
+#ifndef _WINDOWS
+        if (!struncmp(tmp, "#md/",4) || !struncmp(tmp, "#mc/", 4)){
+	    char tmp2[MAILTMPLEN];
+	    maildir_file_path(tmp, tmp2, sizeof(tmp2));
+	    strcpy(tmp, tmp2);
+	}
+#endif
 	if(!(IS_REMOTE(tmp) || is_absolute_path(tmp))){
 	    /*
 	     * The mbox is relative to the home directory.

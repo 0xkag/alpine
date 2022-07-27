@@ -32,6 +32,7 @@
 #include "../c-client/utf8.h"	/* for CHARSET and such*/
 #include "../c-client/imap4r1.h"
 #include "../c-client/http.h"	/* for http support */
+#include "../c-client/maildir.h"
 
 /* include osdep protos and def'ns */
 #include "osdep/bldpath.h"
