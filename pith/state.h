@@ -358,6 +358,8 @@ struct pine {
     char        *display_charmap;	/* needs to be freed */
     char        *keyboard_charmap;	/* needs to be freed */
     void        *input_cs;
+    regex_t	 colorpat;
+    int		 paterror;
 
     char        *posting_charmap;	/* needs to be freed */
 

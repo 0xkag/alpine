@@ -5279,6 +5279,9 @@ fix_side_effects(struct pine *ps, struct variable *var, int revert)
 
 	clear_index_cache(ps->mail_stream, 0);
     }
+    else if(var == &ps->vars[V_SPECIAL_TEXT]){
+	regex_pattern(ps->VAR_SPECIAL_TEXT);
+    }
     else if(var == &ps->vars[V_INIT_CMD_LIST]){
 	if(!revert)
 	  q_status_message(SM_ASYNC, 0, 3,

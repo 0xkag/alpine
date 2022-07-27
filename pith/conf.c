@@ -260,6 +260,8 @@ CONF_TXT_T cf_text_deadlets[] =		"Specifies the number of dead letter files to k
 
 CONF_TXT_T cf_text_fillcol[] =		"Specifies the column of the screen where the composer should wrap.";
 
+CONF_TXT_T cf_special_text_color[] =	"Specifies a comma separated list of text and regular expresions that Pine\n# will highlight";
+
 CONF_TXT_T cf_text_replystr[] =		"Specifies the string to insert when replying to a message.";
 
 CONF_TXT_T cf_text_quotereplstr[] =    	"Specifies the string to replace quotes with when viewing a message.";
@@ -647,6 +649,8 @@ static struct variable variables[] = {
 #endif /* _WINDOWS */
 {"composer-wrap-column",		0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
 	NULL,			cf_text_fillcol},
+{"special-text-color",			0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
+	NULL,			cf_special_text_color},
 {"reply-indent-string",			0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0,
 	NULL,			cf_text_replystr},
 {"reply-leadin",			0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
@@ -930,6 +934,8 @@ static struct variable variables[] = {
 {"incoming-unseen-background-color",	0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
 {"signature-foreground-color",		0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
 {"signature-background-color",		0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
+{"special-text-foreground-color",	0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
+{"special-text-background-color",	0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
 {"prompt-foreground-color",		0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
 {"prompt-background-color",		0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
 {"header-general-foreground-color",	0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
@@ -2181,6 +2187,8 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
     set_current_val(&vars[V_DICTIONARY], TRUE, TRUE);
 #endif /* _WINDOWS */
     set_current_val(&vars[V_IMAGE_VIEWER], TRUE, TRUE);
+    set_current_val(&vars[V_SPECIAL_TEXT], TRUE, TRUE);
+    regex_pattern(VAR_SPECIAL_TEXT);
     set_current_val(&vars[V_BROWSER], TRUE, TRUE);
     set_current_val(&vars[V_HISTORY], TRUE, TRUE);
     set_current_val(&vars[V_SMTP_SERVER], TRUE, TRUE);
@@ -6764,6 +6772,7 @@ set_current_color_vals(struct pine *ps)
     set_color_val(&vars[V_IND_OP_FORE_COLOR], 0);
     set_color_val(&vars[V_INCUNSEEN_FORE_COLOR], 0);
     set_color_val(&vars[V_SIGNATURE_FORE_COLOR], 0);
+    set_color_val(&vars[V_SPECIAL_TEXT_FORE_COLOR], 0);
 
     set_current_val(&ps->vars[V_INDEX_TOKEN_COLORS], TRUE, TRUE);
     set_current_val(&ps->vars[V_VIEW_HDR_COLORS], TRUE, TRUE);
@@ -8048,6 +8057,8 @@ config_help(int var, int feature)
 	return(h_config_scroll_margin);
       case V_DEADLETS :
 	return(h_config_deadlets);
+       case V_SPECIAL_TEXT :
+	return(h_config_special_text_to_color);
       case V_FILLCOL :
 	return(h_config_composer_wrap_column);
       case V_TCPOPENTIMEO :
@@ -8237,6 +8248,9 @@ config_help(int var, int feature)
       case V_SIGNATURE_FORE_COLOR :
       case V_SIGNATURE_BACK_COLOR :
 	return(h_config_signature_color);
+      case V_SPECIAL_TEXT_FORE_COLOR :
+      case V_SPECIAL_TEXT_BACK_COLOR :
+	return(h_config_special_text_color);
       case V_PROMPT_FORE_COLOR :
       case V_PROMPT_BACK_COLOR :
 	return(h_config_prompt_color);
