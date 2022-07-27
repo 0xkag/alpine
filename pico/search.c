@@ -32,6 +32,7 @@ int     srpat(char *, UCS *, size_t, int, int);
 int     readpattern(char *, int, int);
 int     replace_pat(UCS *, int *, int);
 int     replace_all(UCS *, UCS *, int);
+int	deletepara(int, int);
 void	reverse_line(LINE *);
 void	reverse_buffer(void);
 void	reverse_ucs4(UCS *);
@@ -67,7 +68,7 @@ EXTRAKEYS    menu_srchpat[] = {
 	{"^W", N_("Start of Para"), (CTRL|'W')},
 	{"^O", N_("End of Para"),   (CTRL|'O')},
 	{"^U", N_("FullJustify"),   (CTRL|'U')},
-	{NULL, NULL, 0},
+	{"^P", N_("Delete Para"),   (CTRL|'P')},
 	{NULL, NULL, 0}
 };
 
@@ -216,9 +217,11 @@ forwsearch(int f, int n)
 
 	  case (CTRL|'P'):
 	    if(flags & SR_ORIGMEN){
-		/* Undefined still */
+	      deletepara(0, 1);
+	      mlerase();
+	      FWS_RETURN(TRUE);
 	    }
-	    if(flags & SR_OPTNMEN){
+	    else if(flags & SR_OPTNMEN){
 	      if(flags & SR_FORWARD){
 		flags &= ~SR_FORWARD;
 		flags |=  SR_BACKWRD;
@@ -1416,3 +1419,25 @@ sucs4_to_utf8_cpystr(UCS *orig, int bsearch)
   if(bsearch) reverse_ucs4(orig);
   return utf8;
 }
+
+int
+deletepara(int f, int n) /* Delete the current paragraph */
+{
+   if(curbp->b_mode&MDVIEW)           /* don't allow this command if  */ 
+     return(rdonly());               /* we are in read only mode     */
+   
+   if(!lisblank(curwp->w_dotp))
+     gotobop(FALSE, 1);
+
+   curwp->w_markp = curwp->w_dotp;
+   curwp->w_marko = 0;
+
+   gotoeop(FALSE, 1);
+   if (curwp->w_dotp != curbp->b_linep){ /* if we are not at the end of buffer */
+     curwp->w_dotp = lforw(curwp->w_dotp); /* get one more line */
+       curwp->w_doto = 0; /* but only the beginning */
+   }
+   killregion(f,n);
+   return(TRUE);
+}
+

@@ -8518,6 +8518,46 @@ hold down the &quot;Control&quot; key on your keyboard.  The second &quot;^&quot
 &quot;type the character ^&quot;.
 
 <P>
+This version of Alpine contains an enhanced algorithm for justification,
+which allows you to justify text that contains more complicated quote
+strings. This algorithm is based on pragmatics, rather than on a theory,
+and seems to work well with most messages. Below you will find technical
+information on how this algorithm works.
+
+<P>
+When justifying, Alpine goes through each line of the text and tries to
+determine for each line what the quote string of that line is. The quote
+string you provided is always recognized. Among other characters 
+recognized is &quot;&gt;&quot;.
+
+<P>
+Some other constructions of quote strings are recognized only if they
+appear enough in the text. For example &quot;Peter :&quot; is only
+recognized if it appears in two consecutive lines.
+
+<P> 
+Additionaly, Alpine recognizes indent-strings and justifies text in a
+paragraph to the right of indent-string, padding with spaces if necessary.
+An indent string is one which you use to delimit elements of a list. For
+example, if you were to write a list of groceries, one may write:
+
+<UL>
+<LI> Fruit
+<LI> Bread
+<LI> Eggs
+</UL>
+
+<P> 
+In this case the character &quot;*&quot; is the indent-string. Aline
+recognizes numbers (0, 1, 2.5, etc) also as indent-strings, and certain
+combinations of spaces, periods, and parenthesis. In any case, numbers are
+recognized <B>ONLY</B> if the line preceeding the given line is empty or
+ends in one of the characters &quot;.&quot; or &quot;:&quot;.
+In addition to the explanation of what constitutes a paragraph above, a
+new paragraph is recognized when an indent-string is found in it (and
+validated according to the above stated rules).
+
+<P>
 &lt;End of help on this topic&gt;
 </BODY>
 </HTML>

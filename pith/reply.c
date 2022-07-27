@@ -3085,6 +3085,9 @@ get_body_part_text(MAILSTREAM *stream, struct mail_bodystruct *body,
  		if(flow_res && ps_global->reply.use_flowed)
 		  wrapflags |= GFW_FLOW_RESULT;
 
+		filters[filtcnt].filter = gf_quote_test;
+		filters[filtcnt++].data = gf_line_test_opt(select_quote, NULL);
+
 		filters[filtcnt].filter = gf_wrap;
 		/* 
 		 * The 80 will cause longer lines than what is likely
@@ -3178,7 +3181,7 @@ get_body_part_text(MAILSTREAM *stream, struct mail_bodystruct *body,
 	dq.do_color   = 0;
 	dq.delete_all = 1;
 
-	filters[filtcnt].filter = gf_line_test;
+	filters[filtcnt].filter = gf_quote_test;
 	filters[filtcnt++].data = gf_line_test_opt(delete_quotes, &dq);
     }
 
