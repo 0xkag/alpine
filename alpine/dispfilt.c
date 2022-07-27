@@ -457,3 +457,63 @@ df_valid_test(struct mail_bodystruct *body, char *test)
 
     return(passed);
 }
+
+char *
+exec_function_rule(char *rawcmd, gf_io_t input_gc, gf_io_t output_pc)
+{
+    char *status = NULL, *cmd,  *tmpfile = NULL;
+
+    if((cmd = expand_filter_tokens(rawcmd,NULL,&tmpfile,NULL,NULL,NULL,NULL,NULL)) != NULL){
+	suspend_busy_cue();
+	ps_global->mangled_screen = 1;
+	if(tmpfile){
+	    PIPE_S	  *filter_pipe;
+	    FILE          *fp;
+	    gf_io_t	   gc, pc;
+	    STORE_S       *tmpf_so;
+
+	    /* write the tmp file */
+	    if((tmpf_so = so_get(FileStar, tmpfile, WRITE_ACCESS|OWNER_ONLY|WRITE_TO_LOCALE)) != NULL){
+	        /* copy input to tmp file */
+		gf_set_so_writec(&pc, tmpf_so);
+		gf_filter_init();
+		status = gf_pipe(input_gc, pc);
+		gf_clear_so_writec(tmpf_so);
+		if(so_give(&tmpf_so) != 0 && status == NULL)
+		  status = error_description(errno);
+
+		/* prepare the terminal in case the filter uses it */
+		if(status == NULL){
+		    if((filter_pipe = open_system_pipe(cmd, NULL, NULL,
+						      PIPE_USER|PIPE_PROT|PIPE_NOSHELL|PIPE_SILENT,
+						      0, pipe_callback, NULL)) != NULL){
+			if(close_system_pipe(&filter_pipe, NULL, pipe_callback) == 0){
+			    /* pull result out of tmp file */
+			    if((fp = our_fopen(tmpfile, "rb")) != NULL){
+				gf_set_readc(&gc, fp, 0L, FileStar, READ_FROM_LOCALE);
+				gf_filter_init();
+				status = gf_pipe(gc, output_pc);
+				fclose(fp);
+			    }
+			    else
+			      status = "Can't read result of EXEC command";
+			}
+			else
+			  status = "EXEC command command returned error.";
+		    }
+		    else
+		      status = "Can't open pipe for EXEC command";
+		}
+
+		our_unlink(tmpfile);
+	    }
+	    else
+	      status = "Can't open EXEC command tmp file";
+	}
+
+	resume_busy_cue(0);
+	fs_give((void **)&cmd);
+    }
+
+    return(status);
+}

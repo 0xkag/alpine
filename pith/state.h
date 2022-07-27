@@ -33,7 +33,7 @@
 #include "../pith/stream.h"
 #include "../pith/color.h"
 #include "../pith/user.h"
-
+#include "../pith/rulestype.h"
 
 /*
  * Printing control structure
@@ -111,6 +111,11 @@ struct pine {
     
     MAILSTREAM  *mail_stream;		/* ptr to current folder stream */
     MSGNO_S	*msgmap;		/* ptr to current message map   */
+
+    char	screen_name[16];	/* name of current screen */
+    char	*role;			/* role used when composing */
+    char	*procid;		/* procedure id when needed */
+    int		exiting;
 
     unsigned     read_predicted:1;
 
@@ -362,6 +367,7 @@ struct pine {
     struct {
         char	*(*display_filter)(char *, STORE_S *, gf_io_t, FILTLIST_S *);
         char	*(*display_filter_trigger)(BODY *, char *, size_t);
+	char	*(*exec_rule)(char *, gf_io_t, gf_io_t);
     } tools;
 
     KEYWORD_S   *keywords;
@@ -371,6 +377,9 @@ struct pine {
 
     char	 last_error[500];
     INIT_ERR_S  *init_errs;
+
+    PRULELIST_S *rule_list;
+    char	*pressed_key;
 
     PRINT_S	*print;
 

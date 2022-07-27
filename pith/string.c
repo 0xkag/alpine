@@ -16,6 +16,7 @@
     string.c
     Misc extra and useful string functions
       - rplstr         replace a substring with another string
+      - collspaces     consecutive spaces are reduced to one space.
       - sqzspaces      Squeeze out the extra blanks in a string
       - sqznewlines    Squeeze out \n and \r.
       - removing_trailing_white_space 
@@ -127,6 +128,31 @@ rplstr(char *os, size_t oslen, int dl, char *is)
     return(x3);
 }
 
+/*----------------------------------------------------------------------
+     collapse blank space
+  ----------------------------------------------------------------------*/
+void
+collspaces(char *string)
+{
+    char *p = string;
+    int only_one_space = 0;
+
+    if(!string)
+      return;
+
+    for(;isspace(*p); p++);
+
+    while((*string = *p++) != '\0')
+      if(!isspace((unsigned char)*string)){
+	only_one_space = 0;
+	string++;
+      }
+      else if(!only_one_space){
+		string++;
+		only_one_space++;
+	   }
+    *string = '\0';
+}
 
 
 /*----------------------------------------------------------------------
@@ -3041,3 +3067,35 @@ remove_quotes(unsigned char *name)
      }
   }
 }
+
+
+void
+removing_extra_stuff(string)
+    char *string;
+{
+    char *p = NULL;
+    int change = 0, length = 0;
+
+
+    if(!string)
+      return;
+
+    for(; *string; string++, length++)
+      p = ((unsigned char)*string != ',') ? NULL : (!p) ? string : p;
+
+    if(p)
+      *p = '\0';
+
+    string -= length;
+        for (; *string; string++){
+           if (change){
+              *string = ' ';
+              change = 0;
+           }
+           if ((((unsigned char)*string == ' ') ||
+                ((unsigned char)*string == ',')) &&
+                ((unsigned char)*(string + 1) == ','))
+            change++;
+        }
+}
+

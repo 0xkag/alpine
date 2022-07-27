@@ -40,6 +40,7 @@
 #include "../pith/ablookup.h"
 #include "../pith/sort.h"
 #include "../pith/smime.h"
+#include "../pith/rules.h"
 
 #include "../c-client/smtp.h"
 #include "../c-client/nntp.h"
@@ -1681,9 +1682,9 @@ call_mailer(METAENV *header, struct mail_bodystruct *body, char **alt_smtp_serve
     char         error_buf[200], *error_mess = NULL, *postcmd;
     ADDRESS     *a;
     ENVELOPE	*fake_env = NULL;
-    int          addr_error_count, we_cancel = 0;
+    int          addr_error_count, we_cancel = 0, choice, num_rules = 0, added_rules = -1;
     long	 smtp_opts = 0L;
-    char	*verbose_file = NULL;
+    char	*verbose_file = NULL, **smtp_list;
     BODY	*bp = NULL;
     PINEFIELD	*pf;
     BODY	*origBody = body;
@@ -1838,20 +1839,49 @@ call_mailer(METAENV *header, struct mail_bodystruct *body, char **alt_smtp_serve
      * OK, who posts what?  We tried an mta_handoff above, but there
      * was either none specified or we decided not to use it.  So,
      * if there's an smtp-server defined anywhere, 
+     * First we check for rules and make a list using the rules.
      */
-    if(alt_smtp_servers && alt_smtp_servers[0] && alt_smtp_servers[0][0]){
-	/*---------- SMTP ----------*/
-	dprint((4, "call_mailer: via TCP (%s)\n",
-		alt_smtp_servers[0]));
-	TIME_STAMP("smtp-open start (tcp)", 1);
-	sending_stream = smtp_open(alt_smtp_servers, smtp_opts);
+    if(ps_global->VAR_SMTP_RULES && ps_global->VAR_SMTP_RULES[0]
+        && ps_global->VAR_SMTP_RULES[0][0])
+        while (ps_global->VAR_SMTP_RULES[num_rules]) num_rules++;
+
+    if(num_rules){
+	int i, j;
+
+        added_rules = 0;
+        smtp_list = (char **) fs_get ((num_rules + 1)*sizeof(char*));
+        for (i = 0, j = 0; i < num_rules; i++){
+	   RULELIST *rule = get_rulelist_from_code(V_SMTP_RULES,
+                                                      ps_global->rule_list);
+	   RULE_S *prule = get_rule(rule, i);
+           if(prule){
+	     char *rule_result = process_rule(prule, FOR_COMPOSE, header->env);
+	     if(rule_result && *rule_result){
+		smtp_list[j++] = cpystr(rule_result);
+		added_rules++;
+	     }
+	   }
+	}
     }
-    else if(ps_global->VAR_SMTP_SERVER && ps_global->VAR_SMTP_SERVER[0]
-	    && ps_global->VAR_SMTP_SERVER[0][0]){
-	/*---------- SMTP ----------*/
-	dprint((4, "call_mailer: via TCP\n"));
-	TIME_STAMP("smtp-open start (tcp)", 1);
-	sending_stream = smtp_open(ps_global->VAR_SMTP_SERVER, smtp_opts);
+
+    if (added_rules < 0){
+	smtp_list = (char **) fs_get (sizeof(char*));
+	added_rules = 0;
+    }
+    smtp_list[added_rules] = NULL;
+
+    choice = smtp_list && smtp_list[0] && smtp_list[0][0] ? 3 :
+	(alt_smtp_servers && alt_smtp_servers[0] && alt_smtp_servers[0][0] ? 2 :
+	(ps_global->VAR_SMTP_SERVER && ps_global->VAR_SMTP_SERVER[0] 
+		&& ps_global->VAR_SMTP_SERVER[0][0] ? 1 : -1));
+
+    if(choice > 0){
+        /*---------- SMTP ----------*/
+       dprint((4, "call_mailer: via TCP (%s)\n",smtp_list[0]));
+        TIME_STAMP("smtp-open start (tcp)", 1);
+        sending_stream = smtp_open(choice == 3 ? smtp_list
+				: (choice == 2 ? alt_smtp_servers
+				: ps_global->VAR_SMTP_SERVER), smtp_opts);
     }
     else if((postcmd = smtp_command(ps_global->c_client_error, sizeof(ps_global->c_client_error))) != NULL){
 	char *cmdlist[2];

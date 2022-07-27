@@ -21,7 +21,7 @@
 #include "../pith/reply.h"
 #include "../pith/mailindx.h"
 #include "../pith/options.h"
-
+#include "../pith/rules.h"
 
 /*
  * Hook to read signature from local file
@@ -87,6 +87,8 @@ detoken(ACTION_S *role, ENVELOPE *env, int prenewlines, int postnewlines,
 
     if(is_sig){
 	/*
+	 * First we check if there is a rule about signatures, if there is
+	 * use it, otherwise keep going and do the following:
 	 * If role->litsig is set, we use it;
 	 * Else, if VAR_LITERAL_SIG is set, we use that;
 	 * Else, if role->sig is set, we use that;
@@ -100,14 +102,25 @@ detoken(ACTION_S *role, ENVELOPE *env, int prenewlines, int postnewlines,
 	 * there is no reason to mix them, so we don't provide support to
 	 * do so.
 	 */
-	if(role && role->litsig)
-	  literal_sig = role->litsig;
-	else if(ps_global->VAR_LITERAL_SIG)
-	  literal_sig = ps_global->VAR_LITERAL_SIG;
-	else if(role && role->sig)
-	  sigfile = role->sig;
-	else
-	  sigfile = ps_global->VAR_SIGNATURE_FILE;
+        { RULE_RESULT *rule;
+           rule = get_result_rule(V_COMPOSE_RULES, FOR_COMPOSE, env);
+           if (rule){
+               sigfile = cpystr(rule->result);
+	       if (rule->result)
+	          fs_give((void **)&rule->result);
+	       fs_give((void **)&rule);
+	   }
+        }
+	if (!sigfile){
+	  if(role && role->litsig)
+	    literal_sig = role->litsig;
+	  else if(ps_global->VAR_LITERAL_SIG)
+	    literal_sig = ps_global->VAR_LITERAL_SIG;
+	  else if(role && role->sig)
+	    sigfile = role->sig;
+	  else
+	    sigfile = ps_global->VAR_SIGNATURE_FILE;
+	}
     }
     else if(role && role->template)
       sigfile = role->template;
@@ -298,7 +311,7 @@ top:
 			}
 		    }
 		}
-		else if(pt->what_for & FOR_REPLY_INTRO)
+		else if(pt->what_for & (FOR_REPLY_INTRO | FOR_RULE))
 		  repl = get_reply_data(env, role, pt->ctype,
 					subbuf, sizeof(subbuf)-1);
 

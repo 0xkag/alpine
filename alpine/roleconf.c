@@ -7702,6 +7702,11 @@ role_text_tool_inick(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 	    if(apval)
 	      *apval = (role && role->nick) ? cpystr(role->nick) : NULL;
 
+	    if (ps_global->role)
+		fs_give((void **)&ps_global->role);
+	    if (role && role->nick)
+		ps_global->role = cpystr(role->nick);
+
 	    if((*cl)->value)
 	      fs_give((void **)&((*cl)->value));
 

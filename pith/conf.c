@@ -25,6 +25,7 @@
 #include "../pith/remote.h"
 #include "../pith/keyword.h"
 #include "../pith/mailview.h"
+#include "../pith/rules.h"
 #include "../pith/list.h"
 #include "../pith/status.h"
 #include "../pith/ldap.h"
@@ -219,6 +220,36 @@ CONF_TXT_T cf_text_unk_character_set[] =	"Defaults to nothing, which is equivale
 
 CONF_TXT_T cf_text_editor[] =		"Specifies the program invoked by ^_ in the Composer,\n# or the \"enable-alternate-editor-implicitly\" feature.";
 
+CONF_TXT_T cf_text_compose_rules[] =	"Allows a user to set rules when composing messages.";
+ 
+CONF_TXT_T cf_text_forward_rules[] =	"Allows a user to set rules when forwarding messages.";
+ 
+CONF_TXT_T cf_text_reply_rules[] =	"Allows a user to set rules when replying messages.";
+ 
+CONF_TXT_T cf_text_index_rules[] =	"Allows a user to supersede global index format variable in designated folders.";
+ 
+CONF_TXT_T cf_text_key_def_rules[] =	"Allows a user to override keystrokes in certain screens.";
+
+CONF_TXT_T cf_text_replace_rules[] =	"Allows a user to change the form a specify field in the index-format is \n# displayed.";
+ 
+CONF_TXT_T cf_text_reply_indent_rules[] = "Allows a user to change the form a specify a reply-indent-string\n# based of rules.";
+ 
+CONF_TXT_T cf_text_reply_leadin_rules[] =	"Allows a user to replace the reply-leadin message based on different parameters.";
+ 
+CONF_TXT_T cf_text_reply_subject_rules[] =	"Allows a user to replace the subject of a message in a customs based way";
+ 
+CONF_TXT_T cf_text_thread_displaystyle_rule[] = "Allows a user to specify the threading style of specific folders";
+ 
+CONF_TXT_T cf_text_thread_indexstyle_rule[] = "Allows a user to specify the threading index style of specific folders";
+ 
+CONF_TXT_T cf_text_save_rules[] =	"Allows a user to specify a save folder message for specific senders or folders.";
+ 
+CONF_TXT_T cf_text_smtp_rules[] =	"Allows a user to specify a smtp server to be used when sending e-mail,\n# according to the rules specified here.";
+ 
+CONF_TXT_T cf_text_sort_rules[] =	"Allows a user to specify the sort default order of a specific folder.";
+ 
+CONF_TXT_T cf_text_startup_rules[] =	"Allows a user to specify the position of a highlighted message when opening a \n# folder.";
+ 
 CONF_TXT_T cf_text_speller[] =		"Specifies the program invoked by ^T in the Composer.";
 
 #ifdef _WINDOWS
@@ -563,6 +594,34 @@ static struct variable variables[] = {
 	NULL,			cf_text_thread_exp_char},
 {"threading-lastreply-character",	0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
 	"Threading Last Reply Character",	cf_text_thread_lastreply_char},
+{"threading-display-style-rule",	0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
+	"Threading Display Style Rule",	cf_text_thread_displaystyle_rule},
+{"threading-index-style-rule",		0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
+	"Threading Index Style Rule",	cf_text_thread_indexstyle_rule},
+{"compose-rules",			0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
+	"Compose Rules",	cf_text_compose_rules},
+{"forward-rules",			0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
+	"Forward Rules", 	cf_text_forward_rules},
+{"index-rules",				0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
+	"Index Rules",		cf_text_index_rules},
+{"key-definition-rules",		0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
+	"Key Definition Rules",	cf_text_key_def_rules},
+{"replace-rules",			0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
+	"Replace Rules",	cf_text_replace_rules},
+{"reply-indent-rules",			0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
+	"Reply Indent Rules",	cf_text_reply_indent_rules},
+{"reply-leadin-rules",			0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
+	"Reply Leadin Rules",	cf_text_reply_leadin_rules},
+{"reply-subject-rules",			0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
+	"Reply Subject Rules",	cf_text_reply_subject_rules},
+{"save-rules",				0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
+	"Save Rules",		cf_text_save_rules},
+{"smtp-rules",				0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
+	"Smtp Rules",		cf_text_smtp_rules},
+{"sort-rules",				0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
+	"Sort Rules",		cf_text_sort_rules},
+{"startup-rules",			0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
+	"Startup Rules",	cf_text_startup_rules},
 #ifndef	_WINDOWS
 {"display-character-set",		0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
 	NULL,			cf_text_disp_char_set},
@@ -2742,6 +2801,7 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
       if(cmds_f)
         (*cmds_f)(ps, VAR_INIT_CMD_LIST);
 
+    (void)create_rule_list(ps_global->vars);
 #ifdef	_WINDOWS
     mswin_set_quit_confirm (F_OFF(F_QUIT_WO_CONFIRM, ps_global));
 #endif	/* _WINDOWS */
@@ -3190,6 +3250,8 @@ feature_list(int index)
 	 F_FORCE_LOW_SPEED, h_config_force_low_speed, PREF_OS_LWSD, 0},
 	{"auto-move-read-msgs", "Auto Move Read Messages",
 	 F_AUTO_READ_MSGS, h_config_auto_read_msgs, PREF_MISC, 0},
+	{"auto-move-read-msgs-using-rules", "Auto Move Read Messages Using Rules",
+	 F_AUTO_READ_MSGS_RULES, h_config_auto_read_msgs_rules, PREF_MISC, 0},
 	{"auto-unselect-after-apply", NULL,
 	 F_AUTO_UNSELECT, h_config_auto_unselect, PREF_MISC, 0},
 	{"auto-unzoom-after-apply", NULL,
@@ -7880,6 +7942,34 @@ config_help(int var, int feature)
 	return(h_config_ab_sort_rule);
       case V_FLD_SORT_RULE :
 	return(h_config_fld_sort_rule);
+      case V_THREAD_DISP_STYLE_RULES:
+	return(h_config_thread_display_style_rule);
+      case V_THREAD_INDEX_STYLE_RULES:
+	return(h_config_thread_index_style_rule);
+      case V_COMPOSE_RULES:
+	return(h_config_compose_rules);
+      case V_FORWARD_RULES:
+	return(h_config_forward_rules);
+      case V_INDEX_RULES:
+	return(h_config_index_rules);
+      case V_KEY_RULES:
+	return(h_config_key_macro_rules);
+      case V_REPLACE_RULES:
+	return(h_config_replace_rules);
+      case V_REPLY_INDENT_RULES:
+	return(h_config_reply_indent_rules);
+      case V_REPLY_LEADIN_RULES:
+	return(h_config_reply_leadin_rules);
+      case V_RESUB_RULES:
+	return(h_config_resub_rules);
+      case V_SAVE_RULES:
+	return(h_config_save_rules);
+      case V_SMTP_RULES:
+	return(h_config_smtp_rules);
+      case V_SORT_RULES:
+	return(h_config_sort_rules);
+      case V_STARTUP_RULES:
+	return(h_config_startup_rules);
       case V_POST_CHAR_SET :
 	return(h_config_post_char_set);
       case V_UNK_CHAR_SET :

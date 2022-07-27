@@ -244,7 +244,7 @@ folder_screen(struct pine *ps)
     dprint((1, "=== folder_screen called ====\n"));
     mailcap_free(); /* free resources we won't be using for a while */
     ps->next_screen = SCREEN_FUN_NULL;
-
+    strcpy(ps->screen_name, "folder");
     /* Initialize folder state and dispatches */
     memset(&fs, 0, sizeof(FSTATE_S));
     fs.context		= cntxt;
@@ -341,6 +341,7 @@ folder_screen(struct pine *ps)
       pine_mail_close(*fs.cache_streamp);
 
     ps->prev_screen = folder_screen;
+    strcpy(ps->screen_name, "unknown");
 }
 
 

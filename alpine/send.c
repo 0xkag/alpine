@@ -59,7 +59,7 @@
 #include "../pith/mimetype.h"
 #include "../pith/send.h"
 #include "../pith/smime.h"
-
+#include "../pith/rules.h"
 
 typedef struct body_particulars {
     unsigned short     type, encoding, had_csp;
@@ -231,6 +231,11 @@ alt_compose_screen(struct pine *pine_state)
 	memset((void *)role, 0, sizeof(*role));
 	role->nick = cpystr("Default Role");
     }
+
+    if (ps_global->role)
+       fs_give((void **)&ps_global->role);  
+
+    ps_global->role = cpystr(role->nick);
 
     pine_state->redrawer = NULL;
     compose_mail(NULL, NULL, role, NULL, NULL);
@@ -441,8 +446,12 @@ compose_mail(char *given_to, char *fcc_arg, ACTION_S *role_arg,
 
 	      ps_global->next_screen = prev_screen;
 	      ps_global->redrawer = redraw;
-	      if(role)
+	      if (ps_global->role)
+		  fs_give((void **)&ps_global->role);  
+	      if(role){
 		role = combine_inherited_role(role);
+		ps_global->role = cpystr(role->nick);
+	      }
 	    }
 	    break;
 	  
@@ -638,9 +647,14 @@ compose_mail(char *given_to, char *fcc_arg, ACTION_S *role_arg,
 	    }
 	}
 
-	if(role)
+	if (ps_global->role)
+	    fs_give((void **)&ps_global->role);
+
+	if(role){
 	  q_status_message1(SM_ORDER, 3, 4, _("Composing using role \"%s\""),
 			    role->nick);
+	  ps_global->role = cpystr(role->nick);
+	}
 
         outgoing->message_id = generate_message_id(role);
 	/*
@@ -2480,6 +2494,26 @@ pine_send(ENVELOPE *outgoing, struct mail_bodystruct **body,
 		    removing_trailing_white_space(pf->textbuf);
 		    (void)removing_double_quotes(pf->textbuf);
 		    build_address(pf->textbuf, &addr, NULL, NULL, NULL);
+		    if (!strncmp(pf->name,"Lcc",3) && addr && *addr){
+			RULE_RESULT *rule;
+
+  			outgoing->date = (unsigned char *) cpystr(addr);
+			ps_global->procid = cpystr("fwd-lcc");
+			rule = get_result_rule(V_FORWARD_RULES,
+			           FOR_COMPOSE|FOR_TRIM, outgoing);
+			if (rule){
+			    addr = cpystr(rule->result);
+			    removing_trailing_white_space(addr);
+			    (void)removing_extra_stuff(addr);
+			    if (rule->result)
+				fs_give((void **)&rule->result);
+			    fs_give((void **)&rule);
+			}
+			fs_give((void **)&ps_global->procid);
+			if (outgoing->date)
+			    fs_give((void **)&outgoing->date);
+		    }   
+
 		    rfc822_parse_adrlist(pf->addr, addr,
 					 ps_global->maildomain);
 		    fs_give((void **)&addr);
