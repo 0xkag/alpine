@@ -147,7 +147,7 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 658 2022-07-14 19:34:49
+Alpine Commit 666 2022-10-09 10:37:24
 ============= h_news =================
 <HTML>
 <HEAD>
@@ -193,10 +193,28 @@ new additions to Alpine, please check it periodically.
 <P> Changes since the release of version 2.26 include:
 <!-- Changes since the release of version <!--#echo var="ALPINE_VERSION"-->
 <!-- include: -->
+<P> New features include:
+<UL>
+<LI> Microsoft servers do not deal well with a message that is forwarded
+     as an attachment by Alpine due to the way Alpine constructs the cookie
+     to separate parts of the message due to the presence of a colon. To
+     be safe, remove all non-numeric characters in the cookie. In addition,
+     lowercase values for the charset.
+<LI> When selecting messages based on either a previously defined rule or
+     based on a previously configured keyword, and when the feature
+     <a href="h_config_enable_tab_complete"><!--#echo var="FEAT_enable-tab-completion"--></a>
+     is enabled, add the ability of using the TAB command to complete
+     a partial match. Contributed by Peter Tirsek.
+</UL>
 
 <P> Bugs addressed include:
 <UL>
+<LI> When a user configures a mailbox without specifying the username, PC-Alpine
+does not allow a user to input their password. Reported by Michelle McPeek.
 <LI> Crash in PC-Alpine when postponing a message. Reported by Paolo Ienne.
+<LI> Crash in Alpine after a user tried to repaint the screen after failing
+     to select a rule from a menu. Reported by Peter Tirsek. Crash also 
+     reproducible when selecting by keyword or charset.
 </UL>
 
 <P>Version 2.26 adds new features and addresses bugs found in previous
@@ -30690,7 +30708,8 @@ This feature is on by default.
 <P>
 Similarly, this feature also enables TAB completion of address book
 nicknames when at a prompt for a nickname,
-or when typing in an address field in the composer.
+when typing in an address field in the composer,
+or when selecting messages based on <A HREF="h_select_rule">rules</A> or <A HREF="h_mainhelp_keywords">keywords</A>.
 <P>
 &lt;End of help on this topic&gt;
 </BODY>
