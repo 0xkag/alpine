@@ -108,9 +108,11 @@ SEARCHSET *visible_searchset(MAILSTREAM *, MSGNO_S *);
 int	  select_by_status(MAILSTREAM *, SEARCHSET **);
 int	  select_by_rule(MAILSTREAM *, SEARCHSET **);
 int	  select_by_thread(MAILSTREAM *, MSGNO_S *, SEARCHSET **);
-char     *choose_a_rule(int);
+char     *choose_a_rule(int, char *);
+int       rulenick_complete(int, char *, int);
 int	  select_by_keyword(MAILSTREAM *, SEARCHSET **);
-char     *choose_a_keyword(void);
+char     *choose_a_keyword(char *);
+int	  keyword_complete(char *, int);
 int	  select_sort(struct pine *, int, SortOrder *, int *, int);
 int       print_index(struct pine *, MSGNO_S *, int);
 
@@ -329,10 +331,18 @@ static ESCKEY_S sel_size_opt[] = {
     {-1, 0, NULL, NULL}
 };
 
+static ESCKEY_S sel_rule_opt[] = {
+    {0, 0, NULL, NULL},
+    {ctrl('T'), 14, "^T", N_("To List")},
+    {0, 0, NULL, NULL}, /* Reserved for TAB completion */
+    {'!', '!', "!", N_("Not")},
+    {-1, 0, NULL, NULL}
+};
+
 static ESCKEY_S sel_key_opt[] = {
     {0, 0, NULL, NULL},
     {ctrl('T'), 14, "^T", N_("To List")},
-    {0, 0, NULL, NULL},
+    {0, 0, NULL, NULL}, /* Reserved for TAB completion */
     {'!', '!', "!", N_("Not")},
     {-1, 0, NULL, NULL}
 };
@@ -6841,7 +6851,13 @@ list_mgmt_text(RFC2369_S *data, long int msgno)
 		      else{
 			  so_puts(store, "Select <A HREF=\"");
 			  so_puts(store, data[i].data[j].value);
-			  so_puts(store, "\">HERE</A> to ");
+			  so_puts(store, "\">HERE</A> ");
+			  if(!struncmp(data[i].data[j].value, "http", 4)) {
+			    so_puts(store, "(web link) ");
+			  }
+			  else if(!struncmp(data[i].data[j].value, "mailto", 5)) {
+			    so_puts(store, " (email link) ");
+			  }			  so_puts(store, "to ");
 			  so_puts(store, (data[i].field.action)
 					   ? data[i].field.action
 					   : "try it");
@@ -8899,7 +8915,7 @@ select_by_rule(MAILSTREAM *stream, SEARCHSET **limitsrch)
 {
     char       rulenick[1000], *nick;
     PATGRP_S  *patgrp;
-    int        r, not = 0, we_cancel = 0, rflags = ROLE_DO_SRCH
+    int        r, last_r = 0, not = 0, we_cancel = 0, rflags = ROLE_DO_SRCH
 				    | ROLE_DO_INCOLS
 				    | ROLE_DO_ROLES
 				    | ROLE_DO_SCORES
@@ -8909,6 +8925,16 @@ select_by_rule(MAILSTREAM *stream, SEARCHSET **limitsrch)
     rulenick[0] = '\0';
     ps_global->mangled_footer = 1;
 
+    if(F_ON(F_ENABLE_TAB_COMPLETE, ps_global)){
+	sel_rule_opt[2].ch    = TAB;
+	sel_rule_opt[2].rval  = 15;
+	sel_rule_opt[2].name  = "TAB";
+	sel_rule_opt[2].label = N_("Complete");
+    }
+    else{
+	memset(&sel_rule_opt[2], 0, sizeof(sel_rule_opt[2]));
+    }
+
     do{
 	int oe_flags;
 
@@ -8917,17 +8943,34 @@ select_by_rule(MAILSTREAM *stream, SEARCHSET **limitsrch)
 			     sizeof(rulenick),
 			     not ? _("Rule to NOT match: ")
 			         : _("Rule to match: "),
-			     sel_key_opt, NO_HELP, &oe_flags);
+			     sel_rule_opt, NO_HELP, &oe_flags);
 
 	if(r == 14){
 	    /* select rulenick from a list */
-	    if((nick=choose_a_rule(rflags)) != NULL){
+	    if((nick=choose_a_rule(rflags, NULL)) != NULL){
 		strncpy(rulenick, nick, sizeof(rulenick)-1);
 		rulenick[sizeof(rulenick)-1] = '\0';
 		fs_give((void **) &nick);
 	    }
 	    else
 	      r = 4;
+	}
+	else if(r == 15){
+	    int n = rulenick_complete(rflags, rulenick, sizeof(rulenick));
+
+	    if(n > 1 && last_r == 15 && !(oe_flags & OE_USER_MODIFIED)){
+		/* double tab with multiple completions: select from list */
+		if((nick=choose_a_rule(rflags, rulenick)) != NULL){
+		    strncpy(rulenick, nick, sizeof(rulenick)-1);
+		    rulenick[sizeof(rulenick)-1] = '\0';
+		    fs_give((void **) &nick);
+		    r = 0;
+		}
+		else
+		    r = 4;
+	    }
+	    else if(n != 1)
+		Writechar(BELL, 0);
 	}
 	else if(r == '!')
 	  not = !not;
@@ -8942,8 +8985,9 @@ select_by_rule(MAILSTREAM *stream, SEARCHSET **limitsrch)
 	}
 
 	removing_leading_and_trailing_white_space(rulenick);
+	last_r = r;
 
-    }while(r == 3 || r == 4 || r == '!');
+    }while(r == 3 || r == 4 || r == 15 || r == '!');
 
 
     /*
@@ -8985,16 +9029,21 @@ select_by_rule(MAILSTREAM *stream, SEARCHSET **limitsrch)
 /*
  * Allow user to choose a rule from their list of rules.
  *
+ * Args    rflags -- Pattern types to choose from
+ *         prefix -- Only list rules matching the given prefix
+ *
  * Returns an allocated rule nickname on success, NULL otherwise.
  */
 char *
-choose_a_rule(int rflags)
+choose_a_rule(int rflags, char *prefix)
 {
     char      *choice = NULL;
     char     **rule_list, **lp;
     int        cnt = 0;
+    int        prefix_length = 0;
     PAT_S     *pat;
     PAT_STATE  pstate;
+    void (*redraw)(void) = ps_global->redrawer;
 
     if(!(nonempty_patterns(rflags, &pstate) && first_pattern(&pstate))){
 	q_status_message(SM_ORDER, 3, 3,
@@ -9006,8 +9055,15 @@ choose_a_rule(int rflags)
      * Build a list of rules to choose from.
      */
 
-    for(pat = first_pattern(&pstate); pat; pat = next_pattern(&pstate))
-      cnt++;
+    if(prefix)
+	prefix_length = strlen(prefix);
+
+    for(pat = first_pattern(&pstate); pat; pat = next_pattern(&pstate)) {
+	if(!pat->patgrp || !pat->patgrp->nick)
+	    continue;
+	if(!prefix || strncmp(pat->patgrp->nick, prefix, prefix_length) == 0)
+	    cnt++;
+    }
 
     if(cnt <= 0){
 	q_status_message(SM_ORDER, 3, 4, _("No rules defined, use Setup/Rules"));
@@ -9017,9 +9073,12 @@ choose_a_rule(int rflags)
     lp = rule_list = (char **) fs_get((cnt + 1) * sizeof(*rule_list));
     memset(rule_list, 0, (cnt+1) * sizeof(*rule_list));
 
-    for(pat = first_pattern(&pstate); pat; pat = next_pattern(&pstate))
-      *lp++ = cpystr((pat->patgrp && pat->patgrp->nick)
-			  ? pat->patgrp->nick : "?");
+    for(pat = first_pattern(&pstate); pat; pat = next_pattern(&pstate)) {
+	if(!pat->patgrp || !pat->patgrp->nick)
+	    continue;
+	if(!prefix || strncmp(pat->patgrp->nick, prefix, prefix_length) == 0)
+	    *lp++ = cpystr(pat->patgrp->nick);
+    }
 
     /* TRANSLATORS: SELECT A RULE is a screen title
        TRANSLATORS: Print something1 using something2.
@@ -9028,12 +9087,88 @@ choose_a_rule(int rflags)
 				   _("rules"), h_select_rule_screen,
 				   _("HELP FOR SELECTING A RULE NICKNAME"), NULL);
 
-    if(!choice)
+    if(!choice){
       q_status_message(SM_ORDER, 1, 4, "No choice");
+      ps_global->redrawer = redraw;
+    }
 
     free_list_array(&rule_list);
 
     return(choice);
+}
+
+
+/*
+ * Complete a partial rule name against the user's list of rules.
+ *
+ * Args    rflags    -- Pattern types to choose from
+ *         nick      -- Current rule nickname to complete
+ *         nick_size -- Maximum length of the nick array to store completion in
+ *
+ * Returns the number of valid completions, i.e.:
+ *
+ *  0 if there are no valid completions. The value of the nick argument has not
+ *    been changed.
+ *  1 if there is only a single valid completion. The value of the nick argument
+ *    has been replaced with the full text of that completion.
+ * >1 if there is more than one valid completion. The value of the nick argument
+ *    has been replaced with the longest substring common to all the appropriate
+ *    completions.
+ */
+int
+rulenick_complete(int rflags, char *nick, int nick_size)
+{
+    char      *candidate = NULL;
+    int        cnt = 0;
+    int        common_prefix_length = 0;
+    int        nick_length;
+    PAT_S     *pat;
+    PAT_STATE  pstate;
+
+    if(!(nonempty_patterns(rflags, &pstate) && first_pattern(&pstate)))
+	return 0;
+
+    nick_length = strlen(nick);
+
+    for(pat = first_pattern(&pstate); pat; pat = next_pattern(&pstate)){
+	if(!pat->patgrp || !pat->patgrp->nick)
+	    continue;
+	if(strncmp(pat->patgrp->nick, nick, nick_length) == 0){
+	    /* This is a candidate for completion. */
+	    cnt++;
+	    if(!candidate){
+		/* This is the first candidate. Keep it as a future reference to
+		 * compare against to find the longest common prefix length of
+		 * all the matches. */
+		candidate = pat->patgrp->nick;
+		common_prefix_length = strlen(pat->patgrp->nick);
+	    }
+	    else{
+		/* Find the common prefix length between the first candidate and
+		 * this one. */
+		int i;
+		for(i = 0; i < common_prefix_length; i++){
+		    if(pat->patgrp->nick[i] != candidate[i]){
+			/* In the event that we ended up in the middle of a
+			 * UTF-8 code point, backtrack to the byte before the
+			 * start of this code point. */
+			while(i > 0 && (candidate[i] & 0xC0) == 0x80)
+			    i--;
+			common_prefix_length = i;
+			break;
+		    }
+		}
+	    }
+	}
+    }
+
+    if(cnt > 0){
+	int length = MIN(nick_size, common_prefix_length);
+	strncpy(nick + nick_length, candidate + nick_length, length - nick_length);
+	nick[length] = '\0';
+    }
+
+    return cnt;
 }
 
 
@@ -9089,7 +9224,7 @@ select_by_thread(MAILSTREAM *stream, MSGNO_S *msgmap, SEARCHSET **limitsrch)
 int
 select_by_keyword(MAILSTREAM *stream, SEARCHSET **limitsrch)
 {
-    int        r, not = 0, we_cancel = 0;
+    int        r, last_r = 0, not = 0, we_cancel = 0;
     char       keyword[MAXUSERFLAG+1], *kword;
     char      *error = NULL, *p, *prompt;
     HelpType   help;
@@ -9097,6 +9232,16 @@ select_by_keyword(MAILSTREAM *stream, SEARCHSET **limitsrch)
 
     keyword[0] = '\0';
     ps_global->mangled_footer = 1;
+
+    if(F_ON(F_ENABLE_TAB_COMPLETE, ps_global)){
+	sel_key_opt[2].ch    = TAB;
+	sel_key_opt[2].rval  = 15;
+	sel_key_opt[2].name  = "TAB";
+	sel_key_opt[2].label = N_("Complete");
+    }
+    else{
+	memset(&sel_key_opt[2], 0, sizeof(sel_key_opt[2]));
+    }
 
     help = NO_HELP;
     do{
@@ -9127,13 +9272,30 @@ select_by_keyword(MAILSTREAM *stream, SEARCHSET **limitsrch)
 
 	if(r == 14){
 	    /* select keyword from a list */
-	    if((kword=choose_a_keyword()) != NULL){
+	    if((kword=choose_a_keyword(NULL)) != NULL){
 		strncpy(keyword, kword, sizeof(keyword)-1);
 		keyword[sizeof(keyword)-1] = '\0';
 		fs_give((void **) &kword);
 	    }
 	    else
 	      r = 4;
+	}
+	else if(r == 15){
+	    int n = keyword_complete(keyword, sizeof(keyword));
+
+	    if(n > 1 && last_r == 15 && !(oe_flags & OE_USER_MODIFIED)){
+		/* double tab with multiple completions: select from list */
+		if((kword=choose_a_keyword(keyword)) != NULL){
+		    strncpy(keyword, kword, sizeof(keyword)-1);
+		    keyword[sizeof(keyword)-1] = '\0';
+		    fs_give((void **) &kword);
+		    r = 0;
+		}
+		else
+		    r = 4;
+	    }
+	    else if(n != 1)
+		Writechar(BELL, 0);
 	}
 	else if(r == '!')
 	  not = !not;
@@ -9146,8 +9308,9 @@ select_by_keyword(MAILSTREAM *stream, SEARCHSET **limitsrch)
 	}
 
 	removing_leading_and_trailing_white_space(keyword);
+	last_r = r;
 
-    }while(r == 3 || r == 4 || r == '!' || keyword_check(keyword, &error));
+    }while(r == 3 || r == 4 || r == 15 || r == '!' || keyword_check(keyword, &error));
 
 
     if(F_ON(F_FLAG_SCREEN_KW_SHORTCUT, ps_global) && ps_global->keywords){
@@ -9203,22 +9366,32 @@ select_by_keyword(MAILSTREAM *stream, SEARCHSET **limitsrch)
 /*
  * Allow user to choose a keyword from their list of keywords.
  *
+ * Args    prefix -- Only list keywords matching the given prefix
+ *
  * Returns an allocated keyword on success, NULL otherwise.
  */
 char *
-choose_a_keyword(void)
+choose_a_keyword(char *prefix)
 {
     char      *choice = NULL;
     char     **keyword_list, **lp;
     int        cnt;
+    int        prefix_length = 0;
     KEYWORD_S *kw;
+    void (*redraw)(void) = ps_global->redrawer;
 
     /*
      * Build a list of keywords to choose from.
      */
 
-    for(cnt = 0, kw = ps_global->keywords; kw; kw = kw->next)
-      cnt++;
+    if(prefix)
+	prefix_length = strlen(prefix);
+
+    for(cnt = 0, kw = ps_global->keywords; kw; kw = kw->next){
+	char *kw_name = kw->nick ? kw->nick : kw->kw;
+	if(!prefix || kw_name && strncmp(kw_name, prefix, prefix_length) == 0)
+	    cnt++;
+    }
 
     if(cnt <= 0){
 	q_status_message(SM_ORDER, 3, 4,
@@ -9229,8 +9402,13 @@ choose_a_keyword(void)
     lp = keyword_list = (char **) fs_get((cnt + 1) * sizeof(*keyword_list));
     memset(keyword_list, 0, (cnt+1) * sizeof(*keyword_list));
 
-    for(kw = ps_global->keywords; kw; kw = kw->next)
-      *lp++ = cpystr(kw->nick ? kw->nick : kw->kw ? kw->kw : "");
+    for(kw = ps_global->keywords; kw; kw = kw->next){
+	char *kw_name = kw->nick ? kw->nick : kw->kw;
+	if(!kw_name)
+	    continue;
+	if(!prefix || kw_name && strncmp(kw_name, prefix, prefix_length) == 0)
+	    *lp++ = cpystr(kw_name);
+    }
 
     /* TRANSLATORS: SELECT A KEYWORD is a screen title
        TRANSLATORS: Print something1 using something2.
@@ -9239,12 +9417,85 @@ choose_a_keyword(void)
 				   _("keywords"), h_select_keyword_screen,
 				   _("HELP FOR SELECTING A KEYWORD"), NULL);
 
-    if(!choice)
+    if(!choice){
       q_status_message(SM_ORDER, 1, 4, "No choice");
+      ps_global->redrawer = redraw;
+    }
 
     free_list_array(&keyword_list);
 
     return(choice);
+}
+
+
+/*
+ * Complete a partial keyword name against the user's list of keywords.
+ *
+ * Args    keyword      -- Current keyword to complete
+ *         keyword_size -- Maximum length of the keyword array to store
+ *                         completion in
+ *
+ * Returns the number of valid completions, i.e.:
+ *
+ *  0 if there are no valid completions. The value of the keyword argument has
+ *    not been changed.
+ *  1 if there is only a single valid completion. The value of the keyword
+ *    argument has been replaced with the full text of that completion.
+ * >1 if there is more than one valid completion. The value of the keyword
+ *    argument has been replaced with the longest substring common to all the
+ *    appropriate completions.
+ */
+int
+keyword_complete(char *keyword, int keyword_size)
+{
+    char      *candidate = NULL;
+    int        cnt = 0;
+    int        common_prefix_length = 0;
+    int        keyword_length;
+    KEYWORD_S *kw;
+
+    keyword_length = strlen(keyword);
+
+    for(kw = ps_global->keywords; kw; kw = kw->next){
+	char *kw_name = kw->nick ? kw->nick : kw->kw;
+	if(!kw_name)
+	    continue;
+	if(strncmp(kw_name, keyword, keyword_length) == 0){
+	    /* This is a candidate for completion. */
+	    cnt++;
+	    if(!candidate){
+		/* This is the first candidate. Keep it as a future reference to
+		 * compare against to find the longest common prefix length of
+		 * all the matches. */
+		candidate = kw_name;
+		common_prefix_length = strlen(candidate);
+	    }
+	    else{
+		/* Find the common prefix length between the first candidate and
+		 * this one. */
+		int i;
+		for(i = 0; i < common_prefix_length; i++){
+		    if(kw_name[i] != candidate[i]){
+			/* In the event that we ended up in the middle of a
+			 * UTF-8 code point, backtrack to the byte before the
+			 * start of this code point. */
+			while(i > 0 && (candidate[i] & 0xC0) == 0x80)
+			    i--;
+			common_prefix_length = i;
+			break;
+		    }
+		}
+	    }
+	}
+    }
+
+    if(cnt > 0){
+	int length = MIN(keyword_size, common_prefix_length);
+	strncpy(keyword + keyword_length, candidate + keyword_length, length - keyword_length);
+	keyword[length] = '\0';
+    }
+
+    return cnt;
 }
 
 
@@ -9319,6 +9570,7 @@ choose_a_charset(int which_charsets)
     char     **charset_list, **lp;
     const CHARSET *cs;
     int        cnt;
+    void (*redraw)(void) = ps_global->redrawer;
 
     /*
      * Build a list of charsets to choose from.
@@ -9362,8 +9614,10 @@ choose_a_charset(int which_charsets)
 				   _("character sets"), h_select_charset_screen,
 				   _("HELP FOR SELECTING A CHARACTER SET"), NULL);
 
-    if(!choice)
+    if(!choice){
       q_status_message(SM_ORDER, 1, 4, "No choice");
+      ps_global->redrawer = redraw;
+    }
 
     free_list_array(&charset_list);
 
