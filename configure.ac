@@ -1391,7 +1391,7 @@ AC_ARG_WITH(passfile,
     ])
 
 
-if test -z "$alpine_PASSFILE" -a "alpine_cache_os_method" = "no" ; then
+if test -z "$alpine_PASSFILE" -a "$alpine_cache_os_method" = "no" ; then
   if test -z "$alpine_SYSTEM_PASSFILE" ; then
      alpine_PASSFILE=".alpine.pwd"
   else
@@ -1969,7 +1969,7 @@ ac_cv_func_qsort_argtype,
 #endif
 
 extern void *base;
-extern sortf(const void *, const void *);
+extern int sortf(const void *, const void *);
 int sortf(a, b)
   const void *a;
   const void *b; { return 0; }
