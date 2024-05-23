@@ -374,9 +374,9 @@ struct pine {
      * Optional tools Pine Data Engine caller might provide
      */
     struct {
-        char	*(*display_filter)(char *, STORE_S *, gf_io_t, FILTLIST_S *);
+        char	*(*display_filter)(char *, STORE_S *, gf_o_t, FILTLIST_S *);
         char	*(*display_filter_trigger)(BODY *, char *, size_t);
-	char	*(*exec_rule)(char *, gf_io_t, gf_io_t);
+	char	*(*exec_rule)(char *, gf_i_t, gf_o_t);
     } tools;
 
     KEYWORD_S   *keywords;

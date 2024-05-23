@@ -68,7 +68,7 @@ int	 reply_poster_followup(ENVELOPE *);
 int	 sigedit_exit_for_pico(struct headerentry *, void (*)(void), int, char **);
 long	 new_mail_for_pico(int, int);
 void	 cmd_input_for_pico(void);
-int	 display_message_for_pico(int);
+int	 display_message_for_pico(UCS);
 char	*checkpoint_dir_for_pico(char *, size_t);
 void	 resize_for_pico(void);
 PCOLORS *colors_for_pico(void);
@@ -107,7 +107,7 @@ reply(struct pine *pine_state, ACTION_S *role_arg)
     int         i, include_text = 0, times = -1, warned = 0, rv = 0,
 		flags = RSF_QUERY_REPLY_ALL, reply_raw_body = 0;
     int         rolemsg = 0, copytomsg = 0, do_role_early = 0;
-    gf_io_t     pc;
+    gf_o_t      pc;
     PAT_STATE   dummy;
     REDRAFT_POS_S *redraft_pos = NULL;
     ACTION_S   *role = NULL, *nrole;
@@ -1452,7 +1452,8 @@ get_signature_file(char *file, int prenewlines, int postnewlines, int is_sig)
 		STORE_S  *store;
 		int       flags;
 		PIPE_S   *syspipe;
-		gf_io_t   pc, gc;
+		gf_o_t    pc;
+		gf_i_t    gc;
 		long      start;
 
 		if((store = so_get(CharStar, NULL, EDIT_ACCESS)) != NULL){
@@ -1570,7 +1571,7 @@ forward(struct pine *ps, ACTION_S *role_arg)
     BODY	  *orig_body, *body = NULL;
     REPLY_S        reply;
     void	  *msgtext = NULL;
-    gf_io_t	   pc;
+    gf_o_t	   pc;
     int            impl, template_len = 0;
     PAT_STATE      dummy;
     REDRAFT_POS_S *redraft_pos = NULL;
@@ -1950,7 +1951,8 @@ forward_text(struct pine *pine_state, void *text, SourceType source)
 {
     ENVELOPE *env;
     BODY     *body;
-    gf_io_t   pc, gc;
+    gf_o_t    pc;
+    gf_i_t    gc;
     STORE_S  *msgtext;
     char     *enc_error, *sig;
     ACTION_S *role = NULL;
@@ -2155,7 +2157,8 @@ signature_edit(char *sigfile, char *title)
     char     sig_path[MAXPATH+1], errbuf[2000], *errstr = NULL;
     char    *ret = NULL;
     STORE_S *msgso, *tmpso = NULL;
-    gf_io_t  gc, pc;
+    gf_i_t   gc;
+    gf_o_t   pc;
     PICO     pbf;
     struct variable *vars = ps_global->vars;
     REMDATA_S *rd = NULL;
@@ -2308,7 +2311,7 @@ signature_edit(char *sigfile, char *title)
 	mswin_setwindowmenu (MENU_DEFAULT);
 #endif
 	if(editor_result & COMP_GOTHUP){
-	    hup_signal();		/* do what's normal for a hup */
+	    hup_signal(0);		/* do what's normal for a hup */
 	}
 	else{
 	    fix_windsize(ps_global);
@@ -2467,7 +2470,7 @@ signature_edit_lit(char *litsig, char **result, char *title, HelpType composer_h
 	mswin_setwindowmenu (MENU_DEFAULT);
 #endif
 	if(editor_result & COMP_GOTHUP){
-	    hup_signal();		/* do what's normal for a hup */
+	    hup_signal(0);		/* do what's normal for a hup */
 	}
 	else{
 	    fix_windsize(ps_global);
@@ -2667,7 +2670,7 @@ Args: x -- char processed
 Returns: 
 ----*/      
 int
-display_message_for_pico(int x)
+display_message_for_pico(UCS x)
 {
     int rv;
     

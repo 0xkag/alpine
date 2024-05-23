@@ -62,7 +62,7 @@ fexist(char *file,
 #ifndef _WINDOWS
     struct stat	sbuf;
     int rv;
-    int		(*stat_f)() = (m && *m == 't') ? our_lstat : our_stat;
+    int		(*stat_f)(char *, struct stat *) = (m && *m == 't') ? our_lstat : our_stat;
 
     if(l)
       *l = (off_t)0;
@@ -783,7 +783,9 @@ copy(char *a, char *b)
     char   *cb;
     struct stat tsb, fsb;
     EML    eml;
+#ifndef errno
     extern int  errno;
+#endif
 
     if(our_stat(a, &fsb) < 0){		/* get source file info */
 	eml.s = errstr(errno);

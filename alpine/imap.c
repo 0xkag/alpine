@@ -357,7 +357,7 @@ oauth2_elapsed_done(void *aux_valuep)
 }
 
 void
-oauth2_set_device_info(OAUTH2_S *oa2, char *method)
+oauth2_set_device_info(OAUTH2_S *oa2, char *method, NETMBX *mb)
 {
    char tmp[MAILTMPLEN];
    char *name = (char *) oa2->name;
@@ -370,7 +370,8 @@ oauth2_set_device_info(OAUTH2_S *oa2, char *method)
    if(ps_global->ttyo){
 	SCROLL_S  sargs;
 	STORE_S  *in_store, *out_store;
-	gf_io_t   pc, gc;
+	gf_o_t    pc;
+	gf_i_t    gc;
 	HANDLE_S *handles = NULL;
 	AUTH_CODE_S user_input;
 
@@ -386,12 +387,12 @@ oauth2_set_device_info(OAUTH2_S *oa2, char *method)
 	so_puts(in_store, "<HTML><P>");
 	sprintf(tmp, _("<CENTER>Authorizing Alpine Access to %s Email Services</CENTER>"), name);
 	so_puts(in_store, tmp);
-	sprintf(tmp, _("<P>Alpine is attempting to log you into your %s account, using the %s method."), name, method),
+	sprintf(tmp, _("<P>Alpine is attempting to log you into your %s account with username <B>%s</B> using the %s method."), name, mb->user, method),
 	so_puts(in_store, tmp);
 
 	if(deviceinfo->verification_uri && deviceinfo->user_code){
 	   sprintf(tmp,
-		_("</P><P>To sign in, use a web browser to open the page  <A HREF=\"%s\">%s</A> and enter the code \"%s\" without the quotes."),
+		_("</P><P>To sign in, use a web browser to open the page  <A HREF=\"%s\">%s</A> and enter the code %s."),
 		deviceinfo->verification_uri, deviceinfo->verification_uri, deviceinfo->user_code);
 	   so_puts(in_store, tmp);
 	}
@@ -470,7 +471,7 @@ try_wantto:
 	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
 
 	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf),
-		_("Alpine is attempting to log you into your %s account, using the %s method. "), name, method),
+		_("Alpine is attempting to log you into your %s account with username %s using the %s method."), name, mb->user, method);
 	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
 
 	if(deviceinfo->verification_uri && deviceinfo->user_code){
@@ -530,7 +531,7 @@ try_wantto:
 }
 
 char *
-oauth2_get_access_code(unsigned char *url, char *method, OAUTH2_S *oauth2, int *tryanother)
+oauth2_get_access_code(unsigned char *url, char *method, OAUTH2_S *oauth2, NETMBX *mb, int *tryanother)
 {
    char tmp[MAILTMPLEN];
    char *code = NULL;
@@ -540,7 +541,8 @@ oauth2_get_access_code(unsigned char *url, char *method, OAUTH2_S *oauth2, int *
    if(ps_global->ttyo){
 	SCROLL_S  sargs;
 	STORE_S  *in_store, *out_store;
-	gf_io_t   pc, gc;
+	gf_o_t    pc;
+	gf_i_t    gc;
 	HANDLE_S *handles = NULL;
 	AUTH_CODE_S user_input;
 
@@ -551,7 +553,7 @@ oauth2_get_access_code(unsigned char *url, char *method, OAUTH2_S *oauth2, int *
 	so_puts(in_store, "<HTML><BODY><P>");
 	sprintf(tmp, _("<CENTER>Authorizing Alpine Access to %s Email Services</CENTER>"), oauth2->name);
 	so_puts(in_store, tmp);
-	sprintf(tmp, _("<P>Alpine is attempting to log you into your %s account, using the %s method."), oauth2->name, method),
+	sprintf(tmp, _("<P>Alpine is attempting to log you into your %s account with username <B>%s</B> using the %s method."), oauth2->name, mb->user, method),
 	so_puts(in_store, tmp);
 
         if(strucmp((char *) oauth2->name, (char *) GMAIL_NAME) == 0 && strstr(url, (char *) GMAIL_ID) != NULL){
@@ -662,7 +664,7 @@ try_wantto:
 	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
 
 	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf),
-		_("Alpine is attempting to log you into your %s account, using the %s method."), oauth2->name, method),
+		_("Alpine is attempting to log you into your %s account with username %s using the %s method."), oauth2->name, mb->user, method);
 	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
 
 	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf), 
@@ -1135,7 +1137,7 @@ mm_login_oauth2(NETMBX *mb, char *user, char *method,
 #ifdef	LOCAL_PASSWD_CACHE
     /* if requested, remember it on disk for next session */
     if(save_password && F_OFF(F_DISABLE_PASSWORD_FILE_SAVING,ps_global))
-	    set_passfile_passwd_auth(ps_global->pinerc, token,
+	    set_passfile_passwd_auth(ps_global->pinerc, &token,
 		        altuserforcache ? altuserforcache : user, hostlist,
 			(mb->sslflag||mb->tlsflag),
 			(preserve_password == -1 ? 0
@@ -2133,7 +2135,7 @@ mm_login_work(NETMBX *mb, char *user, char **pwd, long int trial,
 #ifdef	LOCAL_PASSWD_CACHE
     /* if requested, remember it on disk for next session */
       if(save_password && F_OFF(F_DISABLE_PASSWORD_FILE_SAVING,ps_global))
-      set_passfile_passwd(ps_global->pinerc, *pwd,
+      set_passfile_passwd(ps_global->pinerc, pwd,
 		        altuserforcache ? altuserforcache : user, hostlist,
 			(mb->sslflag||mb->tlsflag),
 			(preserve_password == -1 ? 0
@@ -2514,7 +2516,8 @@ pine_sslcertquery(char *reason, char *host, char *cert)
     if(ps_global->ttyo){
 	SCROLL_S  sargs;
 	STORE_S  *in_store, *out_store;
-	gf_io_t   pc, gc;
+	gf_o_t    pc;
+	gf_i_t    gc;
 	HANDLE_S *handles = NULL;
 	int       the_answer = 'n';
 
@@ -3240,9 +3243,7 @@ typedef struct pwd_s {
  * the existing code and so that orighost data could be easily used.
  */
 int
-read_passfile(pinerc, l)
-    char       *pinerc;
-    MMLOGIN_S **l;
+read_passfile(char *pinerc, MMLOGIN_S **l)
 {
 #ifdef	WINCRED
 # if	(WINCRED > 0)
@@ -3792,9 +3793,7 @@ read_passfile(pinerc, l)
 
 
 void
-write_passfile(pinerc, l)
-    char      *pinerc;
-    MMLOGIN_S *l;
+write_passfile(char *pinerc, MMLOGIN_S *l)
 {
    char *authend, *authtype;
 #ifdef	WINCRED
@@ -4081,10 +4080,7 @@ ask_erase_credentials(void)
 
 #ifdef	LOCAL_PASSWD_CACHE
 int
-get_passfile_passwd(pinerc, passwd, user, hostlist, altflag)
-    char      *pinerc, **passwd, *user;
-    STRLIST_S *hostlist;
-    int	       altflag;
+get_passfile_passwd(char *pinerc, char **passwd, char *user, STRLIST_S *hostlist, int altflag)
 {
     return get_passfile_passwd_auth(pinerc, passwd, user, hostlist, altflag, NULL);
 }
@@ -4095,11 +4091,7 @@ get_passfile_passwd(pinerc, passwd, user, hostlist, altflag)
  *            as the pinerc with the name defined above.
  */
 int
-get_passfile_passwd_auth(pinerc, passwd, user, hostlist, altflag, authtype)
-    char      *pinerc, **passwd, *user;
-    STRLIST_S *hostlist;
-    int	       altflag;
-    char      *authtype;
+get_passfile_passwd_auth(char *pinerc, char **passwd, char *user, STRLIST_S *hostlist, int altflag, char *authtype)
 {
     dprint((10, "get_passfile_passwd_auth\n"));
     return((mm_login_list || read_passfile(pinerc, &mm_login_list))
@@ -4119,9 +4111,7 @@ is_using_passfile(void)
  * host, the user will confirm.
  */
 char *
-get_passfile_user(pinerc, hostlist)
-    char      *pinerc;
-    STRLIST_S *hostlist;
+get_passfile_user(char *pinerc, STRLIST_S *hostlist)
 {
     return((mm_login_list || read_passfile(pinerc, &mm_login_list))
 	     ? imap_get_user(mm_login_list, hostlist)
@@ -4335,10 +4325,7 @@ macos_erase_keychain(void)
 #ifdef	LOCAL_PASSWD_CACHE
 
 void
-set_passfile_passwd(pinerc, passwd, user, hostlist, altflag, already_prompted)
-    char      *pinerc, *passwd, *user;
-    STRLIST_S *hostlist;
-    int	       altflag, already_prompted;
+set_passfile_passwd(char *pinerc, char **passwd, char *user, STRLIST_S *hostlist, int altflag, int already_prompted)
 {
    set_passfile_passwd_auth(pinerc, passwd, user, hostlist, altflag, already_prompted, NULL);
 }
@@ -4351,28 +4338,20 @@ set_passfile_passwd(pinerc, passwd, user, hostlist, altflag, already_prompted)
  *                              2 prompted, answered no
  */
 void
-set_passfile_passwd_auth(pinerc, passwd, user, hostlist, altflag, already_prompted, authtype)
-    char      *pinerc, *passwd, *user;
-    STRLIST_S *hostlist;
-    int	       altflag, already_prompted;
-    char      *authtype;
+set_passfile_passwd_auth(char *pinerc, char **passwd, char *user, STRLIST_S *hostlist, int altflag, int already_prompted, char *authtype)
 {
     dprint((10, "set_passfile_passwd_auth\n"));
     if(((already_prompted == 0 && preserve_prompt_auth(pinerc, authtype))
 	   || already_prompted == 1)
        && !ps_global->nowrite_password_cache
        && (mm_login_list || read_passfile(pinerc, &mm_login_list))){
-	imap_set_passwd_auth(&mm_login_list, passwd, user, hostlist, altflag, 0, 0, authtype);
+	imap_set_passwd_auth(&mm_login_list, *passwd, user, hostlist, altflag, 0, 0, authtype);
 	write_passfile(pinerc, mm_login_list);
     }
 }
 
 void
-update_passfile_hostlist(pinerc, user, hostlist, altflag)
-    char      *pinerc;
-    char      *user;
-    STRLIST_S *hostlist;
-    int        altflag;
+update_passfile_hostlist(char *pinerc, char *user, STRLIST_S *hostlist, int altflag)
 {
   update_passfile_hostlist_auth(pinerc, user, hostlist, altflag, NULL);
 }
@@ -4386,12 +4365,7 @@ update_passfile_hostlist(pinerc, user, hostlist, altflag)
  * This routine attempts to repair that.
  */
 void
-update_passfile_hostlist_auth(pinerc, user, hostlist, altflag, authtype)
-    char      *pinerc;
-    char      *user;
-    STRLIST_S *hostlist;
-    int        altflag;
-    char      *authtype;
+update_passfile_hostlist_auth(char *pinerc, char *user, STRLIST_S *hostlist, int altflag, char *authtype)
 {
 #ifdef	 WINCRED
     return;

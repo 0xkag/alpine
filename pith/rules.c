@@ -1517,7 +1517,8 @@ char *
 exec_fcn (RULEACTION_S *action, int ctxt, ENVELOPE *env)
 {
   STORE_S *output_so;
-  gf_io_t	gc, pc;
+  gf_i_t	gc;
+  gf_o_t	pc;
   char *status, *rv, *cmd, *test;
 
   if(!(action->context & ctxt))

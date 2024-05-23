@@ -330,7 +330,7 @@ redraft_work(MAILSTREAM **streamp, long int cont_msg, ENVELOPE **outgoing,
     BODY	*b;
     PART        *part;
     PINEFIELD   *pf;
-    gf_io_t	 pc;
+    gf_o_t	 pc;
     char	*extras, **fields, **values, *p;
     char        *hdrs[2], *h, *charset;
     char       **smtp_servers = NULL, **nntp_servers = NULL;
@@ -514,7 +514,7 @@ redraft_work(MAILSTREAM **streamp, long int cont_msg, ENVELOPE **outgoing,
 	    }
 
 	    if(fcc)				/* fcc: special case... */
-	      *fcc = values[INDEX_FCC] ? values[INDEX_FCC] : cpystr("");
+	      *fcc = values[INDEX_FCC] ? cpystr(rfc1522_decode_to_utf8(tmp_20k_buf, SIZEOF_20KBUF, values[INDEX_FCC])) : cpystr("");
 	    else if(values[INDEX_FCC])
 	      fs_give((void **) &values[INDEX_FCC]);
 
@@ -4282,7 +4282,7 @@ pine_rfc822_output_body(struct mail_bodystruct *body, soutr_t f, void *s)
     char tmp[MAILTMPLEN];
     int                add_trailing_crlf;
     LOC_2022_JP ljp;
-    gf_io_t            gc;
+    gf_i_t             gc;
 
     dprint((4, "-- pine_rfc822_output_body: %d\n",
 	       body ? body->type : 0));

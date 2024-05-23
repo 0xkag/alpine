@@ -20,12 +20,12 @@
 
 
 /* exported prototypes */
-char	*dfilter(char *, STORE_S *, gf_io_t, FILTLIST_S *);
+char	*dfilter(char *, STORE_S *, gf_o_t, FILTLIST_S *);
 char	*dfilter_trigger(BODY *, char *, size_t);
 char	*expand_filter_tokens(char *, ENVELOPE *, char **, char **, char **, int *, int *, int *);
 char	*filter_session_key(void);
 char	*filter_data_file(int);
-char	*exec_function_rule(char *, gf_io_t, gf_io_t);
+char	*exec_function_rule(char *, gf_i_t, gf_o_t);
 
 
 #endif /* PINE_DISPFILT_INCLUDED */
