@@ -605,6 +605,10 @@ format_body(long int msgno, BODY *body, HANDLE_S **handlesp, HEADER_S *hp, int f
 	      charset = cpystr(ps_global->display_charmap);
 
 	    /* consider encoding before transliterating message text to UTF-8 */
+	    if(!body){
+		if(strucmp(charset, "us-ascii") && strucmp(charset, "utf-8"))
+		   gf_link_filter(gf_utf8, gf_utf8_opt(charset));
+	    } else
 	    switch(body->encoding){
 		case ENCOTHER: /* is this the best decision? */
 		     dprint((1, "format_body: unknown CTE: \"%s\" (%d)\n",
