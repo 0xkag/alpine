@@ -214,6 +214,8 @@ new additions to Alpine, please check it periodically.
 
 <P> Bugs addressed include:
 <UL>
+<LI> Crash when a calendar invitation is not properly encoded. Reported
+by Mark Hills.
 <LI> When a user configures a mailbox without specifying the username, PC-Alpine
 does not allow a user to input their password. Reported by Michelle McPeek.
 <LI> Crash in PC-Alpine when postponing a message. Reported by Paolo Ienne.

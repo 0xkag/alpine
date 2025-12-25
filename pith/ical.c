@@ -27,6 +27,7 @@ void ical_initialize(void);
 
 int ical_non_ascii_valid(unsigned char);
 char *ical_unfold_line(char *);
+char *ical_fix_newline(char *);
 ICLINE_S *ical_parse_line(char **, char *);
 
 ICLINE_S *ical_cline_cpy(ICLINE_S *);
@@ -515,6 +516,40 @@ ical_free_unknown_comp(ICAL_S **icalp)
   fs_give((void **)icalp);
 }
 
+/* fix the text so that the character \n is always
+ * preceeded by \r
+ */
+char *
+ical_fix_newline(char *line)
+{
+  unsigned long i, j;
+
+  if(line == NULL)
+    return NULL;
+
+  for (i = 0, j = 0; line[i] != '\0'; i++){
+      if(line[i] == '\n' && (i == 0 || (line[i-1] != '\r')))
+	 j++;
+  }
+
+  /* if there is nothing to fix do nothing more */
+  if(j == 0) return line;
+
+  i = strlen(line) + j;
+  fs_resize((void **) &line, i);
+  line[i] = '\0';
+
+  for(; j > 0; i--){
+      line[i] = line[i-j];
+      if(line[i-j] == '\n' && line[i-j-1] != '\r'){
+	 line[--i] = '\r';
+	 j--;
+      }
+  }
+
+  return line;
+}
+
 char *
 ical_unfold_line(char *line)
 {
@@ -684,6 +719,7 @@ ical_parse_text(char *text)
    ical_debug("ical_parse_text", text);
    ical_initialize();
 
+   text = ical_fix_newline(text);
    text = ical_unfold_line(text);
    for(s = text; s && *s != '\0'; s++){
 	if(*s != 'B' && *s != 'b')
