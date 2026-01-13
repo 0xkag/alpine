@@ -127,9 +127,12 @@ http_parameters (long function,void *value)
 
 
 unsigned char *
-http_response_from_reply(HTTPSTREAM *stream)
+http_response_from_reply(HTTPSTREAM *stream, unsigned char **typep)
 {
-  unsigned char *rv = NULL, *s;
+  unsigned char *rv = NULL, *s, *t, *e, c;
+  int found = 0;
+
+  if(typep) *typep = NULL;
 
   if(stream == NULL || stream->reply == NULL || stream->header == NULL) 
      return rv;
@@ -137,7 +140,25 @@ http_response_from_reply(HTTPSTREAM *stream)
   s = strstr(stream->reply, "\r\n\r\n");
   if(s != NULL) rv = s + 4;
 
-  return s ? rv : NIL;
+  /* extract the Content-Type: header */
+  for(s = typep ? stream->reply : NULL; !found && s && *s && s < rv; s = t + 2){
+      t = strstr(s, "\r\n");
+      if(t != NULL && t - s > 13){
+	 *t = '\0';
+	 c = *(e = s + 13);
+	 *e = '\0';
+	 if(!compare_cstring(s, "Content-Type:")){
+	    *e = c;
+	    s += 13;		/* 13 = strlen("Content-Type:") */
+	    for(; isspace(*s); s++);
+	    *typep = cpystr(s);
+	    found++;		/* short circuit this loop */
+	 } else *e = c;
+	 *t = '\r';
+      }
+  }
+
+  return rv;
 }
 
 void
@@ -942,7 +963,7 @@ http_post_param(HTTPSTREAM *stream, HTTP_PARAM_S *param)
   }
   
   if(http_send(stream, http_request)){
-     unsigned char *s = http_response_from_reply(stream);
+     unsigned char *s = http_response_from_reply(stream, NULL);
      response = cpystr(s ? (char *) s : "");
   }
 
@@ -967,7 +988,7 @@ http_get(HTTPSTREAM *stream, HTTP_PARAM_S **h)
      http_add_header(&http_request, h[i]->name, h[i]->value);
   
   if(http_send(stream, http_request)){
-     unsigned char *s = http_response_from_reply(stream);
+     unsigned char *s = http_response_from_reply(stream, NULL);
      response = cpystr(s ? (char *) s : "");
   }
 
@@ -1132,14 +1153,15 @@ http_reply (HTTPSTREAM *stream)
 	  if((s = (unsigned char *) net_getline (stream->netstream)) != NIL){
 	     if(stream->debug) mm_log(s, HTTPDEBUG);
 	     size = strtol(s, NIL, 16);
-	     fs_give ((void **) &stream->response);
+	     if(stream->response) fs_give ((void **) &stream->response);
 	     if(size > 0){
 	       stream->response = (unsigned char *) net_getsize (stream->netstream, size);
 	       buffer_add(&stream->reply, stream->response);
 	       if(stream->debug) mm_log(stream->response, HTTPDEBUG);
+	       if(stream->response) fs_give ((void **) &stream->response);
 	     }
 	  }
-	} while (stream && stream->netstream && s && (size > 0 || !*s ));
+	} while (stream && stream->netstream && s && (size > 0 || !*s));
      }
   }
 

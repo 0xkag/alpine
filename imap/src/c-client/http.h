@@ -119,7 +119,7 @@ HTTP_REQUEST_S *http_request_get(void);
 void http_request_free(HTTP_REQUEST_S **);
 unsigned char *http_request_line(unsigned char *, unsigned char *, unsigned char *);
 void http_add_header(HTTP_REQUEST_S **, unsigned char *, unsigned char *);
-unsigned char *http_response_from_reply(HTTPSTREAM *);
+unsigned char *http_response_from_reply(HTTPSTREAM *, unsigned char **);
 
 int http_valid_net_parse (unsigned char *, NETMBX *);
 HTTPSTREAM *http_open (unsigned char *);
