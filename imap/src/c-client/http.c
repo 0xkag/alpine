@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Eduardo Chappa
+ * Copyright 2018-2026 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,6 +156,25 @@ http_response_from_reply(HTTPSTREAM *stream, unsigned char **typep)
 	 } else *e = c;
 	 *t = '\r';
       }
+  }
+
+  if(!found){ /* test if no content-type because there is no body, that is content-lenght =0 */
+     for(s = typep ? stream->reply : NULL; !found && s && *s && s < rv; s = t + 2){
+      t = strstr(s, "\r\n");
+      if(t != NULL && t - s > 15){
+	 *t = '\0';
+	 c = *(e = s + 15);
+	 *e = '\0';
+	 if(!compare_cstring(s, "Content-Length:")){
+	    *e = c;
+	    s += 15;		/* 15 = strlen("Content-Length:") */
+	    for(; isspace(*s); s++);
+	    if(!strcmp(s, "0")) *typep = cpystr("text/plain");
+	    found++;		/* short circuit this loop */
+	 } else *e = c;
+	 *t = '\r';
+      }
+     }
   }
 
   return rv;
@@ -1042,6 +1061,7 @@ http_send (HTTPSTREAM *stream, HTTP_REQUEST_S *req)
     buffer_add(&s, req->header); buffer_add(&s, "\015\012");
     buffer_add(&s, req->body); buffer_add(&s, "\015\012");
 
+    stream->debug = http_debug;
     if(stream->debug) mm_log(s, HTTPDEBUG);
 
     ret = net_soutr (stream->netstream,s)
