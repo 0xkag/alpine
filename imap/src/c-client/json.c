@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Eduardo Chappa
+ * Copyright 2018-2026 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,9 @@ JSON_S *json_parse_pairs(unsigned char **);
 
 void *json_value_parse(unsigned char **, JObjType *);
 void  json_value_free(void **, JObjType);
+void  json_free(JSON_S **);
+void  json_value_free(void **, JObjType);
 
-/* An array is a JSON object where the name is null */
 JSON_S *json_array_parse_work(unsigned char **);
 JSON_S *json_array_parse(unsigned char **);
 void    json_array_free(JSON_S **);
@@ -140,9 +141,9 @@ json_body_value(JSON_S *j, unsigned char *s)
 {
   JSON_S *js;
 
-  if(!j || j->jtype != JObject || !j->value ) return NIL;
+  if(!j) return NIL;
 
-  for(js = (JSON_S *) j->value ; js ; js = js->next)
+  for(js =  j ; js ; js = js->next)
     if(js->name && !compare_cstring(js->name, s))
 	break;
 
@@ -320,6 +321,7 @@ json_array_parse(unsigned char **s)
   if(*w == '['){
      json_skipchar(w);
      j = json_array_parse_work(&w);
+     j->state |= JSON_ARRAY_START;
   }
   *s = w;
   return j;
@@ -332,8 +334,7 @@ json_array_parse_work(unsigned char **s)
   JSON_S *j = NIL;
 
   json_skipws(w);
-  j = fs_get(sizeof(JSON_S));
-  memset((void *) j, 0, sizeof(JSON_S));
+  j = json_new();
   if(*w != ']')
     j->value = json_value_parse(&w, &j->jtype);
   json_skipws(w);
@@ -342,7 +343,7 @@ json_array_parse_work(unsigned char **s)
 		   j->next = json_array_parse_work(&w);
 		   break;
 
-        case ']' : break;
+        case ']' : j->state |= JSON_ARRAY_END; break;
          default : json_free(&j);
   }
   *s = w;
@@ -370,8 +371,7 @@ json_parse_pairs(unsigned char **s)
     return NIL;
 
   *u = '\0';
-  j = fs_get(sizeof(JSON_S));
-  memset((void *) j, 0, sizeof(JSON_S));
+  j = json_new();
   j->name = (unsigned char *) cpystr((char *) w);
 
   *u = '\"';
@@ -442,16 +442,18 @@ json_parse_work(unsigned char **s)
   json_skipws(w);
   if(*w == '{'){
      json_skipchar(w);
-     j = fs_get(sizeof(JSON_S));
-     memset((void *) j, 0, sizeof(JSON_S));
-     j->jtype = JObject;
-     j->value = (void *) json_parse_pairs(&w);
-     json_skipws(w);
-     if(*w == '}'){
-        json_skipchar(w);
+     if((j = json_parse_pairs(&w)) != NULL){
+	j->state |= JSON_START;
+	json_skipws(w);
+	if(*w == '}'){
+	   JSON_S *jx;
+	   for(jx = j; jx && jx->next; jx = jx->next);
+	   jx->state |= JSON_END;
+           json_skipchar(w);
+	}
+	else
+	   json_free(&j);
      }
-     else
-        json_free(&j);
   }
   *s = w;
   return j;  
@@ -463,13 +465,11 @@ json_assign(void **v, JSON_S *j, char *s, JObjType t)
   JSON_S *json = json_body_value(j, s);
 
   *v = NIL;
-  if(json && json->jtype == t && json->value){
+  if(json && json->jtype == t){
     switch(t){
-	case JString : *v = (void *) cpystr((char *) json->value);
-			break;
+	case JString : if (json->value) *v = (void *) cpystr((char *) json->value); break;
 	case JArray  :
-	case JObject : *v = json->value;
-			break;
+	case JObject : *v = (void *) json->value; break;
 	default : break;	/* use default value for *v */
     }
   }
@@ -528,14 +528,14 @@ unsigned char *json2uchar(JSON_S *j, unsigned char **rv)
   unsigned long buflen = 0L;
   size_t len;
 
-  if(!j || j->jtype != JObject) return *rv;
+  if(!j || !(j->state & JSON_START)) return *rv;
 
   if(*rv) JSON_ADD_NAME(j->name);
   buffer_add(rv, "{");
 
   for(jp = (JSON_S *) j->value; jp; jp = jp->next){
      switch(jp->jtype){
-	case JObject:	*rv = json2uchar(jp, rv);
+	case JObject:	*rv = json2uchar((JSON_S *) jp->value, rv);
 			break;
 
 	case JString:	JSON_ADD_NAME(jp->name);
@@ -580,7 +580,7 @@ unsigned char *json_add_array_value(JSON_S *j, unsigned char **rv)
 
   for(jp = (JSON_S *) j->value; jp; jp = jp->next){
      switch(jp->jtype){
-	case JObject:	*rv = json2uchar(jp, rv);
+	case JObject:	*rv = json2uchar((JSON_S *) jp->value, rv);
 			break;
 
 	case JString:	JSON_ADD_NAME(jp->name);
@@ -609,4 +609,13 @@ unsigned char *json_add_array_value(JSON_S *j, unsigned char **rv)
 
   buffer_add(rv, "]");
   return *rv;
+}
+
+JSON_S *
+json_new(void)
+{
+   JSON_S *j;
+   j = fs_get(sizeof(JSON_S));
+   memset((void *) j, 0, sizeof(JSON_S));
+   return j;
 }
