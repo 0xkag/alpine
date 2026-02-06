@@ -1240,7 +1240,7 @@ update_index(struct pine *state, struct index_state *screen)
 	}
 	else
 	  fs_resize((void **)&(screen->entry_state),
-		    (size_t)screen->lines_per_page);
+		    (size_t)screen->lines_per_page * sizeof(struct entry_state));
 
 	for(; i < screen->lines_per_page; i++)	/* init new entries */
 	  memset(&screen->entry_state[i], 0, sizeof(struct entry_state));

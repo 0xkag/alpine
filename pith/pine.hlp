@@ -214,6 +214,8 @@ new additions to Alpine, please check it periodically.
 
 <P> Bugs addressed include:
 <UL>
+<LI> Crash fix due to incorrect allocation of memory while drawing the
+    index screen. Reported and fixed by Peter Tirsek.
 <LI> Crash when a calendar invitation is not properly encoded. Reported
 by Mark Hills.
 <LI> When a user configures a mailbox without specifying the username, PC-Alpine
