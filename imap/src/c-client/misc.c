@@ -496,7 +496,7 @@ buffer_add(unsigned char **bufp, unsigned char *text)
 {
   size_t len;
 
-  if(!bufp || !text || !*text) return;
+  if(!bufp || !text) return;
 
   len = *bufp ? strlen(*bufp) : 0;
   fs_resize((void **) bufp, len + strlen(text) + 1);

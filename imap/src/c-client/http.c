@@ -775,7 +775,7 @@ http_request_get(void)
 void
 http_request_free(HTTP_REQUEST_S **hr)
 {
-  if(!hr) return;
+  if(!hr || !*hr) return;
 
   if((*hr)->request) fs_give((void **) &(*hr)->request);
   if((*hr)->header) fs_give((void **) &(*hr)->header);
@@ -1056,6 +1056,8 @@ http_send (HTTPSTREAM *stream, HTTP_REQUEST_S *req)
       sprintf(length, "%lu", strlen(req->body));
       http_add_header(&req, "Content-Length", length);
     }
+    if(stream->cflags & HTTP_KALIVE)
+       http_add_header(&req, "Connection", "Keep-Alive");
 
     buffer_add(&s, req->request); buffer_add(&s, "\015\012");
     buffer_add(&s, req->header); buffer_add(&s, "\015\012");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Eduardo Chappa
+ * Copyright 2018-2026 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,17 +71,19 @@ typedef struct http_header_data_s {
 		*www_authenticate;	/* RFC 7235, Section 4.1 */
 } HTTP_HEADER_DATA_S;
 
+/* HTTP flags */
+#define HTTP_RESET	0x00	/* erase all flags	 */
+#define HTTP_KALIVE	0x01	/* keep connection alive */
+
 #define HTTP_MIME_URLENCODED	"application/x-www-form-urlencoded"
 
 #define HTTP_1_1_VERSION	"HTTP/1.1"
 #define HTTP_OK			200
+#define HTTP_OK_CREATED		201
+#define HTTP_OK_ACCEPTED	202
+#define HTTP_OK_NO_CONTENT	204
 #define HTTP_BAD		400
 #define HTTP_UNAUTHORIZED	401
-
-#define GET_HTTPPORT (long) 490
-#define SET_HTTPPORT (long) 491
-#define GET_SSLHTTPPORT (long) 492
-#define SET_SSLHTTPPORT (long) 493
 
 typedef struct http_status_s {
   char *version;  
@@ -94,6 +96,7 @@ typedef struct http_stream {
   NETSTREAM *netstream;
   HTTP_HEADER_DATA_S *header;	/* headers sent by the server */
   unsigned int debug : 1;	/* send debug information */
+  int  cflags;		/* useful flags to set parameter connections */
   char *url;		/* original url */
   char *urlhost;	/* get original host */
   char *urltail;	/* the part of the URL after the original host */
@@ -119,7 +122,10 @@ HTTP_REQUEST_S *http_request_get(void);
 void http_request_free(HTTP_REQUEST_S **);
 unsigned char *http_request_line(unsigned char *, unsigned char *, unsigned char *);
 void http_add_header(HTTP_REQUEST_S **, unsigned char *, unsigned char *);
+void http_add_body(HTTP_REQUEST_S **, unsigned char *);
 unsigned char *http_response_from_reply(HTTPSTREAM *, unsigned char **);
+unsigned char *encode_url_body_part(unsigned char *, unsigned char *);
+unsigned char *hex_escape_url_part(unsigned char *, unsigned char *);
 
 int http_valid_net_parse (unsigned char *, NETMBX *);
 HTTPSTREAM *http_open (unsigned char *);
