@@ -59,6 +59,6 @@ JSON_S *json_parse(unsigned char *);
 JSON_S *json_body_value(JSON_S *, unsigned char *);
 JSON_S *json_new();
 void json_free(JSON_S **);
-unsigned char *json2uchar(JSON_S *, unsigned char **);
+unsigned char *json2uchar(JSON_S *);
 
 #endif /* JSON_H_INCLUDED */

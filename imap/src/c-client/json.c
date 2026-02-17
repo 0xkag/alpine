@@ -13,6 +13,9 @@
 #include "mem.h"
 #include "readfile.h"
 #include "json.h"
+int compare_ulong (unsigned long,unsigned long);
+int compare_uchar (unsigned char,unsigned char);
+int compare_cstring (unsigned char *, unsigned char *);
 #else
 #include <ctype.h>
 #include <stdio.h>
@@ -48,7 +51,7 @@ JSON_S *json_array_parse_work(unsigned char **);
 JSON_S *json_array_parse(unsigned char **);
 void    json_array_free(JSON_S **);
 
-unsigned char *json_add_array_value(JSON_S *, unsigned char **);
+unsigned char *json_add_array_value(JSON_S *);
 
 /* we are parsing from the text of the json object, so it is
  * never possible to have a null character, unless something
@@ -487,128 +490,135 @@ json_by_name_and_type(JSON_S *json, char *name, JObjType jtype)
   return j && j->jtype == jtype ? j : NIL;
 }
 
-#define JSON_ADD_NAME(X) {			\
+#define JSON_ADD_NAME(Y, X) {			\
      if((X)){					\
 	unsigned char *buf;			\
 	size_t len;				\
 	len = strlen((X)) + 4;			\
 	buf = fs_get(len);			\
 	sprintf(buf, "\"%s\":", (X));		\
-	buffer_add(rv, buf);			\
+	buffer_add((Y), buf);			\
 	fs_give((void **) &buf);		\
      }						\
 }
 
-#define JSON_ADD_STRING_VALUE(X) {		\
+#define JSON_ADD_STRING_VALUE(Y,X) {		\
      if((X)){					\
 	unsigned char *buf;			\
 	size_t len;				\
 	len = strlen((X)) + 3;			\
 	buf = fs_get(len);			\
 	sprintf(buf, "\"%s\"", (X));		\
-	buffer_add(rv, buf);			\
+	buffer_add((Y), buf);			\
 	fs_give((void **) &buf);		\
      }						\
 }
 
-#define JSON_ADD_LONG_VALUE(X) {		\
-     if((X)){					\
-	unsigned char *buf;			\
-	buf = fs_get(128 + 1);			\
-	sprintf(buf, "%lu", (X));		\
-	buffer_add(rv, buf);			\
-	fs_give((void **) &buf);		\
-     }						\
+#define JSON_ADD_LONG_VALUE(Y, X) {		\
+	unsigned char buf[128];			\
+	sprintf(buf, "%ld", (X));		\
+	buffer_add((Y), buf);			\
 }
 
-unsigned char *json2uchar(JSON_S *j, unsigned char **rv)
+unsigned char *json2uchar(JSON_S *j)
 {
   JSON_S *jp;
   unsigned char *buf = NIL;
   unsigned long buflen = 0L;
   size_t len;
+  unsigned char *rv = NIL, *rv2;
 
-  if(!j || !(j->state & JSON_START)) return *rv;
+  if(!j) return rv;
 
-  if(*rv) JSON_ADD_NAME(j->name);
-  buffer_add(rv, "{");
+//  if(j->jtype == JObject && j->name) JSON_ADD_NAME(&rv, j->name);
 
-  for(jp = (JSON_S *) j->value; jp; jp = jp->next){
+  buffer_add(&rv, "{");
+
+  for(jp = j; jp; jp = jp->next){
      switch(jp->jtype){
-	case JObject:	*rv = json2uchar((JSON_S *) jp->value, rv);
+	case JObject:	if(jp->name) JSON_ADD_NAME(&rv, jp->name);
+			rv2 = json2uchar((JSON_S *) jp->value);
+			buffer_add(&rv, rv2);
+			if(rv2) fs_give((void **) &rv2);
 			break;
 
-	case JString:	JSON_ADD_NAME(jp->name);
-			JSON_ADD_STRING_VALUE((unsigned char *) jp->value);
+	case JString:	JSON_ADD_NAME(&rv, jp->name);
+			JSON_ADD_STRING_VALUE(&rv, (unsigned char *) jp->value);
 			break;
 
 	case JExponential:
 	case JDecimal:
 	case JNull:
-	case JBoolean:  JSON_ADD_NAME(jp->name);
-			buffer_add(rv, (unsigned char *) jp->value);
+	case JBoolean:  JSON_ADD_NAME(&rv, jp->name);
+			buffer_add(&rv, (unsigned char *) jp->value);
 			break;
 
-	case JLong:	JSON_ADD_NAME(jp->name);
-			JSON_ADD_LONG_VALUE(*(long *) jp->value);
+	case JLong:	JSON_ADD_NAME(&rv, jp->name);
+			JSON_ADD_LONG_VALUE(&rv, *(long *) jp->value);
 			break;
 
-	case JArray:	JSON_ADD_NAME(jp->name);
-			*rv = json_add_array_value(jp, rv);
+	case JArray:	if(jp->name) JSON_ADD_NAME(&rv, jp->name);
+			rv2 = json_add_array_value((JSON_S *) jp->value);
+			buffer_add(&rv, rv2);
+			if(rv2) fs_give((void **) &rv2);
 			break;
 
 	default: break;
      }
-     if(jp->next) buffer_add(rv, ",");
+     if(jp->next) buffer_add(&rv, ",");
   }
 
-  buffer_add(rv, "}");
-  return *rv;
+  buffer_add(&rv, "}");
+  return rv;
 }
 
-unsigned char *json_add_array_value(JSON_S *j, unsigned char **rv)
+unsigned char *json_add_array_value(JSON_S *j)
 {
   JSON_S *jp;
-  unsigned char *buf = NIL;
-  unsigned long buflen = 0L;
-  size_t len;
+  unsigned char *rv = NIL, *rv2;
 
-  if(!j || j->jtype != JArray) return *rv;
+  if(!j) return rv;
 
-  if(*rv) JSON_ADD_NAME(j->name);
-  buffer_add(rv, "[");
+//  if(j->jtype == JArray && j->name) JSON_ADD_NAME(&rv, j->name);
 
-  for(jp = (JSON_S *) j->value; jp; jp = jp->next){
+  buffer_add(&rv, "[");
+
+  for(jp = j; jp; jp = jp->next){
      switch(jp->jtype){
-	case JObject:	*rv = json2uchar((JSON_S *) jp->value, rv);
+	case JObject:	if(jp->name) JSON_ADD_NAME(&rv, jp->name);
+			rv2 = json2uchar((JSON_S *) jp->value);
+			buffer_add(&rv, rv2);
+			if(rv2) fs_give((void **) &rv2);
 			break;
 
-	case JString:	JSON_ADD_NAME(jp->name);
-			JSON_ADD_STRING_VALUE((unsigned char *) jp->value);
+	case JString:	JSON_ADD_NAME(&rv, jp->name);
+			JSON_ADD_STRING_VALUE(&rv, (unsigned char *) jp->value);
 			break;
 
 	case JExponential:
 	case JDecimal:
 	case JNull:
-	case JBoolean:  JSON_ADD_NAME(jp->name);
-			buffer_add(rv, (unsigned char *) jp->value);
+	case JBoolean:  JSON_ADD_NAME(&rv, jp->name);
+			buffer_add(&rv, (unsigned char *) jp->value);
 			break;
 
-	case JLong:	JSON_ADD_NAME(jp->name);
-			JSON_ADD_LONG_VALUE(*(long *) jp->value);
+	case JLong:	JSON_ADD_NAME(&rv, jp->name);
+			JSON_ADD_LONG_VALUE(&rv, *(long *) jp->value);
 			break;
 
-	case JArray:	JSON_ADD_NAME(jp->name);
-			*rv = json_add_array_value(jp, rv);
+	case JArray:	if(jp->name) JSON_ADD_NAME(&rv, jp->name);
+			rv2 = json_add_array_value((JSON_S *) jp->value);
+			buffer_add(&rv, rv2);
+			if(rv2) fs_give((void **) &rv2);
 			break;
 
 	default: break;
      }
-     if(jp->next) buffer_add(rv, ",");
+     if(jp->next) buffer_add(&rv, ",");
   }
 
-  buffer_add(rv, "]");
-  return *rv;
+  buffer_add(&rv, "]");
+  return rv;
 }
 
 JSON_S *
@@ -619,3 +629,54 @@ json_new(void)
    memset((void *) j, 0, sizeof(JSON_S));
    return j;
 }
+
+#ifdef STANDALONE
+int compare_ulong (unsigned long l1,unsigned long l2)
+{
+  if (l1 < l2) return -1;
+  if (l1 > l2) return 1;
+  return 0;
+}
+
+int compare_uchar (unsigned char c1,unsigned char c2)
+{
+  return compare_ulong (((c1 >= 'a') && (c1 <= 'z')) ? c1 - ('a' - 'A') : c1,
+                        ((c2 >= 'a') && (c2 <= 'z')) ? c2 - ('a' - 'A') : c2);
+}
+
+
+int compare_cstring (unsigned char *s1,unsigned char *s2)
+{
+  int i;
+  if (!s1) return s2 ? -1 : 0;  /* empty string cases */
+  else if (!s2) return 1;
+  for (; *s1 && *s2; s1++,s2++) if ((i = (compare_uchar (*s1,*s2))) != 0) return i;
+  if (*s1) return 1;            /* first string is longer */
+  return *s2 ? -1 : 0;          /* second string longer : strings identical */
+}
+
+int main(int argc, char *argv[])
+{
+   unsigned char *textf = NULL, *t;
+   JSON_S *json;
+   unsigned long sizef;
+   int rv = 0, i;
+
+   if(argc != 2){
+        printf("Error: Usage \"json file\"\n");
+        exit(1);
+   }
+
+   readfile(argv[1], &textf, NULL);
+   json = json_parse(textf);
+   t = json2uchar(json);
+   printf("textf=%s\n", textf);
+   printf("t=%s\n", t);
+   for(i = 0; textf[i] == t[i]; i++);
+   printf("%d\n", i);
+   if(textf) fs_give((void **)&textf);
+   if(t) fs_give((void **) &t);
+   if(json) json_free(&json);
+   exit(rv);
+}
+#endif
