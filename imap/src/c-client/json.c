@@ -324,7 +324,7 @@ json_array_parse(unsigned char **s)
   if(*w == '['){
      json_skipchar(w);
      j = json_array_parse_work(&w);
-     j->state |= JSON_ARRAY_START;
+     if(j) j->state |= JSON_ARRAY_START;
   }
   *s = w;
   return j;
@@ -530,8 +530,6 @@ unsigned char *json2uchar(JSON_S *j)
 
   if(!j) return rv;
 
-//  if(j->jtype == JObject && j->name) JSON_ADD_NAME(&rv, j->name);
-
   buffer_add(&rv, "{");
 
   for(jp = j; jp; jp = jp->next){
@@ -578,8 +576,6 @@ unsigned char *json_add_array_value(JSON_S *j)
   unsigned char *rv = NIL, *rv2;
 
   if(!j) return rv;
-
-//  if(j->jtype == JArray && j->name) JSON_ADD_NAME(&rv, j->name);
 
   buffer_add(&rv, "[");
 

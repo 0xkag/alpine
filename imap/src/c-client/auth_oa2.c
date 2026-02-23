@@ -1,5 +1,5 @@
 /* ========================================================================
- * Copyright 2018-2022 Eduardo Chappa
+ * Copyright 2018-2026 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,24 +147,34 @@ long auth_oauth2_client (authchallenge_t challenger,authrespond_t responder, cha
       ret = base ? NIL : LONGT;		/* will get a BAD response back */
     }
     else {
-      unsigned long rlen = OAUTH2_USER_LEN + OAUTH2_BEARER_LEN + 2
-			   + strlen(user) + strlen(oauth2.access_token) + 1;
-      char *response = (char *) fs_get (rlen + 1);
-      sprintf(response, "%s%s\001%s%s\001\001", OAUTH2_USER, user, OAUTH2_BEARER, oauth2.access_token);
+       unsigned long rlen;
+       char *response;
+
+       if(!compare_cstring(service, "graph")){
+	  response = cpystr(oauth2.access_token);
+	  rlen = strlen(response);
+       }
+       else {
+	  rlen = OAUTH2_USER_LEN + strlen(user) + 1
+		  + OAUTH2_BEARER_LEN + strlen(oauth2.access_token) + 2;
+
+	  response = (char *) fs_get (rlen + 1);
+	  sprintf(response, "%s%s\001%s%s\001\001", OAUTH2_USER, user, OAUTH2_BEARER, oauth2.access_token);
+      }
       if ((*responder) (stream,base,response,rlen)) {
-	if ((challenge = (*challenger) (stream,&clen)) != NULL)
-	  fs_give ((void **) &challenge);
-	else {
-	  ++*trial;				/* can try again if necessary */
-	  ret = *trial < 3 ? LONGT : NIL;	/* check the authentication */
+	 if ((challenge = (*challenger) (stream,&clen)) != NULL)
+	    fs_give ((void **) &challenge);
+	 else {
+	    ++*trial;				/* can try again if necessary */
+	    ret = *trial < 3 ? LONGT : NIL;	/* check the authentication */
 	  /* When the Access Token expires we fail once, but after we get
 	   * a new one, we should succeed at the second attempt. If the
 	   * Refresh Token has expired somehow, we invalidate it if we
 	   * reach *trial to 3. This forces the process to restart later on.
 	   */
-	  if(*trial == 3)
-	     oauth2.expiration = 0L;
-	}
+	    if(*trial == 3)
+	       oauth2.expiration = 0L;
+	 }
       }
       fs_give ((void **) &response);
       if (!ret)

@@ -709,6 +709,7 @@ void *mail_parameters (MAILSTREAM *stream,long function,void *value)
     if ((r = env_parameters (function,value)) != NULL) ret = r;
     if ((r = tcp_parameters (function,value)) != NULL) ret = r;
     if ((r = http_parameters (function,value)) != NULL) ret = r;
+    if ((r = graph_parameters (function,value)) != NULL) ret = r;
     if ((r = utf8_parameters (function,value)) != NULL) ret = r;
     if (stream && stream->dtb) {/* if have stream, do for its driver only */
       if ((r = (*stream->dtb->parameters) (function,value)) != NULL) ret = r;
@@ -900,7 +901,8 @@ long mail_valid_net_parse_work (char *name,NETMBX *mb,char *service)
 	else if (mailssldriver && !compare_cstring (s,"validate-cert"));
 				/* service switches below here */
 	else if (*mb->service) return NIL;
-	else if (!compare_cstring (s,"imap") ||
+	else if (!compare_cstring (s,"graph") ||
+		 !compare_cstring (s,"imap") ||
 		 !compare_cstring (s,"nntp") ||
 		 !compare_cstring (s,"pop3") ||
 		 !compare_cstring (s,"smtp") ||
@@ -919,6 +921,13 @@ long mail_valid_net_parse_work (char *name,NETMBX *mb,char *service)
     default:			/* anything else is bogus */
       return NIL;
     } while (c);		/* see if anything more to parse */
+  }
+				/* graph is special */
+  if(!compare_cstring(mb->service, "graph")){
+     mb->sslflag = mb->notlsflag = T;
+     mb->tlsflag = mb->norsh = NIL;
+     mb->authuser[0] = '\0';
+     strcpy(mb->auth, BEARERNAME);
   }
 				/* default mailbox name */
   if (!*mb->mailbox) strcpy (mb->mailbox,"INBOX");

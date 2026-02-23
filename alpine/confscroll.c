@@ -1,7 +1,7 @@
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4616,6 +4616,16 @@ toggle_feature_bit(struct pine *ps, int index, struct variable *var, CONF_S *cl,
 	case F_ENABLE_INCOMING :
 	  q_status_message(SM_ORDER | SM_DING, 3, 4,
 	       "Folder List changes will take effect your next Alpine session.");
+	  break;
+
+	case F_GRAPH_PREFER_PLAIN_TEXT:
+	  q_status_message(SM_ORDER | SM_DING, 3, 4,
+	       "prefer plain text change will take effect in your next Alpine session.");
+	  break;
+
+	case F_GRAPH_DOWNLOAD_ENVELOPE_ONLY:
+	  q_status_message(SM_ORDER | SM_DING, 3, 4,
+	       "Download envelope only feature may have effect in your next Alpine session.");
 	  break;
 
 #ifdef	_WINDOWS

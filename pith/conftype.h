@@ -2,7 +2,7 @@
  * $Id: conftype.h 1155 2008-08-21 18:33:21Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,9 +35,10 @@ typedef enum {Sapling, Seedling, Seasoned} FeatureLevel;
 typedef	enum {    V_PERSONAL_NAME = 0
 		, V_USER_ID
 		, V_USER_DOMAIN
-		, V_SMTP_SERVER
-		, V_NNTP_SERVER
 		, V_INBOX_PATH
+		, V_SMTP_SERVER
+		, V_SENDING_SERVER
+		, V_NNTP_SERVER
 		, V_ARCHIVED_FOLDERS
 		, V_PRUNED_FOLDERS
 		, V_DEFAULT_FCC
@@ -469,6 +470,8 @@ typedef enum {
 	F_FORCE_ARROWS,
 	F_EXTERNAL_INLINE_IMAGES,
 	F_PREFER_PLAIN_TEXT,
+	F_GRAPH_PREFER_PLAIN_TEXT,
+	F_GRAPH_DOWNLOAD_ENVELOPE_ONLY,
 	F_QUELL_CHARSET_WARNING,
 	F_COPY_TO_TO_FROM,
 	F_ENABLE_EDIT_REPLY_INDENT,

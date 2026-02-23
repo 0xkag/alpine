@@ -1,5 +1,5 @@
 /* ========================================================================
- * Copyright 2020-2022 Eduardo Chappa
+ * Copyright 2020-2026 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ long auth_oauthbearer_client (authchallenge_t challenger,authrespond_t responder
 			unsigned long *trial,char *user);
 
 AUTHENTICATOR auth_bea = {
-  AU_HIDE | AU_SINGLE,		/* hidden, single trip */
+  AU_SECURE | AU_HIDE | AU_SINGLE,		/* hidden, single trip */
   BEARERNAME,			/* authenticator name */
   NIL,				/* always valid */
   auth_oauthbearer_client,	/* client method */
@@ -133,16 +133,24 @@ long auth_oauthbearer_client (authchallenge_t challenger,authrespond_t responder
       char *response;
 
       sprintf(ports, "%lu", port);
-      rlen = BEARER_ACCOUNT_LEN + strlen(user) + 1 + 1
+      if(!compare_cstring(service, "graph")){
+        response = cpystr(oauth2.access_token);
+        rlen = strlen(response);
+      }
+      else{
+	rlen = BEARER_ACCOUNT_LEN + strlen(user) + 1 + 1
 		+ BEARER_HOST_LEN + strlen(mb->orighost) + 1
 		+ BEARER_PORT_LEN + strlen(ports) + 1
 		+ OAUTH2_BEARER_LEN + strlen(oauth2.access_token) + 2;
-      response = (char *) fs_get (rlen+1);
-      sprintf(response, "%s%s,\001%s%s\001%s%s\001%s%s\001\001", BEARER_ACCOUNT, user,
+	response = (char *) fs_get (rlen+1);
+	sprintf(response, "%s%s,\001%s%s\001%s%s\001%s%s\001\001", BEARER_ACCOUNT, user,
 		BEARER_HOST, mb->orighost, BEARER_PORT, ports, OAUTH2_BEARER, oauth2.access_token);
-      if ((*responder) (stream,base,response,rlen)) {
-	if ((challenge = (*challenger) (stream,&clen)) != NULL)
-	  fs_give ((void **) &challenge);
+     }
+     if ((*responder) (stream,base,response,rlen)) {
+	if ((challenge = (*challenger) (stream,&clen)) != NULL){
+	   fs_give ((void **) &challenge);
+	   ret = LONGT;
+	}
 	else {
 	  ++*trial;				/* can try again if necessary */
 	  ret = *trial < 3 ? LONGT : NIL;	/* check the authentication */

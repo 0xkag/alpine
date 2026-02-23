@@ -1,6 +1,6 @@
 /*
  * ========================================================================
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1146,6 +1146,10 @@ do_broach_folder(char *newfolder, CONTEXT_S *new_context, MAILSTREAM **streamp,
 	    else
 	      use_this_startup_rule = ps_global->inc_startup_rule;
 
+	    if(is_graph_stream(ps_global->mail_stream)){
+	      use_this_startup_rule = IS_LAST;
+	      mn_set_cur(ps_global->msgmap, ps_global->msgmap->nmsgs);
+	    } else
 	    switch(use_this_startup_rule){
 	      /*
 	       * For news in incoming collection we're doing the same thing
@@ -1965,7 +1969,10 @@ new_messages_string(MAILSTREAM *stream)
     imapstatus = ps_global->index_disp_format[i].ctype == iIStatus
 		 || ps_global->index_disp_format[i].ctype == iSIStatus;
 
-    get_new_message_count(stream, imapstatus, &new, &uns);
+    if(is_graph_stream(stream)){
+	new = uns = stream->unseen;
+    }
+    else get_new_message_count(stream, imapstatus, &new, &uns);
 
     if(imapstatus)
       snprintf(message, sizeof(message), " - %s%s%s%s%s%s%s",

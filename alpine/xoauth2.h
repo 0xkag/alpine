@@ -1,6 +1,6 @@
 /*
  * ========================================================================
- * Copyright 2018-2022 Eduardo Chappa
+ * Copyright 2018-2026 Eduardo Chappa
  * Copyright 2006-2009 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,22 +24,28 @@
 #define GMAIL_TENANT NULL
 #define GMAIL_FLAGS (OA2_AUTHORIZE)
 
+#define GRAPH_NAME (unsigned char *) "Graph"
+#define GRAPH_ID   "bef201f8-ad5e-4e55-ba2f-162d6131ef1f"
+#define GRAPH_SECRET NULL
+#define GRAPH_TENANT "common"
+#define GRAPH_FLAGS (OA2_DEVICE)
+
 #define OUTLOOK_NAME (unsigned char *) "Outlook"
 #define OUTLOOK_ID   "f21dcaf2-8020-469b-8135-343bfc35d046"
 #define OUTLOOK_SECRET "Tk-DAcEi13-FeSsY_Ja4Y.-MyL66I.wIPt"
 #define OUTLOOK_TENANT "common"
 #define OUTLOOK_FLAGS (OA2_DEVICE)
 
-#define YANDEX_NAME  (unsigned char *) "Yandex"
-#define YANDEX_ID     "393578fee26f47858023cf59681882a7"
-#define YANDEX_SECRET "7304c4993583498f8ab63e2f21ad6960"
-#define YANDEX_TENANT NULL
-#define YANDEX_FLAGS (OA2_AUTHORIZE)
-
 #define YAHOO_NAME   (unsigned char *) "Yahoo!"
 #define YAHOO_ID     "dj0yJmk9RTdyZEQ2TWxGMzV6JmQ9WVdrOWVrTllZbGgyV2tjbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PTli"
 #define YAHOO_SECRET "3a8b12d51c09b0a5c0733c36d04cd3c69e33baef"
 #define YAHOO_TENANT NULL
 #define YAHOO_FLAGS (OA2_AUTHORIZE)
+
+#define YANDEX_NAME  (unsigned char *) "Yandex"
+#define YANDEX_ID     "393578fee26f47858023cf59681882a7"
+#define YANDEX_SECRET "7304c4993583498f8ab63e2f21ad6960"
+#define YANDEX_TENANT NULL
+#define YANDEX_FLAGS (OA2_AUTHORIZE)
 
 #endif /* ALPINE_XOAUTH2_INCLUDED */

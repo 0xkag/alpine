@@ -1,6 +1,6 @@
 /*
  * ========================================================================
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,6 +42,7 @@
 #include "../pith/smime.h"
 
 #include "../c-client/smtp.h"
+#include "../c-client/graph.h"
 #include "../c-client/nntp.h"
 
 
@@ -1667,6 +1668,7 @@ update_answered_flags(REPLY_S *reply)
      
 Args: header -- full header (envelope and local parts) of message to send
       body -- The full body of the message including text
+      alt_sending_server -- name of other server to use instead of SMTP
       alt_smtp_servers --
       verbosefile -- non-null means caller wants verbose interaction and the resulting
                      output file name to be returned
@@ -1674,7 +1676,9 @@ Args: header -- full header (envelope and local parts) of message to send
 Returns: -1 if failed, 1 if succeeded
 ----*/      
 int
-call_mailer(METAENV *header, struct mail_bodystruct *body, char **alt_smtp_servers,
+call_mailer(METAENV *header, struct mail_bodystruct *body,
+	    char *alt_sending_server,
+	    char **alt_smtp_servers,
 	    int flags, void (*bigresult_f)(char *, int),
 	    void (*pipecb_f)(PIPE_S *, int, void *))
 {
@@ -1733,6 +1737,37 @@ call_mailer(METAENV *header, struct mail_bodystruct *body, char **alt_smtp_serve
     ps_global->c_client_error[0] = error_buf[0] = '\0';
     we_cancel = busy_cue(_("Sending mail"),
 			 send_bytes_to_send ? sent_percent : NULL, 0);
+
+    if((alt_sending_server
+	&& alt_sending_server[0]
+	&& is_graph_server(alt_sending_server))
+	|| ((!alt_smtp_servers || !alt_smtp_servers[0] || !alt_smtp_servers[0][0])
+	     && (ps_global->VAR_SENDING_SERVER
+		 && ps_global->VAR_SENDING_SERVER[0]
+		  && is_graph_server(ps_global->VAR_SENDING_SERVER)))){
+	MAILSTREAM *stream;
+
+	dprint((1, "sending via graph driver"));
+
+	*error_buf = '\0';
+	stream = graph_send_open(header->env->from);
+	if(stream){
+	    if(!pine_rfc822_output(header, body, graph_send_soutr, (TCPSTREAM *) stream)){
+		strncpy(error_buf, _("Error posting to graph stream."), sizeof(error_buf)-1);
+		error_buf[sizeof(error_buf)-1] = '\0';
+	    }
+	    graph_send_mail(stream);
+	    mail_close(stream);
+	}
+	else {
+	  strncpy(error_buf, _("Error opening graph stream (posting)"), sizeof(error_buf)-1);
+	  error_buf[sizeof(error_buf)-1] = '\0';
+	}
+
+	if(*error_buf)
+	   dprint((1, "%s", error_buf));
+	goto done;
+    }
 
 #ifndef	_WINDOWS
 

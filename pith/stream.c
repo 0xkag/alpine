@@ -1,6 +1,6 @@
 /*
  * ========================================================================
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -170,7 +170,8 @@ pine_mail_open(MAILSTREAM *stream, char *mailbox, long int openflags, long int *
      * An implication of doing only imap here is that sp_stream_get will only
      * be concerned with imap streams.
      */
-    if((d = mail_valid (NIL, mailbox, (char *) NIL)) && !strcmp(d->name, "imap")){
+    if((d = mail_valid (NIL, mailbox, (char *) NIL)) 
+	&& (!strcmp(d->name, "imap") || !strncmp(d->name, "graph", 5))){
 	usepool = openflags & SP_USEPOOL;
 	tempuse = openflags & SP_TEMPUSE;
     }
@@ -3130,7 +3131,8 @@ same_stream(char *name, MAILSTREAM *stream)
 	   ||
 	   (!((mb_n.user && *mb_n.user) || (mb_s.user && *mb_s.user))
 	    && stream->anonymous))
-       && (struncmp(mb_n.service, "imap", 4) ? 1 : strcmp(imap_host(stream), ".NO-IMAP-CONNECTION."))){
+       && (struncmp(mb_n.service, "imap", 4)
+	 ? 1 : strcmp(imap_host(stream), ".NO-IMAP-CONNECTION."))){
 	dprint((7, "same_stream: name->%s == stream->%s: yes\n",
 	       name ? name : "?",
 	       (stream && stream->mailbox) ? stream->mailbox : "NULL"));
@@ -3241,6 +3243,13 @@ is_imap_stream(MAILSTREAM *stream)
 {
     return(stream && stream->dtb && stream->dtb->name
            && !strcmp(stream->dtb->name, "imap"));
+}
+
+int
+is_graph_stream(MAILSTREAM *stream)
+{
+    return(stream && stream->dtb && stream->dtb->name
+           && !strncmp(stream->dtb->name, "graph", 5));
 }
 
 
@@ -3391,4 +3400,27 @@ dummy_soutr(void *stream, char *string)
 {
     dprint((2, "dummy_soutr unexpected call, caught overflow\n"));
     return LONGT;
+}
+
+/*
+ * checks if a specific configuration server is a graph server
+ * returns 1 if it is a graph server, 0 otherwise
+ */
+int
+is_graph_server(char *server)
+{
+  NETMBX mb;
+  char *mailbox;
+  int rv = 0;
+
+  if (!server) return rv;
+  mailbox = fs_get(strlen(server) + 2 + strlen("<none>") + 1);
+  sprintf(mailbox, "{%s}<none>", server);
+  mail_valid_net_parse (mailbox,&mb);
+  if(!strucmp(mb.orighost, "graph.microsoft.com")
+	&& !strncmp(mb.service, "graph", 5))
+    rv = 1;
+  fs_give((void **) &mailbox);
+
+  return rv;
 }

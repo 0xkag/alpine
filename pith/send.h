@@ -3,7 +3,7 @@
  *
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -225,8 +225,8 @@ METAENV	   *pine_new_env(ENVELOPE *, char **, char ***, PINEFIELD *);
 void	    pine_free_env(METAENV **);
 int	    check_addresses(METAENV *);
 void	    update_answered_flags(REPLY_S *);
-int         call_mailer(METAENV *, BODY *, char **, int, void (*)(char *, int),
-			void (*)(PIPE_S *, int, void *));
+int         call_mailer(METAENV *, BODY *, char *, char **, int,
+			void (*)(char *, int), void (*)(PIPE_S *, int, void *));
 int         write_postponed(METAENV *, BODY *);
 int         commence_fcc(char *, CONTEXT_S **, int);
 int         wrapup_fcc(char *, CONTEXT_S *, METAENV *, BODY *);

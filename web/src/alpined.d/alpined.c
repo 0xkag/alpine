@@ -11764,7 +11764,7 @@ peDoPost(METAENV *metaenv, BODY *body, char *fcc, CONTEXT_S **fcc_cntxtp, char *
 	pePrepareForAuthException();
 	
 	if((recipients = (metaenv->env->to || metaenv->env->cc || metaenv->env->bcc))
-	   && call_mailer(metaenv, body, NULL, 0, NULL, NULL) < 0){
+	   && call_mailer(metaenv, body, NULL, NULL, 0, NULL, NULL) < 0){
 	    if((s = peAuthException()) != NULL){
 		strcpy(errp, s);
 	    }

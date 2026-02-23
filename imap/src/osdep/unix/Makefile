@@ -44,7 +44,7 @@ BUNDLED=
 # -O3 seems to be safe, but empirical observation from our local expert
 # indicates that in some (many?) cases -O3 code runs slower than -O2.
 
-GCCOPTLEVEL= -O2
+#GCCOPTLEVEL= -O2
 
 
 # Try to have some consistency in GCC builds.  We want optimization, but we
@@ -146,7 +146,7 @@ DEFAULTAUTHENTICATORS=ext md5 pla log bea oa2
 # However, mh needs to be before any sysinbox formats (such as mmdf or unix)
 # since otherwise INBOX won't work correctly when mh_allow_inbox is set.
 #
-DEFAULTDRIVERS=imap nntp pop3 mix mx mbx tenex mtx mh mmdf unix news phile
+DEFAULTDRIVERS=graph graphloser imap nntp pop3 mix mx mbx tenex mtx mh mmdf unix news phile
 CHUNKSIZE=65536
 
 # Normally no need to change any of these
@@ -154,7 +154,7 @@ CHUNKSIZE=65536
 ARCHIVE=c-client.a
 BINARIES=osdep.o mail.o misc.o newsrc.o smanager.o utf8.o utf8aux.o siglocal.o \
  dummy.o pseudo.o netmsg.o flstring.o fdstring.o \
- rfc822.o nntp.o smtp.o imap4r1.o http.o json.o pop3.o \
+ rfc822.o nntp.o smtp.o imap4r1.o graph.o http.o json.o pop3.o \
  unix.o mbx.o mmdf.o tenex.o mtx.o news.o phile.o mh.o mx.o mix.o sha.o
 CFLAGS=-g
 
@@ -922,6 +922,7 @@ utf8aux.o: mail.h misc.h osdep.h utf8.h
 json.o: mail.h misc.h osdep.h utf8.h json.h
 http.o: mail.h misc.h osdep.h utf8.h http.h json.h
 sha.o: mail.h misc.h osdep.h sha.h sha-private.h hash.h hmac.c sha1.c sha224-256.c sha384-512.c usha.c
+graph.o: mail.h misc.h osdep.h utf8.h http.h json.h
 
 # OS-dependent
 

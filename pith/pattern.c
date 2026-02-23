@@ -1,6 +1,6 @@
 /*
  * ========================================================================
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  * Copyright 2006-2009 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1694,6 +1694,8 @@ parse_action_slash(char *str, ACTION_S *action)
 	    fs_give((void **)&p);
 	}
     }
+    else if(!strncmp(str, "/SEND=", 6))
+      action->send_server = remove_pat_escapes(str+6);
     else if(!strncmp(str, "/SMTP=", 6)){
 	if((p = remove_pat_escapes(str+6)) != NULL){
 	    int   commas = 0;
@@ -3542,7 +3544,7 @@ data_for_patline(PAT_S *pat)
 		  *from_act = NULL, *replyto_act = NULL, *fcc_act = NULL,
 		  *sig_act = NULL, *nick = NULL, *templ_act = NULL,
 		  *litsig_act = NULL, *cstm_act = NULL, *smtp_act = NULL,
-                  *nntp_act = NULL, *comment = NULL,
+                  *nntp_act = NULL, *comment = NULL, *send_act = NULL,
 		  *repl_val = NULL, *forw_val = NULL, *comp_val = NULL,
 		  *incol_act = NULL, *inherit_nick = NULL,
 		  *score_act = NULL, *hdrtok_act = NULL,
@@ -3845,6 +3847,8 @@ data_for_patline(PAT_S *pat)
 	      sig_act = add_pat_escapes(action->sig);
 	    if(action->template)
 	      templ_act = add_pat_escapes(action->template);
+	    if(action->send_server)
+	      send_act = add_pat_escapes(action->send_server);
 
 	    if(action->cstm){
 		size_t sz;
@@ -4496,6 +4500,12 @@ data_for_patline(PAT_S *pat)
 	sstrncpy(&q, "/SMTP=", l-(q-p));
 	sstrncpy(&q, smtp_act, l-(q-p));
 	fs_give((void **)&smtp_act);
+    }
+
+    if(send_act){
+	sstrncpy(&q, "/SEND=", l-(q-p));
+	sstrncpy(&q, send_act, l-(q-p));
+	fs_give((void **)&send_act);
     }
 
     if(nntp_act){
@@ -6923,6 +6933,9 @@ combine_inherited_role_guts(ACTION_S *role)
 	  newrole->cstm = copy_list_array(role->cstm);
 	else if(inherit_role && inherit_role->cstm)
 	  newrole->cstm = copy_list_array(inherit_role->cstm);
+
+	if(role->send_server)
+	  newrole->send_server = cpystr(role->send_server);
 
 	if(role->smtp)
 	  newrole->smtp = copy_list_array(role->smtp);

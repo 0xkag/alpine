@@ -1,6 +1,6 @@
 /*
  * ========================================================================
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  * Copyright 2006-2009 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1049,8 +1049,10 @@ long save_fetch_append_cb(MAILSTREAM *stream, void *data, char **flags,
     char *fetch;
     int rc;
     unsigned long raw, hlen, tlen, mlen;
+    DRIVER *d = pkg->stream->dtb;
 
     if(pkg->so && (pkg->msgno > 0L)) {
+	if(is_graph_stream(pkg->stream)) pkg->stream->dtb = &graphloserdriver;
 	raw = mn_m2raw(pkg->msgmap, pkg->msgno);
 	mc = (raw > 0L && pkg->stream && raw <= pkg->stream->nmsgs)
 		? mail_elt(pkg->stream, raw) : NULL;
@@ -1171,6 +1173,7 @@ long save_fetch_append_cb(MAILSTREAM *stream, void *data, char **flags,
       *message = pkg->msg;
 					/* Next message */
       pkg->msgno = mn_next_cur(pkg->msgmap);
+      pkg->stream->dtb = d;
   }
   else					/* No more messages */
     *message = NIL;

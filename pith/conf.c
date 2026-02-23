@@ -1,6 +1,6 @@
 /*
  * ========================================================================
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  * Copyright 2006-2009 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -98,6 +98,8 @@ CONF_TXT_T cf_text_user_id[] =		"Your login/e-mail user name";
 CONF_TXT_T cf_text_user_domain[] =		"Sets domain part of From: and local addresses in outgoing mail.";
 
 CONF_TXT_T cf_text_smtp_server[] =		"List of SMTP servers for sending mail. If blank: Unix Alpine uses sendmail.";
+
+CONF_TXT_T cf_text_other_sending_server[] =	"List of HTTP servers for sending mail. If blank Alpine uses SMTP server.";
 
 CONF_TXT_T cf_text_nntp_server[] =		"NNTP server for posting news. Also sets news-collections for news reading.";
 
@@ -493,12 +495,14 @@ static struct variable variables[] = {
 	"User ID",		cf_text_user_id},
 {"user-domain",				0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
 	NULL,			cf_text_user_domain},
-{"smtp-server",				0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
-	"SMTP Server (for sending)",	cf_text_smtp_server},
-{"nntp-server",				0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
-	"NNTP Server (for news)",	cf_text_nntp_server},
 {"inbox-path",				0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
 	NULL,			cf_text_inbox_path},
+{"smtp-server",				0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
+	"SMTP Server (for sending)",	cf_text_smtp_server},
+{"other-sending-server",		0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
+	NULL,				cf_text_other_sending_server},
+{"nntp-server",				0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
+	"NNTP Server (for news)",	cf_text_nntp_server},
 {"incoming-archive-folders",		0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0,
 	NULL,			cf_text_archived_folders},
 {"pruned-folders",			0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
@@ -2018,6 +2022,8 @@ init_vars(struct pine *ps, void (*cmds_f) (struct pine *, char **))
 
     set_current_val(&vars[V_INBOX_PATH], TRUE, TRUE);
 
+    set_current_val(&vars[V_SENDING_SERVER], TRUE, TRUE);
+
     set_current_val(&vars[V_USER_DOMAIN], TRUE, TRUE);
     if(VAR_USER_DOMAIN
        && VAR_USER_DOMAIN[0]
@@ -3102,6 +3108,10 @@ feature_list(int index)
 	 F_PASS_CONTROL_CHARS, h_config_pass_control, PREF_VIEW, 0},
 	{"prefer-plain-text", NULL,
 	 F_PREFER_PLAIN_TEXT, h_config_prefer_plain_text, PREF_VIEW, 0},
+	{"graph-prefer-plain-text", NULL,
+	 F_GRAPH_PREFER_PLAIN_TEXT, h_config_graph_prefer_plain_text, PREF_VIEW, 0},
+	{"graph-downloads-envelope-only", NULL,
+	 F_GRAPH_DOWNLOAD_ENVELOPE_ONLY, h_config_graph_downloads_envelope_only, PREF_VIEW, 1},
 	{"quell-charset-warning", "Suppress Character Set Warning",
 	 F_QUELL_CHARSET_WARNING, h_config_quell_charset_warning, PREF_VIEW, 0},
 	{"quell-server-after-link-in-html", "Suppress Server After Link in HTML",
@@ -7838,6 +7848,8 @@ config_help(int var, int feature)
 	return(h_config_nntp_server);
       case V_INBOX_PATH :
 	return(h_config_inbox_path);
+      case V_SENDING_SERVER:
+	return(h_config_other_sending_server);
       case V_PRUNED_FOLDERS :
 	return(h_config_pruned_folders);
       case V_DEFAULT_FCC :

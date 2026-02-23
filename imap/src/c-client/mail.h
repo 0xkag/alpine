@@ -1,7 +1,7 @@
 /*
- * Copyright 2016-2022 Eduardo Chappa
+ * Copyright 2016-2026 Eduardo Chappa
  *
- * Last Edited: January 26, 2020 Eduardo Chappa <chappa@washington.edu>
+ * Last Edited: February 8, 2026 Eduardo Chappa <chappa@washington.edu>
  *
  */
 /* ========================================================================
@@ -310,8 +310,15 @@
 #define SET_FETCHLOOKAHEADLIMIT (long) 455
 #define GET_ERASEPASSWORD	(long) 456
 #define SET_ERASEPASSWORD	(long) 457
-/* HTTP SUPPORT DEFINES THEIR OWN SET_ AND GET_ CONSTANTS (490..493). See http.h */
-
+	/* 47x graph parameters */
+#define GET_GRAPHOPENOPERATION	(long) 470
+#define SET_GRAPHOPENOPERATION	(long) 471
+#define GET_GRAPHCOUNTMESSAGES	(long) 472
+#define SET_GRAPHCOUNTMESSAGES	(long) 473
+#define GET_PREFERPLAINTEXT	(long) 474
+#define SET_PREFERPLAINTEXT	(long) 475
+#define GET_GRAPHENVELOPEONLY	(long) 476
+#define SET_GRAPHENVELOPEONLY	(long) 477
 	/* 5xx: local file drivers */
 #define GET_MBXPROTECTION (long) 500
 #define SET_MBXPROTECTION (long) 501
@@ -893,6 +900,7 @@ typedef struct message_cache {
     unsigned long uid;		/* message unique ID */
     unsigned long mod;		/* modseq */
     PARTTEXT special;		/* special text pointers */
+    void *driverp;		/* private driver special use pointer */
     MESSAGE msg;		/* internal message pointers */
     union {			/* driver internal use */
       unsigned long data;
@@ -936,7 +944,10 @@ typedef struct message_cache {
   void *sparep;			/* spare pointer */
   unsigned long user_flags;	/* user-assignable flags */
 } MESSAGECACHE;
-
+
+				/* driver private pointer */
+#define  DPP(X) (X)->private.driverp
+
 /* String structure */
 
 #define STRINGDRIVER struct string_driver
@@ -1192,6 +1203,7 @@ typedef struct mail_stream {
   unsigned long gensym;		/* generated tag */
   unsigned long nmsgs;		/* # of associated msgs */
   unsigned long recent;		/* # of recent msgs */
+  unsigned long unseen;		/* # of unseen msgs in a graph folder */
   unsigned long uid_validity;	/* UID validity sequence */
   unsigned long uid_last;	/* last assigned UID */
   char *user_flags[NUSERFLAGS];	/* pointers to user flags in bit order */
@@ -1943,6 +1955,7 @@ int PFLUSH (void);
 
 #define OA2NAME	"XOAUTH2"
 #define BEARERNAME "OAUTHBEARER"
+#define BEARERHTML "Bearer"
 
 #define OAUTH2_MAX_EQUIV        (2)
 #define OAUTH2_TOT_EQUIV        (OAUTH2_MAX_EQUIV + 2)

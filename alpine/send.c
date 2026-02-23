@@ -1,6 +1,6 @@
 /*
  * ========================================================================
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1567,6 +1567,15 @@ pine_simple_send(ENVELOPE *outgoing,	/* envelope for outgoing message */
 
 			if(outgoing->to || outgoing->cc || outgoing->bcc){
 			    char **alt_smtp = NULL;
+			    char *alt_send = NULL;
+
+			    if(role && role->send_server){
+				if(ps_global->FIX_SENDING_SERVER
+				   && ps_global->FIX_SENDING_SERVER[0])
+				  q_status_message(SM_ORDER | SM_DING, 5, 5, _("Use of a role-defined sending-server is administratively prohibited"));
+				else
+				  alt_send = role->send_server;
+			    }
 
 			    if(role && role->smtp){
 				if(ps_global->FIX_SMTP_SERVER
@@ -1576,7 +1585,8 @@ pine_simple_send(ENVELOPE *outgoing,	/* envelope for outgoing message */
 				  alt_smtp = role->smtp;
 			    }
 
-			    result = call_mailer(header, *body, alt_smtp,
+			    result = call_mailer(header, *body, alt_send,
+						 alt_smtp,
 						 call_mailer_flags,
 						 call_mailer_file_result,
 						 pipe_callback);
@@ -3901,6 +3911,15 @@ pine_send(ENVELOPE *outgoing, struct mail_bodystruct **body,
 		       && (outgoing->to || outgoing->cc
 			   || outgoing->bcc || lcc_addr)){
 			char **alt_smtp = NULL;
+			char *alt_send = NULL;
+
+			if(role && role->send_server){
+			   if(ps_global->FIX_SENDING_SERVER
+				&& ps_global->FIX_SENDING_SERVER[0])
+				q_status_message(SM_ORDER | SM_DING, 5, 5, _("Use of a role-defined sending-server is administratively prohibited"));
+			   else
+				alt_send = role->send_server;
+			}
 
 			if(role && role->smtp){
 			    if(ps_global->FIX_SMTP_SERVER
@@ -3910,7 +3929,8 @@ pine_send(ENVELOPE *outgoing, struct mail_bodystruct **body,
 			      alt_smtp = role->smtp;
 			}
 
-		        result |= (call_mailer(&header, *body, alt_smtp,
+		        result |= (call_mailer(&header, *body, alt_send,
+					       alt_smtp,
 					       call_mailer_flags,
 					       call_mailer_file_result,
 					       pipe_callback) > 0)
@@ -3997,6 +4017,15 @@ pine_send(ENVELOPE *outgoing, struct mail_bodystruct **body,
             if(valid_addr == CA_OK
 	       && (outgoing->to || outgoing->cc || outgoing->bcc || lcc_addr)){
 		char **alt_smtp = NULL;
+		char *alt_send = NULL;
+
+		if(role && role->send_server){
+		   if(ps_global->FIX_SENDING_SERVER
+		      && ps_global->FIX_SENDING_SERVER[0])
+			q_status_message(SM_ORDER | SM_DING, 5, 5, _("Use of a role-defined sending-server is administratively prohibited"));
+		   else
+			alt_send = role->send_server;
+		}
 
 		if(role && role->smtp){
 		    if(ps_global->FIX_SMTP_SERVER
@@ -4006,7 +4035,7 @@ pine_send(ENVELOPE *outgoing, struct mail_bodystruct **body,
 		      alt_smtp = role->smtp;
 		}
 
-		result |= (call_mailer(&header, *body, alt_smtp,
+		result |= (call_mailer(&header, *body, alt_send, alt_smtp,
 				       call_mailer_flags,
 				       call_mailer_file_result,
 				       pipe_callback) > 0)

@@ -2,7 +2,7 @@
  * $Id: conf.h 1155 2008-08-21 18:33:21Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -87,6 +87,10 @@
 #define GLO_SMTP_SERVER		     vars[V_SMTP_SERVER].global_val.l
 #define VAR_INBOX_PATH		     vars[V_INBOX_PATH].current_val.p
 #define GLO_INBOX_PATH		     vars[V_INBOX_PATH].global_val.p
+#define VAR_SENDING_SERVER	     vars[V_SENDING_SERVER].current_val.p
+#define GLO_SENDING_SERVER	     vars[V_SENDING_SERVER].global_val.p
+#define FIX_SENDING_SERVER	     vars[V_SENDING_SERVER].fixed_val.p
+#define COM_SENDING_SERVER	     vars[V_SENDING_SERVER].cmdline_val.p
 #define VAR_INCOMING_FOLDERS	     vars[V_INCOMING_FOLDERS].current_val.l
 #define VAR_FOLDER_SPEC		     vars[V_FOLDER_SPEC].current_val.l
 #define GLO_FOLDER_SPEC		     vars[V_FOLDER_SPEC].global_val.l

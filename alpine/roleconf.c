@@ -1,7 +1,7 @@
 /*
  * ========================================================================
  * Copyright 2006-2008 University of Washington
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2711,8 +2711,9 @@ bitmap_t inabook_type_list;
 #define INICK_SIG_CONF      5
 #define INICK_TEMPL_CONF    6
 #define INICK_CSTM_CONF     7
-#define INICK_SMTP_CONF     8
-#define INICK_NNTP_CONF     9
+#define INICK_SEND_CONF	    8
+#define INICK_SMTP_CONF     9
+#define INICK_NNTP_CONF    10
 CONF_S *inick_confs[INICK_NNTP_CONF+1];
 
 
@@ -2752,7 +2753,7 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
                      cstm_act_var, smtp_act_var, nntp_act_var,
 		     sort_act_var, iform_act_var, startup_var,
 		     repl_type_var, forw_type_var, comp_type_var, score_act_var,
-		     hdrtok_act_var,
+		     hdrtok_act_var, send_act_var,
 		     rolecolor_vars[2], filter_type_var, folder_act_var,
 		     keyword_set_var, keyword_clr_var,
 		     filt_new_var, filt_del_var, filt_imp_var, filt_ans_var;
@@ -2770,7 +2771,7 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
 		    *sig_act = NULL, *litsig_act = NULL, *sort_act = NULL,
 		    *templ_act = NULL, *repl_type = NULL, *forw_type = NULL,
 		    *comp_type = NULL, *rc_fg = NULL, *rc_bg = NULL,
-		    *score_act = NULL, *filter_type = NULL,
+		    *score_act = NULL, *filter_type = NULL, *send_act = NULL,
 		    *hdrtok_act = NULL,
 		    *iform_act = NULL, *startup_act = NULL,
 		    *old_fg = NULL, *old_bg = NULL;
@@ -2791,7 +2792,8 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
     char            *astr = _(" ACTIONS BEGIN HERE ");
     char            *ustr = _(" USES BEGIN HERE ");
     char            *ostr = _(" OPTIONS BEGIN HERE ");
-    char            *s_p_v_n = _("Subject pattern");	/* longest one of these */
+    char            *e_s_s = _("Alt Send Server");		/* longest one of these */
+    char            *s_p_v_n = _("Subject pattern");	/* ditto */
     char            *u_s_s = _("Use SMTP Server");		/* ditto */
     char            *c_v_n = _("Exit Status Interval");	/* ditto */
     SortOrder        def_sort;
@@ -2876,6 +2878,7 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
     varlist[++j] = &startup_var;
     varlist[++j] = &templ_act_var;
     varlist[++j] = &cstm_act_var;
+    varlist[++j] = &send_act_var;
     varlist[++j] = &smtp_act_var;
     varlist[++j] = &nntp_act_var;
     varlist[++j] = &score_act_var;
@@ -3320,6 +3323,13 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
     *alval = (def && def->action && def->action->cstm)
 		 ? copy_list_array(def->action->cstm) : NULL;
 
+    send_act_var.name       = cpystr(e_s_s);
+    send_act_var.is_used    = 1;
+    send_act_var.is_user    = 1;
+    apval = APVAL(&send_act_var, ew);
+    *apval = (def && def->action && def->action->send_server)
+	       ? cpystr(def->action->send_server) : NULL;
+
     smtp_act_var.name       = cpystr(u_s_s);
     smtp_act_var.is_used    = 1;
     smtp_act_var.is_user    = 1;
@@ -3414,7 +3424,7 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
     /* save the old opt_screen before calling scroll screen again */
     saved_screen = opt_screen;
 
-    pindent = utf8_width(s_p_v_n);	/* the longest one */
+    pindent = utf8_width(e_s_s);	/* the longest one */
     maxpindent = pindent + 6;
     for(a = (def && def->patgrp) ? def->patgrp->arbhdr : NULL; a; a = a->next)
       if((lv=utf8_width(a->field ? a->field : "")+utf8_width(" pattern")) > pindent)
@@ -4193,6 +4203,20 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
 	}
 	else
 	  ctmp->varmem = 0;
+
+	/* Sending Server Action */
+	new_confline(&ctmp);
+	inick_confs[INICK_SEND_CONF] = ctmp;
+	ctmp->help_title= _("HELP FOR SET SENDING SERVER ACTION");
+	ctmp->var       = &send_act_var;
+	ctmp->valoffset = roindent;
+	ctmp->keymenu   = &config_role_actionfolder_keymenu;
+	ctmp->help      = h_config_role_send_server;
+	ctmp->tool      = role_text_tool;
+	utf8_snprintf(tmp, sizeof(tmp), "%-*.*w =", roindent-3, roindent-3, send_act_var.name);
+	tmp[sizeof(tmp)-1] = '\0';
+	ctmp->varname   = cpystr(tmp);
+	ctmp->varnamep  = ctmp;
 
 	/* SMTP Server Action */
 	new_confline(&ctmp);
@@ -5188,6 +5212,11 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
 	cstm_act = *alval;
 	*alval = NULL;
 
+	apval = APVAL(&send_act_var, ew);
+	send_act = *apval;
+	*apval = NULL;
+	removing_leading_and_trailing_white_space(send_act);
+
 	alval = ALVAL(&smtp_act_var, ew);
 	smtp_act = *alval;
 	*alval = NULL;
@@ -5578,6 +5607,9 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
 	    cstm_act = NULL;
 	}
 
+	(*result)->action->send_server = send_act;
+	send_act = NULL;
+
 	if(smtp_act){
 	    if(!smtp_act[0])
 	      fs_give((void **)&smtp_act);
@@ -5901,6 +5933,9 @@ role_config_edit_screen(struct pine *ps, PAT_S *def, char *title, long int rflag
       free_list_array(&folder_act);
     if(filter_type)
       fs_give((void **)&filter_type);
+
+    if(send_act)
+       fs_give((void **) &send_act);
 
     if(cat_cmd)
       free_list_array(&cat_cmd);

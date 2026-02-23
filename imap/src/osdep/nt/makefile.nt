@@ -1,5 +1,5 @@
 # ========================================================================
-# Copyright 2018 Eduardo Chappa
+# Copyright 2018-2026 Eduardo Chappa
 # Copyright 1988-2007 University of Washington
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,6 +82,8 @@ utf8.obj: mail.h misc.h osdep.h utf8.h
 
 utf8aux.obj: mail.h misc.h osdep.h utf8.h
 
+graph.obj: mail.h graph.h misc.h osdep.h json.h http.h
+
 imap4r1.obj: mail.h imap4r1.h misc.h osdep.h imap4r1.c
 
 nntp.obj: mail.h nntp.h smtp.h rfc822.h misc.h osdep.h nntp.c
@@ -115,7 +117,7 @@ json.obj: mail.h misc.h json.h
 sha.obj: mail.h misc.h osdep.h sha.h sha-private.h hash.h hmac.c sha1.c sha224-256.c sha384-512.c usha.c
 
 $(CCLIENTLIB): mail.obj misc.obj fdstring.obj flstring.obj netmsg.obj \
-	newsrc.obj rfc822.obj smanager.obj utf8.obj utf8aux.obj \
+	newsrc.obj rfc822.obj smanager.obj utf8.obj utf8aux.obj graph.obj \
 	imap4r1.obj nntp.obj pop3.obj smtp.obj os_nt.obj http.obj json.obj \
 	mbxnt.obj mtxnt.obj tenexnt.obj unixnt.obj dummynt.obj pseudo.obj \
 	http.obj json.obj sha.obj
@@ -124,6 +126,7 @@ $(CCLIENTLIB): mail.obj misc.obj fdstring.obj flstring.obj netmsg.obj \
 	mail.obj misc.obj fdstring.obj flstring.obj netmsg.obj \
 	newsrc.obj rfc822.obj smanager.obj utf8.obj utf8aux.obj \
 	imap4r1.obj nntp.obj pop3.obj smtp.obj os_nt.obj \
+	graph.obj http.obj json.obj \
 	mbxnt.obj mtxnt.obj tenexnt.obj unixnt.obj dummynt.obj pseudo.obj \
 	http.obj json.obj sha.obj
 

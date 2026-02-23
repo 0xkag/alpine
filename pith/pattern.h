@@ -2,7 +2,7 @@
  * $Id: pattern.h 942 2008-03-04 18:21:33Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -178,6 +178,7 @@ typedef struct action_s {
     ADDRESS	*from;		/* value to set for From		*/
     ADDRESS	*replyto;	/* value to set for Reply-To		*/
     char       **cstm;		/* custom headers			*/
+    char	*send_server;	/* Use a special sending server		*/
     char       **smtp;		/* custom SMTP server for this role	*/
     char       **nntp;		/* custom NNTP server for this role	*/
     char	*fcc;		/* value to set for Fcc			*/

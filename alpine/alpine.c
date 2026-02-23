@@ -1,6 +1,6 @@
 /*
  * ========================================================================
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  * Copyright 2006-2008 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -464,6 +464,12 @@ main(int argc, char **argv)
 	ps_global->s_pool.max_remstream));
 
     init_vars(pine_state, process_init_cmds);
+
+    rv = F_ON(F_GRAPH_PREFER_PLAIN_TEXT, ps_global) ? 1 : 0;
+    mail_parameters(NULL, SET_PREFERPLAINTEXT, (void *)(long) rv);
+
+    rv = F_ON(F_GRAPH_DOWNLOAD_ENVELOPE_ONLY, ps_global) ? 1 : 0;
+    mail_parameters(NULL, SET_GRAPHENVELOPEONLY, (void *)(long) rv);
 
 #if !defined(_WINDOWS) || defined(WINDOWS_UNIXSSL_CERTS)
     set_system_certs_path(pine_state);

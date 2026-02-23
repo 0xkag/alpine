@@ -3,7 +3,7 @@
 #        T H E   A L P I N E    M E S S A G E   S Y S T E M
 #
 #/* ========================================================================
-# * Copyright 2013-2022 Eduardo Chappa
+# * Copyright 2013-2026 Eduardo Chappa
 # * Copyright 2006-2008 University of Washington
 # *
 # * Licensed under the Apache License, Version 2.0 (the "License");
@@ -163,7 +163,7 @@ Version <!--#echo var="ALPINE_VERSION"--> (<!--#echo var="ALPINE_REVISION"-->)
 <!--chtml endif-->
 
 <BR>
-<BR>Copyright 2013-2022 Eduardo Chappa
+<BR>Copyright 2013-2026 Eduardo Chappa
 <BR>Copyright 2006-2008 University of Washington
 </DIV>
 
@@ -190,11 +190,9 @@ it for you. Please take some time to read it and understand it.
 Since the Privacy Policy could be amended to take into consideration
 new additions to Alpine, please check it periodically.
 
-<P> Changes since the release of version 2.26 include:
-<!-- Changes since the release of version <!--#echo var="ALPINE_VERSION"-->
-<!-- include: -->
-<P> New features and enhancements include:
+<P> Changes in version <!--#echo var="ALPINE_VERSION"--> include:
 <UL>
+<LI> Alpine supports access to your Microsoft&reg; email as a <A href="h_graph">GRAPH</A> app.
 <LI> Microsoft servers do not deal well with a message that is forwarded
      as an attachment by Alpine due to the way Alpine constructs the cookie
      to separate parts of the message due to the presence of a colon. To
@@ -1814,7 +1812,7 @@ Since then, the effort of developing Alpine has been continued by
 a community of volunteers who make good software even better!
 
 <P>
-Alpine Copyright 2013-2021 Eduardo Chappa, 
+Alpine Copyright 2013-2026 Eduardo Chappa,
 <BR> Copyright 2006-2008 University of Washington.
 
 <P>
@@ -2009,6 +2007,349 @@ to try to negotiate a higher version of the TLS protocol.
 <P> In order to avoid confusion, the /ssl flag is the best way to guarantee
 the highest encryption protocol available, and it is the recommended
 modifier to the server definition to create a secure encrypted connection.
+
+<P>
+&lt;End of help&gt;
+</BODY>
+</HTML>
+====== h_graph ======
+<HTML>
+<HEAD>
+<TITLE>Understanding and Configuring Access to GRAPH</TITLE>
+</HEAD>
+<BODY>
+<H1>Understanding and Configuring Access to GRAPH</H1>
+
+GRAPH is a microsoft&reg; service that can be used to access services such as email in
+the server. A GRAPH application requests permissions from a user to access
+resources in the server on behalf of that user. There are many issues that need
+to be understood before using GRAPH and these will be explained here, but before
+we get there, let us start by showing the relevant configurations that are needed
+in Alpine.
+
+<P> First, the name of the server is <B>graph.microsoft.com</B>. A valid configuration
+for your inbox-path is
+<P>
+inbox-path = {graph.microsoft.com/graph/user=YourId@outlook.com}INBOX
+
+<P>
+Note that your username is just your email account, which could be your personal
+account, or your work or school account.
+
+<P>
+You will notice that there is no &quot;/ssl&quot; flag in the definition of the inbox-path,
+not because the connection to the server is insecure, but because a secure connection is
+required, so in order to enforce this, &quot;/ssl&quot; is set implicitly on your behalf.
+Another part that is not explicit is the method of authentication. The default is
+&quot;/auth=OAUTHBEARER&quot; and cannot be changed, as it is a requirement of Microsoft.
+
+<P>
+GRAPH does not use SMTP, so you do not need to configure the smtp-server
+variable to send emails. That does not mean that you cannot use an SMTP
+service as a way to send emails, but if you want to use the GRAPH server
+to send your emails, you will need to configure a different variable, not
+an SMTP server. The variable you need to configure is called
+<B>other-sending-server</B>, and is configured in a similar way to that of
+the inbox-path, namely
+
+<P>
+other-sending-server=graph.microsoft.com/graph/user=YourId@outlook.com
+
+<P>
+Once you configure the previous variable it is assumed that you intend to use
+it instead of the smtp-server variable, so the value of the SMTP server
+variable will be ignored as soon as you configure this variable.
+
+<P>
+This is the way this looks in the configuration screen:
+<PRE>
+Inbox Path           = {graph.microsoft.com/graph/user=YourId@outlook.com}INBOX
+SMTP Server          = this.does.not.matter/it.is.ignored
+Other Sending Server = graph.microsoft.com/graph/user=YourId@outlook.com
+</PRE>
+
+<P>
+Finally, in order to read your email in other folders in the server, you
+need to add
+
+<P>
+folder-collections=Outlook {graph.microsoft.com/graph/user=YourId@outlook.com}[]
+
+<P>
+in your configuration file.
+
+<P>
+To continue understanding GRAPH support in Alpine, let us start by describing
+<A href="h_graph_what_is">what GRAPH is and what is not</A>.
+
+<P>
+&lt;End of help&gt;
+</BODY>
+</HTML>
+====== h_graph_what_is ======
+<HTML>
+<HEAD>
+<TITLE>Getting to Know GRAPH</TITLE>
+</HEAD>
+<BODY>
+<H1>Getting to Know GRAPH</H1>
+
+Alpine users are accustomed to accessing email either as a local folder in
+some standard format, or online either through IMAP or POP3. GRAPH access
+is different. When you are reading your email in a GRAPH folder you are
+reading your email over HTTPS Version 1.1. This implies that most of the
+access of your folders is offline, not online. Every operation will
+require opening a connection to the server, login in, requesting the
+resource, receiving the resource, parsing it, and finally displaying it to
+the user. The actual connection to the server is only open briefly, so for
+the most part of your interaction with a GRAPH folder you are most likely
+offline, except at some very specific moments.
+
+<P>
+Alpine implements checks for new mail in the server. This means every so often
+Alpine will connect to the GRAPH server to check for new mail, but at other times
+it will not be connected to the server at all. This is different than in an IMAP
+folder where the connection remains open and commands are sent and information is
+received though that connection. If the connection to an IMAP server ever fails, you
+need to restart the full connection again. In GRAPH you are keeping the connection
+closed and only open it when needed. Alpine will give the appearance that it
+is connected to the server at all times, but that is just an appearance, in realiy it
+is connecting only as needed.
+
+<P>
+You may be surprised to read that GRAPH access is not the same as email access.  If
+you have access to  Outlook in your favorite web browser, you are accessing email
+through GRAPH, and that is different than accessing an email server in many ways.
+
+<UL>
+<LI> In an email server you have access to the full message, including attachments. In
+GRAPH you only have access to the text/HTML or the text/PLAIN part, but not both. One
+of them is hidden from you. Most users guess correctly that the default part to display
+is the text/HTML part. If you have ever forwarded a message as an attachment to a
+user of the web interface of Outlook, just for them to go back to tell you that you
+did not type anything in your message, now you know why: Alpine sent its part
+in text/PLAIN, and did not edit the text/HTML part which was displayed to the user
+of the web interface.
+<LI> If a message is in text/PLAIN, but you prefer to read the text/HTML part of
+an email, GRAPH will transform the text/PLAIN part to text/HTML and send you that. You
+will not see the text/PLAIN part, as explained above.
+<LI> GRAPH splits attachments away from emails, so not all atachments are available
+for reading/downloading in the GRAPH interface. For example,
+GRAPH does not export event invitations through the email interface. The
+invitation goes to a different service within GRAPH (Calendar), and is not
+sent to Alpine directly through the default GRAPH email interface. Alpine
+compensates for this and shows you the invitation, if there is one.
+<LI> Something similar happens with S/MIME messages. The interface does not export
+signatures, or such to the email interface.
+<LI> The concept of message number does not exist in GRAPH. The message numbers
+that you see in Alpine are artificial. This is one of the main differences between
+the way messages are treated in Alpine and the way messages are treated in GRAPH.
+<LI> The GRAPH server does not compute the size of a message. Instead of displaying
+zero as the size of a message in the index, there is a quick computation of the
+size of all the headers of the message that Alpine knows before it displays the
+index. This is a low number, and does not try to represent the full size of the message.
+It is possible to compute the full size of the message, but that requires to
+download the full message. Although it is possible to configure Alpine to do this,
+and display correct size numbers, the default prioritizes speed over accuracy.
+<P>
+Later on we will talk about how to display accurate information in the index.
+<LI> The way messages are sorted in GRAPH is by reverse date. Alpine does not follow
+that because in order to do that it would have to download that information from
+the server, with the implied delay in doing this. Alpine instead does a combination of reverse date and
+reverse arrival. This approach makes the interface in Alpine intuitive, and you
+should not have problems understanding it.
+</UL>
+
+<P>
+The idea of the implementation in Alpine of a GRAPH interface is to imitate your
+experience accessing a folder through IMAP. As you can deduce from the previous
+text, the default GRAPH experience is not set up for that, so sometimes a price in
+delay to complete an operation must be paid to match the expectation of an Alpine
+user.
+
+<P>
+Let us look at how some
+<A href="h_graph_folder_operations">folder and message operations work in GRAPH</A>.
+
+<P>
+&lt;End of help&gt;
+</BODY>
+</HTML>
+====== h_graph_folder_operations ======
+<HTML>
+<HEAD>
+<TITLE>Folder Operations in a GRAPH Server in Alpine</TITLE>
+</HEAD>
+<BODY>
+<H1>Folder Operations in a GRAPH Server in Alpine</H1>
+
+You may create and delete folders in the GRAPH server in the normal way that you
+do it in a collection. GRAPH supports creation of child folders, and Alpine supports
+that, but in a way that is not 100% compatible with GRAPH. For example, in GRAPH
+you can have a folder &quot;Test&quot; with a child folder &quot;Child Test&quot;.
+In Alpine you would see the folder &quot;Test&quot; followed by a slash (or solidus),
+&quot;Test/&quot;. Selecting &quot;Test&quot; would open the folder, and selecting
+the slash &quot;/&quot; would show the list of subfolders in a new screen, among which
+you would see &quot;Child Test&quot;.
+
+<P>
+Given that Alpine uses the slash character &quot;/&quot; to separate folders from their
+childs, Alpine has problems with folders that contain this character in their names.
+Try not to use this character in naming a folder.
+
+<P>
+Unless you expunge a message, marking a message for deletion will do
+nothing. This is because a GRAPH server does not have a two step deletion
+process as IMAP does. Once a message is expunged, it is removed
+permanently.
+
+<P>
+In addition, Alpine can only expunge up to twenty (20) messages at the
+time. If there are more messages to be expunged alpine will repeat the
+expunge request until all deleted messages have been expunged. The
+restriction of not being able to expunge more than twenty messages at the
+time comes from a restriction in GRAPH. Technically one can expunge one
+message at the time, but this would mean twenty connections to expunge
+twenty messages. To address this, Alpine uses a batch operation, which allows
+it to send up to twenty requests for deleting messages at one time, and this
+is a limit imposed by Microsoft for batch requests.
+
+<P>
+Copying messages is strange. You cannot copy messages whose destination is
+a GRAPH folder, unless it is done among folders in the same account in the
+GRAPH server. You may save a message from a GRAPH folder to a local or IMAP
+folder, but you cannot do the opposite. However, you can copy a message from
+your INBOX to your Junk messages folders in the same account. When a message
+is copied between GRAPH folders in the same, copying is done in batches of
+up to 20 messages, just like expunging above.
+
+<P> Let us talk now about what happens <A href="h_graph_open_mailbox">when a folder is opened</A> in Alpine.
+
+<P>
+&lt;End of help&gt;
+</BODY>
+</HTML>
+====== h_graph_open_mailbox ======
+<HTML>
+<HEAD>
+<TITLE>When a Folder is Opened</TITLE>
+</HEAD>
+<BODY>
+<H1>When a Folder is Opened</H1>
+
+Upon opening a folder, Alpine displays envelope information in the screen.
+Since GRAPH does not have information on message numbers, the information
+that is given to us that allows us to identify a message is what is called
+a message id, which is a very long string that identifies the message
+uniquely in the folder. In GRAPH you can ask for the id of the 5th message,
+but if you only have the id of the message, you cannot know if it is the
+5th message, the first, or the last.
+
+<P>
+Internally Alpine has to open two connections to the server before it 
+displays any information to the user: The first connection gets metadata 
+about the folder the user is opening. This provides information on the 
+number of messages and the number of unread messages, as well as the 
+folder id. The second connection downloads the necessary information
+to display the index screen. If you are using the /loser flag
+this will slow down Alpine significantly, otherwise, depending on if the
+feature 
+<a href="h_config_graph_downloads_envelope_only">FEATURE: <!--#echo var="FEAT_graph-download-envelope-only"--></a>
+is enabled, this could be done very quickly.
+
+<P>
+The next step consists in syncrhonizing the information about the folder
+in Alpine and the server. In essence the idea is that once a user opens
+the folder, any differences, such as arrival of new messages, messages
+expunged from the folder, or changes in status of a message should be reported
+to the message. The GRAPH server determines, based on what has been exchanged
+so far, what has to be sent in order to start sending information on new
+messages, and so forth. GRAPH servers call this a delta, and it has to be
+done three times. To speed transfer of information, Alpine requests that
+information of only one message be sent. After this Alpine receives the go
+ahead from the server to keep asking for deltas, and all are done quickly
+on a fast connection. These kind of synchronization takes the same amount
+of time, regardless of if you are using the
+/loser flag or not, or if you are downloading envelopes only or not.
+To learn more read <A HREF="h_graph_loser">what the /loser flag does</A>.
+
+<P>
+Alpine does not cache externally any information about the messages in a folder.
+That is, once you close the folder (or Alpine) all that information is lost
+and to recover it you must reopen the folder. This means that if an operation
+took long to complete, the next time you reopen the folder you should expect
+it will take a long time to complete again. However, once an operation has
+completed in the folder, regardless of how long it took, the information will
+be cached and you will not need to wait for a long time the next time you
+repeat the same operation. For example, if the index screen takes a long time
+to update, the next time you go back to that exact index screen it will be
+painted immediately.
+
+<P>
+Based on the previous information, if you ever get asked about closing a connection
+due to a long timeout, think twice about closing the connection. The recommendation
+is to keep the connection open when asked about closing the connection to a GRAPH
+server, if the timeout is ocassional. Of course, if you voluntarily close a folder,
+all the information about the messages in the folder is lost and is not used the
+next time the folder is reopened.
+
+<P>It is time to learn <A HREF="h_graph_loser">what the /loser flag does</A>.
+
+<P>
+&lt;End of help&gt;
+</BODY>
+</HTML>
+====== h_graph_loser ======
+<HTML>
+<HEAD>
+<TITLE>What the /loser Flag Does</TITLE>
+</HEAD>
+<BODY>
+<H1>What the /loser Flag Does</H1>
+
+Normally the /loser flag is a way in which users tell Alpine that certain
+operations are not being done correctly by the server, and would prefer
+that Alpine did such operation instead. A case like this is when a search
+is being performed. This normally requires that Alpine downloads all the
+information that is needed for the search. This is a case in which users
+sacrifice speed over accuracy.
+
+<P>
+In a GRAPH folder the /loser flag is not meant to be used in the same way.
+Searches will always be done by the GRAPH server. Instead the /loser flag
+sacrifices speed for accuracy in the way the message is displayed.
+
+<P>
+Adding the /loser flag to your inbox-path will make Alpine download the
+full message before displaying an entry in the index for it. You will see
+the message as it was intended to be displayed with all of its attachments.
+Doing this will slow down Alpine, but you gain in accuracy. Even the correct
+size of the message is displayed in the screen! You pay in time, but you get
+accuracy.
+
+<P>
+The other implication is that not using the /loser flag makes Alpine
+gain speed. Operations might not be done totally right, but they are
+done quickly and most times the gain in speed will not imply a loss of
+accuracy. Without the /loser flag, Alpine does not take very long to
+display the index screen, and a delay might be noticed when a message is
+viewed. If you use the /loser flag, once a message is downloaded it open
+immediately.
+
+<P>
+Even if you do not use the /loser flag, Alpine will stil download the
+full message if this is an invitation to an event, so you will be able
+to read the details of the event in Alpine. As it was said earlier,
+doing this slows down Alpine, but it is hoped that the delay is not
+significant because invitations to events are typically small.
+
+<P>
+If you decide to use the /loser flag for a folder in GRAPH, and your folder
+is an incoming folder, consider adding your folder to the list of
+<a href="h_config_permlocked">OPTION: <!--#echo var="VAR_stay-open-folders"--></a>
+as this will minimize the number of times that you will reload the
+information from the server since the folder will be kept open even
+when you go to another folder.
 
 <P>
 &lt;End of help&gt;
@@ -3212,7 +3553,7 @@ Version <!--#echo var="ALPINE_VERSION"-->
 <BR>(built <!--#echo var=ALPINE_COMPILE_DATE-->)
 <!--chtml endif-->
 </DIV>
-<CENTER>Copyright 2013-2021 Eduardo Chappa,
+<CENTER>Copyright 2013-2026 Eduardo Chappa,
 <BR>Copyright 2006-2008 University of Washington.
 </CENTER>
 
@@ -5092,6 +5433,8 @@ There are also additional details on
 <li><a href="h_config_pass_control">FEATURE: <!--#echo var="FEAT_pass-control-characters-as-is"--></a>
 <li><a href="h_config_predict_nntp_server">FEATURE: <!--#echo var="FEAT_predict-nntp-server"--></a>
 <li><a href="h_config_prefer_plain_text">FEATURE: <!--#echo var="FEAT_prefer-plain-text"--></a>
+<li><a href="h_config_graph_prefer_plain_text">FEATURE: <!--#echo var="FEAT_graph-prefer-plain-text"--></a>
+<li><a href="h_config_graph_downloads_envelope_only">FEATURE: <!--#echo var="FEAT_graph-download-envelope-only"--></a>
 <li><a href="h_config_preopen_stayopens">FEATURE: <!--#echo var="FEAT_preopen-stayopen-folders"--></a>
 <li><a href="h_config_preserve_start_stop">FEATURE: <!--#echo var="FEAT_preserve-start-stop-characters"--></a>
 <li><a href="h_config_quell_folder_internal_msg">FEATURE: <!--#echo var="FEAT_quell-folder-internal-msg"--></a>
@@ -5280,6 +5623,7 @@ There are also additional details on
 <li><a href="h_config_header_general_color">OPTION: Header General Color</a>
 <li><a href="h_config_image_viewer">OPTION: <!--#echo var="VAR_image-viewer"--></a>
 <li><a href="h_config_inbox_path">OPTION: <!--#echo var="VAR_inbox-path"--></a>
+<li><a href="h_config_other_sending_server">OPTION: <!--#echo var="VAR_other-sending-server"--></a>
 <li><a href="h_config_archived_folders">OPTION: <!--#echo var="VAR_incoming-archive-folders"--></a>
 <li><a href="h_config_incoming_interv">OPTION: <!--#echo var="VAR_incoming-check-interval"--></a>
 <li><a href="h_config_incoming_second_interv">OPTION: <!--#echo var="VAR_incoming-check-interval-secondary"--></a>
@@ -5457,6 +5801,7 @@ There are also additional details on
 <li><a href="h_config_role_setsig">PATTERNS ROLE ACTION: Set Signature</a>
 <li><a href="h_config_role_settempl">PATTERNS ROLE ACTION: Set Template</a>
 <li><a href="h_config_role_usenntp">PATTERNS ROLE ACTION: Use NNTP Server</a>
+<li><a href="h_config_role_send_server">PATTERNS ROLE ACTION: Use Sending Server</a>
 <li><a href="h_config_role_usesmtp">PATTERNS ROLE ACTION: Use SMTP Server</a>
 <li><a href="h_config_role_scoreval">PATTERNS SCORE ACTION: Score Value</a>
 <li><a href="h_config_role_scorehdrtok">PATTERNS SCORE ACTION: Score Value From Header</a>
@@ -19455,6 +19800,34 @@ to see the available Editing and Navigation commands.
 &lt;End of help on this topic&gt;
 </BODY>
 </HTML>
+======= h_config_role_send_server =======
+<HTML>
+<HEAD>
+<TITLE>Use Sending Server Explained</TITLE>
+</HEAD>
+<BODY>
+<H1>Use Sending Server Explained</H1>
+
+This describes part of the action to be taken if the Pattern for this
+role is a match.
+If this field has a value, then it will be used as the sending server
+and the value set (if any) in the SMTP server for this role will be
+ignored.
+
+<P>At this time Alpine only supports using Microsoft graph for those having
+an Exchange account. To use this action, set this value to
+
+<PRE>
+graph.microsoft.com/graph/user=YourID@company.com
+</PRE>
+
+<P>
+Look <A HREF="h_edit_nav_cmds">here</A>
+to see the available Editing and Navigation commands.
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
 ======= h_config_role_usesmtp =======
 <HTML>
 <HEAD>
@@ -23492,6 +23865,45 @@ details on the syntax of folder definitions.
 <P>
 See <A HREF="h_info_on_mbox">Missing mail and the mbox driver</A> if your
 mail is disappearing.
+<P><UL>
+<LI><A HREF="h_finding_help">Finding more information and requesting help</A>
+</UL><P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+====== h_config_other_sending_server =====
+<HTML>
+<HEAD>
+<TITLE>OPTION: <!--#echo var="VAR_other-sending-server"--></TITLE>
+</HEAD>
+<BODY>
+<H1>OPTION: <!--#echo var="VAR_other-sending-server"--></H1>
+
+This option is intended to be used so that Alpine can send email using
+technologies other than SMTP. If your administrator has turned off SMTP
+this option might allow you to continue sending email.
+
+<P> At the moment of this writing, this is only useful to users who have
+exchange server accounts. Microsoft calles this technology graph, and the
+value that you must use in this option is
+
+<PRE>
+graph.microsoft.com/graph/user=YourId@company.com
+</PRE>
+
+<P>
+In the case of graph, Alpine sends your email using https and oauth2.
+Therefore, Alpine must connect securely to the graph server. This means
+that a version of Alpine that does not support encryption will not be
+able to send email at all.
+
+<P>
+When sending email, Alpine checks if you have defined this option to any
+value and if so attempts to use the value set in this option to send
+your email. If sending the message using the server specified in this
+option fails, Alpine will not send your message. If you wish to use other
+means to send email, you must clear the value of this option.
+
 <P><UL>
 <LI><A HREF="h_finding_help">Finding more information and requesting help</A>
 </UL><P>
@@ -31877,6 +32289,169 @@ Typing the &quot;A&quot; command a second time will switch it back.
 Alternatively, if the present option is not set you will originally see
 the most preferred version of the message and typing &quot;A&quot; will switch to
 the plain text version.
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+====== h_config_graph_prefer_plain_text =====
+<HTML>
+<HEAD>
+<TITLE>FEATURE: <!--#echo var="FEAT_graph-prefer-plain-text"--></TITLE>
+</HEAD>
+<BODY>
+<H1>FEATURE: <!--#echo var="FEAT_graph-prefer-plain-text"--></H1>
+
+Unlike other email services, in a GRAPH server a client such as Alpine
+can only display the PLAIN text or the HTML text in a message, so users
+have to choose the part they wish to read before opening the message.
+
+<P>By default a GRAPH servere serves the HTML text part. Setting this feature
+will cause the GRAPH server to serve the PLAIN text part instead, and
+unsetting it to serve the HTML text part, or the PLAIN text part if there is
+no HTML part.
+
+<P>
+Note that in some modern email systems HTML email is sometimes
+the only part that is sent, and no PLAIN text part is sent. Alpine can
+display HTML email, or you can send your message to an external
+browser with the e&quot;X&quot;ternal command, so setting this feature
+might make you lose some information. This is just one of the differences
+between a GRAPH server and a POP3 or IMAP server.
+
+<P>
+You can make Alpine treat a GRAPH server as a POP3 server in the sense
+that when reading a message the full message must be downloaded before
+displaying it, and you will be able to choose reading both the PLAIN and
+HTML parts, if available. This will slow down Alpine if a message
+contains many or large attachments, or inline images in a HTML part. In order
+to gain this control add &quot;/loser&quot; to the value of the server, so instead
+of using the value
+<P>
+<CENTER>graph.microsoft.com/graph/user=yourid@company.com</CENTER>
+<P>
+you would type
+<P>
+<CENTER>graph.microsoft.com/graph/user=yourid@company.com/loser</CENTER>
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+====== h_config_graph_downloads_envelope_only =====
+<HTML>
+<HEAD>
+<TITLE>FEATURE: <!--#echo var="FEAT_graph-downloads-envelope-only"--></TITLE>
+</HEAD>
+<BODY>
+<H1>FEATURE: <!--#echo var="FEAT_graph-downloads-envelope-only"--></H1>
+
+This option controls if at the time you open a GRAPH folder, if Alpine will
+download envelope information only (such as the To, From, Subject, etc. headers)
+or if it will download all the headers of the message previous to displaying
+the index screen. The default is that Alpine will download the envelopes
+only, but if you disable this feature, Alpine will download all the headers
+of a message previous to displaying the index screen.
+
+<P>
+Having said that, if you configure your GRAPH account with the /loser flag
+then this option will have no effect, and adding the /loser flag will make
+Alpine the slowest possible.
+
+<P>
+There are tradeoffs of speed versus accuracy that you have to understand when
+configuring this option, or using the /loser flag.
+
+<OL>
+<LI>Using the /loser flag:
+  <OL><LI> Pros:
+      <UL><LI>All information that will be presented to you will be accurate. For
+        example, all the parts of the message will be available to you. The
+        size of a message will be accurate also.
+	<LI> Opening a message, displaying an attachment, etc. are operations
+             that are done immediately, with no delay.
+      </UL>
+      <LI> Cons:
+      <UL><LI> You will have to wait for the index to be displayed while the
+           messages are being downloaded one at the time. Alpine downloads
+           about 20 messages at the time.
+      </UL>
+  </OL>
+
+<LI>Not using the /loser flag and disabling this feature:
+  <OL><LI> Pros:
+      <UL><LI>Since Alpine downloads all the headers of the messages in the
+        folder, all envelope information will be accurate. There will be no
+        need to download more headers information from the server for each
+        message displayed in the index.
+	<LI> Although message sizes are not accurate because the size of
+        the body of the message and its attachments are unknown, the size
+        of the message, as displayed in the index, is a more accurate approximation
+        to its real value.
+	<LI> Viewing the headers of the message will be immediate.
+      </UL>
+      <LI> Cons:
+      <UL><LI> A normal message has a header size of at least 10,000 bytes.
+	Although all headers are sent in one batch, downloading and parsing
+        such information causes a delay in Alpine.
+	<LI> Reading a message will make Alpine connect to the server to
+        download information about its attachments and content.
+	<LI> The Headers command cannot show any information about attachments.
+	If you want to see information about the body of a message, you must
+        use the /loser flag.
+      </UL>
+  </OL>
+
+<LI>Not using the /loser flag and enabling this feature:
+  <OL><LI> Pros:
+      <UL><LI>Since Alpine downloads all the envelope information of each
+        message only, the amount of information it downloads goes for about
+        300 to 600 bytes per message in average. This makes Alpine display
+        Although all headers are sent in one batch, downloading and parsing
+        such information causes a delay in Alpine.
+        <LI> Reading a message will make Alpine connect to the server to
+        download information about its attachments and content.
+        <LI> The Headers command cannot show any information about attachments.
+        If you want to see information about the body of a message, you must
+        use the /loser flag.
+      </UL>
+  </OL>
+        
+<LI>Not using the /loser flag and enabling this feature:
+  <OL><LI> Pros:
+      <UL><LI>Since Alpine downloads all the envelope information of each
+        message only, the amount of information it downloads goes for about
+        300 to 600 bytes per message in average. This makes Alpine display
+        the index faster than with any other method.
+      </UL>
+      <LI> Cons:
+      <UL><LI> Not all information that is displayed is accurate. The size of
+          a message is far from being accurate.
+	<LI> When a message is read, its body must be downloaded, causing
+	a delay, which may be visible.
+	<LI> If a user wishes to display the Headers, these need to be
+	downloaded, and a delay will be seen. No information about the body
+	of the message will be visible through the Headers command.
+	<LI> When opening a message for reading, information about the attachments
+	must be downloaded. Causing a delay in the display of the message.
+      </UL>
+  </OL>
+
+</OL>
+
+<P>
+When you use a GRAPH server, Alpine will connect to the server every time it
+needs to download information. Some information is onerous to get, so to
+provide you with accurate information you would have to slow down your
+experience in Alpine. Depending on your speed connection, that might be a
+considerable amount.
+
+<P>
+This feature allows you to experiment and control how slow your experience
+might be. There are three speeds at which Alpine can be configured to run.
+If you configured Alpine to use the /loser flag, this option will be ignored.
+
+
+
+
 <P>
 &lt;End of help on this topic&gt;
 </BODY>

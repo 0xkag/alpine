@@ -1,6 +1,6 @@
 /*
  * ========================================================================
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  * Copyright 2006-2009 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,7 @@
 
 XOAUTH2_INFO_S xoauth_default[] = {
   { GMAIL_NAME, GMAIL_ID, GMAIL_SECRET, GMAIL_TENANT, NULL, AUTHORIZE_FLOW},
+  { GRAPH_NAME, GRAPH_ID, GRAPH_SECRET, GRAPH_TENANT, NULL, DEVICE_FLOW},
   { OUTLOOK_NAME, OUTLOOK_ID, OUTLOOK_SECRET, OUTLOOK_TENANT, NULL, DEVICE_FLOW},
   { YAHOO_NAME, YAHOO_ID, YAHOO_SECRET, YAHOO_TENANT, NULL, AUTHORIZE_FLOW},
   { YANDEX_NAME, YANDEX_ID, YANDEX_SECRET, YANDEX_TENANT, NULL, AUTHORIZE_FLOW},
@@ -63,6 +64,39 @@ OAUTH2_S alpine_oauth2_list[] = {
     1,		/* client secret required */
     0,		/* Cancel refresh token */
     GMAIL_FLAGS|OA2_OPENSTREAM	/* default flags. For Gmail this should be set to OA2_AUTHORIZE */
+  },
+  {GRAPH_NAME,
+   {"graph.microsoft.com", NULL, NULL, NULL},
+   {{"client_id", NULL},
+    {"client_secret", NULL},		/* not used, but needed */
+    {"tenant", NULL},			/* used */
+    {"code", NULL},			/* not used, not needed */
+    {"refresh_token", NULL},
+    {"scope", "profile openid offline_access User.Read Mail.ReadWrite Mail.Send"},
+    {"grant_type", "urn:ietf:params:oauth:grant-type:device_code"},
+    {"scope", NULL},			/* not used */
+    {"grant_type", "refresh_token"},
+    {"response_type", "code"},		/* not used */
+    {"state", NULL},			/* not used */
+    {"device_code", NULL}		/* only used for frst time set up */
+   },
+   {{NULL, NULL, {OA2_End, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End}}, /* Get Access Code, Not used */
+    {"POST", (unsigned char *) "https://login.microsoftonline.com/\001/oauth2/v2.0/devicecode",	/* first time use and get device code information */
+	{OA2_Id, OA2_Scope, OA2_End, OA2_End, OA2_End, OA2_End, OA2_End}},
+    {"POST", (unsigned char *) "https://login.microsoftonline.com/\001/oauth2/v2.0/token",	/* Get first Refresh Token and Access token  */
+	{OA2_Id, OA2_Redirect, OA2_DeviceCode, OA2_End, OA2_End, OA2_End, OA2_End}},
+    {"POST", (unsigned char *) "https://login.microsoftonline.com/\001/oauth2/v2.0/token",	/* Get access token from refresh token */
+	{OA2_Id, OA2_RefreshToken, OA2_Scope, OA2_GrantTypefromRefreshToken, OA2_End, OA2_End, OA2_End}}
+   },
+   {NULL, NULL, NULL, 0, 0, NULL},	/* device_code information */
+    NULL, 	/* access token */
+    NULL,	/* special IMAP ID */
+    0,		/* do not hide */
+    0, 		/* expiration time */
+    0, 		/* first time indicator */
+    0,		/* client secret required */
+    0,		/* Cancel refresh token */
+    GRAPH_FLAGS /* default flags. For GRAPH this should be set to OA2_DEVICE */
   },
   {OUTLOOK_NAME,
    {"outlook.office365.com", "smtp.office365.com", NULL, NULL},

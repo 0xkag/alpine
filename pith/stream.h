@@ -2,7 +2,7 @@
  * $Id: stream.h 768 2007-10-24 00:10:03Z hubert@u.washington.edu $
  *
  * ========================================================================
- * Copyright 2013-2022 Eduardo Chappa
+ * Copyright 2013-2026 Eduardo Chappa
  * Copyright 2006-2007 University of Washington
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -458,6 +458,7 @@ void	       sp_free_callback(void **);
 MAILSTREAM    *same_stream(char *, MAILSTREAM *);
 MAILSTREAM    *same_stream_and_mailbox(char *, MAILSTREAM *);
 int	       same_remote_mailboxes(char *, char *);
+int	       is_graph_stream(MAILSTREAM *);
 int	       is_imap_stream(MAILSTREAM *);
 int	       modern_imap_stream(MAILSTREAM *);
 int	       streams_died(void);
@@ -466,6 +467,7 @@ void           appenduid_cb(char *mailbox,unsigned long uidvalidity, SEARCHSET *
 imapuid_t      get_last_append_uid(void);
 MAILSTREAM    *mail_cmd_stream(CONTEXT_S *, int *);
 long           dummy_soutr(void *, char *);
+int	       is_graph_server(char *);
 
 
 #endif /* PITH_STREAM_INCLUDED */
