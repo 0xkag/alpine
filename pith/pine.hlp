@@ -147,7 +147,7 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 694 2026-02-22 17:54:45
+Alpine Commit 695 2026-02-24 01:53:39
 ============= h_news =================
 <HTML>
 <HEAD>
@@ -2220,7 +2220,7 @@ a GRAPH folder, unless it is done among folders in the same account in the
 GRAPH server. You may save a message from a GRAPH folder to a local or IMAP
 folder, but you cannot do the opposite. However, you can copy a message from
 your INBOX to your Junk messages folders in the same account. When a message
-is copied between GRAPH folders in the same, copying is done in batches of
+is copied between GRAPH folders in the same account, copying is done in batches of
 up to 20 messages, just like expunging above.
 
 <P> Let us talk now about what happens <A href="h_graph_open_mailbox">when a folder is opened</A> in Alpine.
