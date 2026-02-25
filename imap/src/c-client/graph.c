@@ -2913,7 +2913,7 @@ graph_structure (MAILSTREAM *stream, unsigned long msgno, BODY **body, long flag
 		     if(s){
 		        *s = '\0';
 			for(k = 0; (k <= TYPEMAX) && body_types[k]
-				&& compare_cstring(matt->odata.mediaContentType, body_types[k]); i++);
+				&& compare_cstring(matt->odata.mediaContentType, body_types[k]); k++);
 			if (k <= TYPEMAX) {				/* only if found a slot */
 			   part->body.type = k;				/* set body type */
 			   if(!body_types[k]) {				/* assign empty slot */

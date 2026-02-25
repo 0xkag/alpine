@@ -147,7 +147,7 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 695 2026-02-24 01:53:39
+Alpine Commit 696 2026-02-24 19:18:42
 ============= h_news =================
 <HTML>
 <HEAD>
@@ -22262,7 +22262,7 @@ the connection if the first (generally most &quot;secure&quot;) method fails.
 <DD>This is a unary parameter for use with the
 <A HREF="h_config_smtp_server">&quot;<!--#echo var="VAR_smtp-server"-->&quot;</A> option.
 It indicates that the connection should be made to the Submit server
-(<A HREF="http://www.ietf.org/rfc/rfc2476.txt">RFC 3676</A>)
+(<A HREF="http://www.ietf.org/rfc/rfc2476.txt">RFC 2476</A>)
 (port 587) instead of the SMTP port (25).
 At the time this help was written the submit option was equivalent to
 specifying port 587. <A href="h_security_considerations">Learn more</A>
@@ -32362,14 +32362,15 @@ configuring this option, or using the /loser flag.
 
 <OL>
 <LI>Using the /loser flag:
-  <OL><LI> Pros:
-      <UL><LI>All information that will be presented to you will be accurate. For
+  <OL type="a">
+    <LI> Pros:
+          <UL><LI>All information that will be presented to you will be accurate. For
         example, all the parts of the message will be available to you. The
         size of a message will be accurate also.
 	<LI> Opening a message, displaying an attachment, etc. are operations
              that are done immediately, with no delay.
       </UL>
-      <LI> Cons:
+    <LI> Cons:
       <UL><LI> You will have to wait for the index to be displayed while the
            messages are being downloaded one at the time. Alpine downloads
            about 20 messages at the time.
@@ -32377,7 +32378,7 @@ configuring this option, or using the /loser flag.
   </OL>
 
 <LI>Not using the /loser flag and disabling this feature:
-  <OL><LI> Pros:
+  <OL type="a"><LI> Pros:
       <UL><LI>Since Alpine downloads all the headers of the messages in the
         folder, all envelope information will be accurate. There will be no
         need to download more headers information from the server for each
@@ -32401,27 +32402,11 @@ configuring this option, or using the /loser flag.
   </OL>
 
 <LI>Not using the /loser flag and enabling this feature:
-  <OL><LI> Pros:
+  <OL type="a"><LI> Pros:
       <UL><LI>Since Alpine downloads all the envelope information of each
         message only, the amount of information it downloads goes for about
         300 to 600 bytes per message in average. This makes Alpine display
-        Although all headers are sent in one batch, downloading and parsing
-        such information causes a delay in Alpine.
-        <LI> Reading a message will make Alpine connect to the server to
-        download information about its attachments and content.
-        <LI> The Headers command cannot show any information about attachments.
-        If you want to see information about the body of a message, you must
-        use the /loser flag.
-      </UL>
-  </OL>
-        
-<LI>Not using the /loser flag and enabling this feature:
-  <OL><LI> Pros:
-      <UL><LI>Since Alpine downloads all the envelope information of each
-        message only, the amount of information it downloads goes for about
-        300 to 600 bytes per message in average. This makes Alpine display
-        the index faster than with any other method.
-      </UL>
+	the index faster than with any other method.
       <LI> Cons:
       <UL><LI> Not all information that is displayed is accurate. The size of
           a message is far from being accurate.
