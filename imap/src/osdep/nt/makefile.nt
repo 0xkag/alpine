@@ -30,7 +30,7 @@ EXTRAAUTHENTICATORS =
 EXTRADRIVERS = 
 EXTRACFLAGS =
 AUTHENTICATORS = ext md5 pla log bea oa2
-DRIVERS = imap nntp pop3 mbx mtx tenex unix
+DRIVERS = graph graphloser imap nntp pop3 mbx mtx tenex unix
 CREATEDRIVER = mbx
 APPENDDRIVER = unix
 OSCOMPAT = /DWIN32 /D_WIN32_WINNT=0x0501
