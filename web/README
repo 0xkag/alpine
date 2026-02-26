@@ -34,7 +34,7 @@ REQUIRED SOFTWARE
 
   Optional:
 	ispell application
-	  Used to support composer spell check functinoality.
+	  Used to support composer spell check functionality.
 	  Featured not offered if ispell not present.
 
 	openLDAP

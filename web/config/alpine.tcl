@@ -262,7 +262,7 @@ cgi_link Start "Web Alpine Home Page" "$_wp(serverpath)/session/greeting.tcl" ta
 cgi_root $_wp(serverpath)
 cgi_suffix .tcl
 
-# have cgi.tcl convert eols in muiltipart/form-data
+# have cgi.tcl convert eols in multipart/form-data
 set _cgi(no_binary_upload) 1
 
 proc WPSocketName {sessid} {

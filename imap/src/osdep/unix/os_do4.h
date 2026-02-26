@@ -37,7 +37,7 @@
 #include <netinet/in.h>		/* needed for htons() prototypes */
 #endif
 
-extern int daylight;		/* local timzone uses daylight savings time */
+extern int daylight;		/* local timezone uses daylight savings time */
 extern long altzone;		/* seconds west of UTC during daylight time */
 
 #include "env_unix.h"

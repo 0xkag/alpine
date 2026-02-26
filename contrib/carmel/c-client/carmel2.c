@@ -2216,7 +2216,7 @@ carmel2_parse_mail(stream, file_pos)
                  LOCAL->index_stream) == NULL) 
            break;
         if(strncmp(carmel_20k_buf, carmel2_s_o_m, carmel2_s_o_m_len) != 0){
-            /*-- Didn't match what was seeked to, back off and read lines --*/ 
+            /*-- Didn't match what was sought to, back off and read lines --*/ 
             fseek(LOCAL->index_stream, last_line_read, 0);
             do {
                 file_pos = ftell(LOCAL->index_stream);

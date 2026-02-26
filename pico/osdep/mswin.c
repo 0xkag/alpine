@@ -81,7 +81,7 @@
 #define WIN_MIN_X_SIZE		190	/* Minimum window size. */
 #define WIN_MIN_Y_SIZE		180
 
-#define WIN_X_BORDER_SIZE	8	/* Space taked by window frame. */
+#define WIN_X_BORDER_SIZE	8	/* Space taken by window frame. */
 #define WIN_Y_BORDER_SIZE	65
 
 #define FONT_MIN_SIZE		5
@@ -313,7 +313,7 @@ typedef struct tagTTYINFO {
     CORD	xDesPos, yDesPos;	/* Desired position. */
     CORD	xDesSize, yDesSize;	/* Desired window position. */
     int		curWinMenu;		/* Current window menu. */
-    HACCEL	hAccel;			/* Handle to accelorator keys. */
+    HACCEL	hAccel;			/* Handle to accelerator keys. */
     UINT	fAccel;			/* vector of bound accelerator keys. */
     CORD	toolBarSize;		/* Size of toolbar. */
     BOOL	toolBarTop;		/* Toolbar on top? */
@@ -3517,7 +3517,7 @@ WriteTTYBlock (HWND hWnd, LPTSTR lpBlock, int nLength)
  *
  *  Description:
  *	Like WriteTTYBlock but optimized for strings that are text only,
- *	no carrage control characters.
+ *	no carriage control characters.
  *
  *  Parameters:
  *     HWND hWnd
@@ -4514,7 +4514,7 @@ UpdateEditAllowed(HWND hWnd)
 #ifdef ACCELERATORS_OPT
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
- *      Accelorator key routines.
+ *      Accelerator key routines.
  *
  *++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 LOCAL void
@@ -4565,7 +4565,7 @@ AccelCtl (HWND hWnd, int ctl, BOOL saveChange)
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *
- *      Accelorator key routines.
+ *      Accelerator key routines.
  *
  *++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 LOCAL void
@@ -4962,7 +4962,7 @@ SelDoCopy (HANDLE hCB, DWORD lenCB)
 	if (pCB == NULL)
 	    goto Fail2;
 
-	/* Append each of the rows, deliminated by a CRLF. */
+	/* Append each of the rows, delimited by a CRLF. */
 	pCB += lenCB;
 	for (row = sRow, rp = rowTable; row <= eRow; ++row, ++rp) {
 	    if (rp->len > 0) {
@@ -6017,7 +6017,7 @@ mswin_setwindow(char *fontName_utf8, char *fontSize_utf8, char *fontStyle_utf8,
 	    }
 	}
 	else{
-	    /* Look for Columns, deliminated by 'x'. */
+	    /* Look for Columns, delimited by 'x'. */
 	    c = strchr (wp, 'x');
 	    if (c == NULL)
 	      return(0);
@@ -6026,7 +6026,7 @@ mswin_setwindow(char *fontName_utf8, char *fontSize_utf8, char *fontStyle_utf8,
 	    if(!ScanInt(wp, -999, 9999, &wColumns))
 	      return(0);
 
-	    /* Look for Rows, deliminated by '+'. */
+	    /* Look for Rows, delimited by '+'. */
 	    n = c + 1;
 	    c = strchr(n, '+');
 	    if(c == NULL)
@@ -6036,7 +6036,7 @@ mswin_setwindow(char *fontName_utf8, char *fontSize_utf8, char *fontStyle_utf8,
 	    if(!ScanInt(n, -999, 9999, &wRows))
 	      return(0);
 
-	    /* Look for X position, deliminated by '+'. */
+	    /* Look for X position, delimited by '+'. */
 	    n = c + 1;
 	    c = strchr(n, '+');
 	    if(c == NULL)
@@ -6046,7 +6046,7 @@ mswin_setwindow(char *fontName_utf8, char *fontSize_utf8, char *fontStyle_utf8,
 	    if(!ScanInt(n, -999, 9999, &wXPos))
 	      return(0);
 
-	    /* And get Y position, deliminated by end of string. */
+	    /* And get Y position, delimited by end of string. */
 	    n = c + 1;
 	    if(!ScanInt(n, -999, 9999, &wYPos))
 	      return(0);
@@ -8027,7 +8027,7 @@ mswin_print_ready(WINHAND hWnd, LPTSTR docDesc)
     memset(&di, 0, sizeof (DOCINFO));
     di.cbSize = sizeof (DOCINFO);
     di.lpszDocName = docDesc;		/* This appears in the print manager*/
-    di.lpszOutput = NULL;		/* Could suply a file name to print
+    di.lpszOutput = NULL;		/* Could supply a file name to print
 					   to. */
     if(StartDoc(P_PrintDC, &di) <= 0) {
 	ExplainSystemErr();
@@ -8218,7 +8218,7 @@ mswin_print_error(int error_code)
 
 /*
  * Add a single character to the current line.
- * Only handles CRLF carrage control.
+ * Only handles CRLF carriage control.
  */
 int
 mswin_print_char(TCHAR c)

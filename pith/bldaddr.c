@@ -83,7 +83,7 @@ int         ab_nesting_level = 0;
  * *error  will point to an error message on failure it it is non-null
  *
  * Side effect: Can flush addrbook entry cache entries so they need to be
- * re-fetched afterwords.
+ * re-fetched afterwards.
  */
 int
 our_build_address(BuildTo to, char **full_to, char **error, char **fcc,
@@ -144,7 +144,7 @@ our_build_address(BuildTo to, char **full_to, char **error, char **fcc,
  * Input may have more than one address separated by commas.
  *
  * Side effect: Can flush addrbook entry cache entries so they need to be
- * re-fetched afterwords.
+ * re-fetched afterwards.
  */
 int
 build_address_internal(BuildTo to, char **full_to, char **error, char **fcc,

@@ -1093,13 +1093,13 @@ display_certificate_information(struct pine *ps, X509 *cert, char *email, WhichC
 	   pub_cert = 0;
 	   priv_cert = 1 - priv_cert;
 	   smime_certificate_info_keymenu.keys[PUBLIC_KEY].label  = N_("Public Key");
-	   smime_certificate_info_keymenu.keys[PRIVATE_KEY].label = priv_cert ? N_("No Priv Key") : N_("Pivate Key");
+	   smime_certificate_info_keymenu.keys[PRIVATE_KEY].label = priv_cert ? N_("No Priv Key") : N_("Private Key");
 	   break;
 
 	case MC_PUBLIC:
 	   priv_cert = 0;
 	   pub_cert = 1 - pub_cert;
-	   smime_certificate_info_keymenu.keys[PRIVATE_KEY].label = priv_cert ? N_("No Priv Key") : N_("Pivate Key");
+	   smime_certificate_info_keymenu.keys[PRIVATE_KEY].label = priv_cert ? N_("No Priv Key") : N_("Private Key");
 	   smime_certificate_info_keymenu.keys[PUBLIC_KEY].label  = N_("Public Key");
 	   break;
 

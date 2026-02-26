@@ -46,7 +46,7 @@ WPEval $rip_vars {
       } else {
 	cgi_put "Making Web Alpine Server Adjustments."
 	cgi_br
-	cgi_put "This should only take a momment..."
+	cgi_put "This should only take a moment..."
 	if {[catch {WPCmd PESession abandon 10}] == 0} {
 	  set gonow 1
 	}

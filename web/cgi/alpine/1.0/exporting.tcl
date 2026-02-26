@@ -138,7 +138,7 @@ cgi_html {
 	      }
 
 	      cgi_puts "WebPine is preparing the folder [cgi_bold $fldr] for download. "
-	      cgi_puts "You should see your browser's File Open Dialog appear any momment."
+	      cgi_puts "You should see your browser's File Open Dialog appear any moment."
 
 	      cgi_p
 

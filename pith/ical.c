@@ -517,7 +517,7 @@ ical_free_unknown_comp(ICAL_S **icalp)
 }
 
 /* fix the text so that the character \n is always
- * preceeded by \r
+ * preceded by \r
  */
 char *
 ical_fix_newline(char *line)

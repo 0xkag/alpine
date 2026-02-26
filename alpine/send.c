@@ -6356,7 +6356,7 @@ valid_subject(char *given, char **expanded, char **error, BUILDER_ARG *fcc, int 
  *         -1 if address wasn't OK.
  *
  * Side effect: Can flush addrbook entry cache entries so they need to be
- * re-fetched afterwords.
+ * re-fetched afterwards.
  */
 int
 build_address(char *to, char **full_to, char **error, BUILDER_ARG *barg, int *mangled)
@@ -6566,7 +6566,7 @@ build_address(char *to, char **full_to, char **error, BUILDER_ARG *barg, int *ma
  *         -1 if address wasn't OK.
  *
  * Side effect: Can flush addrbook entry cache entries so they need to be
- * re-fetched afterwords.
+ * re-fetched afterwards.
  */
 int
 build_addr_lcc(char *lcc, char **full_lcc, char **error, BUILDER_ARG *barg, int *mangled)

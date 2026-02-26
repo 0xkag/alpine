@@ -743,7 +743,7 @@ folders_for_fcc(char **errmsg)
  Browse folders for ^T selection from the role editor
 
  Returns: result if folder selected, NULL if not
-	  Tesult is alloc'd here 
+	  result is alloc'd here 
  
   ----*/     
 char *

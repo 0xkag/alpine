@@ -1441,7 +1441,7 @@ if test x$enable_dmalloc = "xyes" ; then
     ])
 fi
 
-dnl which terminal cabability database
+dnl which terminal capability database
 AC_CHECK_LIB(tinfo, setupterm,
   [
     alpine_termdata=info

@@ -43,7 +43,7 @@ static void free_word_info_words(WORD_INFO *word_info);
 static INT_PTR CALLBACK spell_dlg_proc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 /*
- * spell() - check for potentially missspelled words and offer them for
+ * spell() - check for potentially misspelled words and offer them for
  *      correction. Microsoft Windows specific version.
  */
 int

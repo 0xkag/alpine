@@ -236,7 +236,7 @@ cgi_html {
 	  }
 
 	  #
-	  # In main body of screen goes confg list
+	  # In main body of screen goes config list
 	  #
 	  cgi_table_data valign=top width="100%" class=dialog {
 	    if {[string length $onfiltcancel]} {

@@ -7,7 +7,7 @@ other are interested and might actually do this for us if we wait.
 Size   Where   What
 ----   -----   -------------
  3       c     Make readonly mode parameters work
- 3       C     Occaisional problem/error message with Fcc
+ 3       C     Occasional problem/error message with Fcc
  6       W     Copying/recognizing wide documents as wide (a new mime type?)
  2       b     Can't handle _ in folder names
  4       c     Testing to make sure all works in disk full conditions

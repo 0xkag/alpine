@@ -20,7 +20,7 @@ MULTINET - Call Multinet's transport directly.
 
 If more than one option is used - separate them with coma and no spaces.
 
-There are a few warnnings during the link - ignore them...
+There are a few warnings during the link - ignore them...
 On VAX we have to link the objects themselves and can't use libraries since the
 linker/librarian lose the global variables; on AXP it is ok...
 
@@ -29,7 +29,7 @@ Using
 =====
   All the user needs is the PINE.EXE; Pine reads the mail from the user's
 VMS/MAIL files and send outgoing mail either via mail routines using some
-foreign protocol or via direct SMTP to some SMTP server (I preffer this
+foreign protocol or via direct SMTP to some SMTP server (I prefer this
 method). You use the latter by defining SMTP-SERVER field with some host.
 If you do not set it you must define PINE_MAIL_PROTOCOL to the prefix of
 the foreign protocol used. For example, if you use SMTP% you have to define

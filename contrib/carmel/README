@@ -23,7 +23,7 @@ Building the Carmel driver
    6a. Copy all the files from carmel/pine into the pine source 
        directory.
    6b. Run patch on each of them: "patch < makefile.ult", 
-       "patch < filter.c.pathc".
+       "patch < filter.c.patch".
    6c. You may have to add a -DBWC to the CFLAGS= line in the makefile
        for your system if there is no patch file for your system.
 

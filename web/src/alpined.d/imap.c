@@ -427,7 +427,7 @@ alpine_sslfailure(char *host, char *reason, unsigned long flags)
 /*----------------------------------------------------------------------
   This can be used to prevent the flickering of the check_cue char
   caused by numerous (5000+) fetches by c-client.  Right now, the only
-  practical use found is newsgroup subsciption.
+  practical use found is newsgroup subscription.
 
   check_cue_display will check if this global is set, and won't clear
   the check_cue_char if set.

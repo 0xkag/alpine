@@ -2742,7 +2742,7 @@ gf_enriched2plain_opt(int *plain)
  * a universal output function handles writing  chars and worries
  *    about wrapping.
 
- * a unversal element collector reads chars and collects params
+ * a universal element collector reads chars and collects params
  * and dispatches the appropriate element handler.
 
  * element handlers are stacked.  The most recently dispatched gets

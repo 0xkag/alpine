@@ -7594,7 +7594,7 @@ url_local_ldap(char *url)
     }
 
     if(!ldapurl->lud_host){
-      /* TRNASLATORS: No host in <url> */
+      /* TRANSLATORS: No host in <url> */
       snprintf(ebuf, sizeof(ebuf), _("No host in %s"), url);
       ebuf[sizeof(ebuf)-1] = '\0';
       q_status_message(SM_ORDER, 3, 5, ebuf);

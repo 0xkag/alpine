@@ -828,7 +828,7 @@ fillpara(int f, int n)
     else if(action == 'P'){
 
 	/*
-	 * Justfiy the current paragraph.
+	 * Justify the current paragraph.
 	 */
 
 	if(curwp->w_markp)		/* clear mark if already set */

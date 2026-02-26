@@ -1245,7 +1245,7 @@ process_vcard_atts(MAILSTREAM *stream, long int msgno,
 		    /*
 		     * Structured name pieces can have multiple values.
 		     * We're just going to take the first value in each part.
-		     * Skip excaped commas, though.
+		     * Skip escaped commas, though.
 		     */
 		    p = last;
 		    while(p && (comma = strindex(p, a_comma)) != NULL){

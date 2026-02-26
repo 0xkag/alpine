@@ -6372,7 +6372,7 @@ dump_global_conf(void)
      fprintf(f,"# Except for feature-list items, which are additive, values set in the\n");
      fprintf(f,"# .pinerc file replace those in pine.conf, and those in pine.conf.fixed\n");
      fprintf(f,"# over-ride all others.  Features can be over-ridden in .pinerc or\n");
-     fprintf(f,"# pine.conf.fixed by pre-pending the feature name with \"no-\".\n#\n");
+     fprintf(f,"# pine.conf.fixed by prepending the feature name with \"no-\".\n#\n");
      fprintf(f,"# (These comments are automatically inserted.)\n");
 
      for(var = variables; var->name != NULL; var++){

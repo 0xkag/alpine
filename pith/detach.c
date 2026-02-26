@@ -98,7 +98,7 @@ FETCH_READC_S *g_fr_desc;
  * So a pc function writes data, and a gc function reads data. The gf_io_t
  * type is gone. I have left some comments that refer to this type in the
  * source code for historical reasons, now they must be interpreted as
- * a gf_i_t or gf_o_t as appropiate, depending on if we need to read or
+ * a gf_i_t or gf_o_t as appropriate, depending on if we need to read or
  * write to a store object.
  *
  * One last thing, the gf_ prefix is for generic filter. Most of the gf_

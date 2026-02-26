@@ -257,7 +257,7 @@ save_state(SAVE_STATE_S *state)
  * Restore the state.
  *
  * Side effect: Flushes addrbook entry cache entries so they need to be
- * re-fetched afterwords.  This only applies to entries obtained since
+ * re-fetched afterwards.  This only applies to entries obtained since
  * the call to save_state.
  * Also flushes all dlc cache entries, so dlist calls need to be repeated.
  */
@@ -2997,7 +2997,7 @@ addr_book(AddrBookArg style, char *title, char **error_message)
               ps->next_screen = main_menu_screen;
 
 	    if(!(are_selecting && as.checkboxes && checkedn > 0)
-	       /* TRANSLATORS: we are asking for confirmation about abandonding selections
+	       /* TRANSLATORS: we are asking for confirmation about abandoning selections
 	          in the address book. */
 	       || want_to(_("Really abandon your selections "),
 			  'y', 'x', NO_HELP, WT_NORM) == 'y')
@@ -7358,7 +7358,7 @@ addr_scroll_down(count)
 
 /*
  * addr_scroll_to_pos - scroll the address book data in pine's window such
- *			tthat the given "line" is at the top of the page.
+ *			that the given "line" is at the top of the page.
  */
 int
 addr_scroll_to_pos(line)

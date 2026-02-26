@@ -1567,7 +1567,7 @@ set_priority_header(METAENV *header, char *value)
      
 Args: reply -- 
 
-Returns: with appropriate flags set and index cache entries suitably tweeked
+Returns: with appropriate flags set and index cache entries suitably tweaked
 ----*/      
 void
 update_answered_flags(REPLY_S *reply)

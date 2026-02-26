@@ -3301,7 +3301,7 @@ apply_rev_color(COLOR_PAIR *cp, int style)
 	text - filled with pointer to text.
 	l - length of text.
 	style - Returns style of text.  Can be:
-		GETTEXT_TEXT - Is a pointer to text with CRLF deliminated
+		GETTEXT_TEXT - Is a pointer to text with CRLF delimited
 				lines
 		GETTEXT_LINES - Is a pointer to NULL terminated array of
 				char *.  Each entry points to a line of

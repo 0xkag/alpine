@@ -125,7 +125,7 @@ gotoeol(int f, int n)
 
 
 /*
- * Move the cursor forwwards by "n" characters. If "n" is less than zero call
+ * Move the cursor forwards by "n" characters. If "n" is less than zero call
  * "backchar" to actually do the move. Otherwise compute the new cursor
  * location, and move ".". Error if you try and move off the end of the
  * buffer. Set the flag if the line pointer for dot changes.
@@ -340,7 +340,7 @@ gotobop(int f, int n)
 
 
 /* 
- * go forword to the end of the current paragraph
+ * go forward to the end of the current paragraph
  * here we look for a <NL><NL> or <NL><TAB> or <NL><SPACE>
  * combination to delimit the beginning of a paragraph
  */

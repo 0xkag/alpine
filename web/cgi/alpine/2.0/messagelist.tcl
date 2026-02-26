@@ -520,7 +520,7 @@ proc drawMessageList {c f n ppg} {
 		number {
 		  set cd [WPcomma $iln]
 		}
-		priority { ; # priority combined with "impotant"
+		priority { ; # priority combined with "important"
 		  set priority [lindex [lindex [lindex $msg $j] 0] 0]
 		  unset cd
 		}

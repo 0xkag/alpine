@@ -17,7 +17,7 @@
  *
  */
 
-/*	ESTRUCT:	Structure and preprocesser defined for
+/*	ESTRUCT:	Structure and preprocessor defined for
 			MicroEMACS 3.6
 
 			written by Dave G. Conroy

@@ -2492,7 +2492,7 @@ and the client wishes to crash.  The string should contain a reason.
 char *strcrlfcpy (char **dst,long *dstl,char *src,long srcl);
 	dst	pointer to destination string pointer
 	dstl	pointer to destination string size
-	src	source strin
+	src	source string
 	srcl	source string size
 
       This function is called to copy into a destination string dst of

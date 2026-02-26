@@ -897,7 +897,7 @@ BuildButtonList(HWND hDlg, MDlgButton *built_in, int biCount, MDlgButton *button
     int		i;
     int		maxstrIdx, maxstrLen;		/* button w/ longest caption*/
     DWORD	textExtent;			/* width of button caption */
-    int		margine;			/* left and right margines */
+    int		margine;			/* left and right margins */
     int		btop, bleft;			/* button position */
     int		bwidth, bheight, w;		/* button size */
     int		bMinWidth;			/* minimum buttonwidth */

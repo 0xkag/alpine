@@ -251,7 +251,7 @@ it's root (since this <em>should</em> be a dedicated server this shouldn't matte
 
 <h3>IMAP Server Configuration</h3>
 <p>
-Genarally, no configuration is required of the IMAP server.
+Generally, no configuration is required of the IMAP server.
 <table width="75%" align=center bgcolor="#dddddd"><tr><td>
 However, in the Pubcookie case the Web and IMAP servers need to coordinate the
 existence of a meta-user, such as <tt>webalpine</tt>, used for SASL proxy authentication.  For UW imapd this
@@ -325,7 +325,7 @@ may draw on its cache of IMAP data, make new requests of the IMAP server, post m
 the local mail queue, formulate LDAP queries, or perform other tasks as required.
  <table width="75%" align=center bgcolor="#dddddd"><tr><td>
 Note: Web Alpine sessions run as long as the user's browser requests pages.  In the absence of user interaction
-Web Alpine will self-refresh every few minutes to mainain the session.  Sessions only end when the user logs out
+Web Alpine will self-refresh every few minutes to maintain the session.  Sessions only end when the user logs out
 or closes the browser.
  </td></tr></table>
  <li>User ends session and confirms 
@@ -351,7 +351,7 @@ HTML directly. However, the additional cost in installation and management compl
 Similarly, it is <bold>assumed</bold> that the Web Alpine service is provided on a black box server.  That is, a host
 that has no general user accounts.  Unmodified, Web Alpine creates the UNIX-domain sockets corresponding 
 pretty directly to the user's session key in the <tt>/tmp</tt> directory.  In addition, depending on the nature
-of the connection, the session key may also be exposed via oridinary httpd logging.  <em>Important safety tip:</em> make
+of the connection, the session key may also be exposed via ordinary httpd logging.  <em>Important safety tip:</em> make
 sure ordinary users do not have access to the Web Alpine system or httpd log files.  In the future those sockets may be moved into 
 a access-restricted subdirectory, but the httpd log file record may be harder, and less reliably concealed.
 

@@ -657,7 +657,7 @@ MAILSTREAM *nntp_mopen (MAILSTREAM *stream)
 				/* return prototype for OP_PROTOTYPE call */
   if (!stream) return &nntpproto;
   mail_valid_net_parse (stream->mailbox,&mb);
-				/* note mailbox anme */
+				/* note mailbox name */
   mbx = (*mb.mailbox == '#') ? mb.mailbox+6 : mb.mailbox;
   if (LOCAL) {			/* recycle stream */
     nstream = LOCAL->nntpstream;/* remember NNTP protocol stream */

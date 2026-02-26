@@ -2736,7 +2736,7 @@ unknown_command(UCS c)
  *
  *        wp is the window to move in
  *        r  is the row at which to begin scrolling
- *        n  is the number of lines to scrol
+ *        n  is the number of lines to scroll
  */
 void
 scrolldown(WINDOW *wp, int r, int n)

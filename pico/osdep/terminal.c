@@ -36,7 +36,7 @@ extern long gmode;
 /*
  * Useful Defaults
  */
-#define	MARGIN	8			/* size of minimim margin and	*/
+#define	MARGIN	8			/* size of minimum margin and	*/
 #define	MROW	2			/* rows in menu                 */
 
 

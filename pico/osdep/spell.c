@@ -79,7 +79,7 @@ static char *pinespellhelp[] = {
 
 #ifndef	_WINDOWS
 /*
- * spell() - check for potentially missspelled words and offer them for
+ * spell() - check for potentially misspelled words and offer them for
  *           correction
  */
 int

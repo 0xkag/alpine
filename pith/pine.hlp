@@ -73,7 +73,7 @@ WARNING ABOUT CHTML "if-else-endif" CLAUSES: They don't nest.
 
 1d) Other operating systems added to 1c) above are
 
-    os_unix_and_osx means all unices, incluing mac
+    os_unix_and_osx means all unices, including mac
     os_unix  means all unices except mac
     os_osx   means only mac
 
@@ -147,7 +147,7 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 697 2026-02-24 21:33:51
+Alpine Commit 698 2026-02-25 23:38:57
 ============= h_news =================
 <HTML>
 <HEAD>
@@ -222,13 +222,13 @@ does not allow a user to input their password. Reported by Michelle McPeek.
 <LI> Crash in Alpine after a user tried to repaint the screen after failing
      to select a rule from a menu. Reported by Peter Tirsek. Crash also 
      reproducible when selecting by keyword or charset.
-<LI> Fix a crash in Alpine due to incorrectly formated date in an ical
+<LI> Fix a crash in Alpine due to incorrectly formatted date in an ical
      invitation. Reported by Ulf-Dietrich Braumann.
 <LI> Fix parsing of the DURATION field in an ical invitation. Found     
      in a bug report by Ulf-Dietrich Braumann.
 <LI> Fix display of the DESCRIPTION field in an ical invitation. Found
      in a bug report by Ulf-Dietrich Braumann.
-<LI> Consider the encoding of a message before tranforming it to the
+<LI> Consider the encoding of a message before transforming it to the
      charset specified in the message. Based on a patch by Thorsten Glaser
      <A HREF="https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=726739">submitted</A> to the Debian bug tracker.
 </UL>
@@ -2113,7 +2113,7 @@ folder where the connection remains open and commands are sent and information i
 received though that connection. If the connection to an IMAP server ever fails, you
 need to restart the full connection again. In GRAPH you are keeping the connection
 closed and only open it when needed. Alpine will give the appearance that it
-is connected to the server at all times, but that is just an appearance, in realiy it
+is connected to the server at all times, but that is just an appearance, in reality it
 is connecting only as needed.
 
 <P>
@@ -2133,7 +2133,7 @@ of the web interface.
 <LI> If a message is in text/PLAIN, but you prefer to read the text/HTML part of
 an email, GRAPH will transform the text/PLAIN part to text/HTML and send you that. You
 will not see the text/PLAIN part, as explained above.
-<LI> GRAPH splits attachments away from emails, so not all atachments are available
+<LI> GRAPH splits attachments away from emails, so not all attachments are available
 for reading/downloading in the GRAPH interface. For example,
 GRAPH does not export event invitations through the email interface. The
 invitation goes to a different service within GRAPH (Calendar), and is not
@@ -2258,7 +2258,7 @@ feature
 is enabled, this could be done very quickly.
 
 <P>
-The next step consists in syncrhonizing the information about the folder
+The next step consists in synchronizing the information about the folder
 in Alpine and the server. In essence the idea is that once a user opens
 the folder, any differences, such as arrival of new messages, messages
 expunged from the folder, or changes in status of a message should be reported
@@ -2289,7 +2289,7 @@ painted immediately.
 Based on the previous information, if you ever get asked about closing a connection
 due to a long timeout, think twice about closing the connection. The recommendation
 is to keep the connection open when asked about closing the connection to a GRAPH
-server, if the timeout is ocassional. Of course, if you voluntarily close a folder,
+server, if the timeout is occasional. Of course, if you voluntarily close a folder,
 all the information about the messages in the folder is lost and is not used the
 next time the folder is reopened.
 
@@ -2337,7 +2337,7 @@ viewed. If you use the /loser flag, once a message is downloaded it open
 immediately.
 
 <P>
-Even if you do not use the /loser flag, Alpine will stil download the
+Even if you do not use the /loser flag, Alpine will still download the
 full message if this is an invitation to an event, so you will be able
 to read the details of the event in Alpine. As it was said earlier,
 doing this slows down Alpine, but it is hoped that the delay is not
@@ -3636,7 +3636,7 @@ The &quot;NextLink&quot; and &quot;PrevLink&quot; commands
       <LI> <A HREF="h_mainhelp_smime">S/MIME</A>
   </UL>
 
-  <LI> Miscelaneous Configurations
+  <LI> Miscellaneous Configurations
   <UL>
       <LI> <A HREF="h_mainhelp_color">Color Setup</A>
       <LI> <A HREF="h_mainhelp_keywords">Keywords (or Flags, or Labels)</A>
@@ -6371,7 +6371,7 @@ key to return to the previously displayed help text.
 <BODY>
 <H1>Email List Commands Explained</H1>
 
-Electonic mail lists provide a way for like-minded users to join in
+Electronic mail lists provide a way for like-minded users to join in
 discussions on topics of interest.  The email list itself is 
 represented by a
 single address that participants send messages to when they have
@@ -9558,7 +9558,7 @@ RETURN without typing a server name.
 <BODY>
 <H1>What is a Mail Drop?</H1>
 
-In some situaions it may make sense to have your mail delivered to one
+In some situations it may make sense to have your mail delivered to one
 folder (the Mail Drop) and then when you want to read mail that has been
 delivered to the Mail Drop folder Alpine will move it to another
 destination folder.
@@ -14221,7 +14221,7 @@ to startup the TakeAddr screen, in which case you will start in List Mode.
 You may switch between the two modes at any time.  If you've already
 selected several addresses in List Mode, those will be remembered when you
 switch to Single Mode and then back to List Mode.  The set of addresses
-that are pre-selected when you start in List Mode are the From addresses
+that are preselected when you start in List Mode are the From addresses
 of all of the messages you are operating on.  You may, of course, easily
 erase those selections with the UnSetAll command.
 <P>
@@ -23884,7 +23884,7 @@ technologies other than SMTP. If your administrator has turned off SMTP
 this option might allow you to continue sending email.
 
 <P> At the moment of this writing, this is only useful to users who have
-exchange server accounts. Microsoft calles this technology graph, and the
+exchange server accounts. Microsoft calls this technology GRAPH, and the
 value that you must use in this option is
 
 <PRE>
@@ -24827,7 +24827,7 @@ the Alpine option called
 <P>
 Choosing any of the &quot;by-&quot; options cause Alpine to attempt to
 get the chosen option's value for the message being saved (or for the
-first message being saved if using an aggregrate save).
+first message being saved if using an aggregate save).
 For example, if &quot;by-from&quot; is chosen, Alpine attempts to get the
 value of who the message came from (i.e. the from address).
 Alpine then attempts to save the message to a folder matching that value.
@@ -26548,7 +26548,7 @@ failed connection.
 Sets the time in seconds that Alpine will
 wait for a network read before warning you that things are moving slowly
 and possibly giving you the option to break the connection.
-The default is 15 seconds. The minimum is 5 seconds and the maximumn is
+The default is 15 seconds. The minimum is 5 seconds and the maximum is
 1000 seconds.
 <P>
 Related option: <A HREF="h_config_tcp_query_timeo"><!--#echo var="VAR_tcp-query-timeout"--></A>.
@@ -30118,7 +30118,7 @@ the &quot;@&quot; symbol and domain name (e.g. &quot;jsmith&quot;).
 When you enter a fully qualified address, Alpine does not interpret or
 modify it, but simply passes it on to the mail-transport-agent (MTA) for
 your system.  Alpine conforms to the Internet standards governing message
-headers and will not send an unqualifed name to the MTA.  Therefore, when
+headers and will not send an unqualified name to the MTA.  Therefore, when
 you enter an unqualified name, Alpine will normally attempt to turn it into
 a fully qualified address, first by checking to see if you have entered a
 matching nickname in your addressbook, or failing that, by simply adding

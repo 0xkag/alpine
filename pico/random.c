@@ -404,7 +404,7 @@ yank(int f, int n)
 
 
 /*
- * worthit - generic sort of test to roughly gage usefulness of using 
+ * worthit - generic sort of test to roughly gauge usefulness of using 
  *           optimized scrolling.
  *
  * note:

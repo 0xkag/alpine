@@ -45,7 +45,7 @@
 /*
  * Command table.
  * This table  is *roughly* in ASCII order, left to right across the
- * characters of the command. This expains the funny location of the
+ * characters of the command. This explains the funny location of the
  * control-X commands.
  */
 KEYTAB  keytab[NBINDS] = {
@@ -107,7 +107,7 @@ KEYTAB  keytab[NBINDS] = {
 /*
  * Command table.
  * This table  is *roughly* in ASCII order, left to right across the
- * characters of the command. This expains the funny location of the
+ * characters of the command. This explains the funny location of the
  * control-X commands.
  */
 KEYTAB  pkeytab[NBINDS] = {

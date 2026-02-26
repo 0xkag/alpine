@@ -135,7 +135,7 @@ necessary library files directly from Yahoo servers.
 Web Alpine can be easily configured to generate pages with references
 to a local copy of the YUI libraries.  
 
-First, you will need to download the YUI libararies from:
+First, you will need to download the YUI libraries from:
 
         http://developer.yahoo.com/yui/download/
 
@@ -145,7 +145,7 @@ link:
         web/cgi/alpine-2.0/lib/yui
 
 Simply install the downloaded library in the directory specified by
-the symbolic link, or change the link to refer to the intalled
+the symbolic link, or change the link to refer to the installed
 location.
 
 Second, you will need to change the _wp(yui) configuration setting

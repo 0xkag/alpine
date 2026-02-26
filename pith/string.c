@@ -1069,7 +1069,7 @@ static struct {
     {"EEST", 4, 3, 0},			/* Eastern Europe Daylight */
     {"FET", 3,  3, 0},			/* Further Eastern Europe Standard */
     {"MSK", 3,  3, 0},			/* Moscow Standard Time */
-    {"BST", 3,  1, 0},			/* Brittish Summer Time */
+    {"BST", 3,  1, 0},			/* British Summer Time */
     {"JST", 3,  9, 0},			/* Japan Standard */
 #ifdef	IST_MEANS_ISRAEL
     {"IST", 3,  2, 0},			/* Israel Standard */

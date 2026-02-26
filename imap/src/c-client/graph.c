@@ -244,6 +244,7 @@ typedef struct request_s {
 
 #define LOCAL ((GRAPHLOCAL *) stream->local)
 //#define GDPP  ((GRAPH_MESSAGE *) elt->private.driverp)
+#define GDPQP	((GRAPH_MESSAGE **) &elt->private.driverp)
 #define GDPQ	((GRAPH_MESSAGE *) elt->private.driverp)
 #define GDPP(X)  ((GRAPH_MESSAGE *) DPP(X))
 #define GRAPHBASE "https://graph.microsoft.com/v1.0/me"
@@ -1581,7 +1582,6 @@ graph_parse_message_search(MAILSTREAM *stream, JSON_S *json)
    unsigned long i;
    JSON_S *jw, *j;
    MESSAGECACHE *elt;
-   GRAPH_MESSAGE *msg;
    unsigned char *msgid;
 
    if(!json) return;
@@ -1596,8 +1596,7 @@ graph_parse_message_search(MAILSTREAM *stream, JSON_S *json)
 	json_assign((void **) &msgid, jw, "id", JString);
 	for(; i > 0; i--){
 	    elt = mail_elt(stream, i);
-	    msg = GDPP(elt);
-	    if(!strcmp(msg->id, msgid)){
+	    if(!strcmp(GDPQ->id, msgid)){
 	       elt->searched = T;
 	       if(!stream->silent) mm_searched(stream, i);
 	       break;
@@ -1710,8 +1709,7 @@ graph_parse_mailbox_changes(MAILSTREAM *stream, JSON_S *json)
    for(j = 0; j < 3; j++){
        for(i = 1; i <= stream->nmsgs; i++){
 	   elt = mail_elt(stream, i);
-	   if(GDPP(elt))
-	      GDPP(elt)->internal.searched = NIL;
+	   if(GDPQ) GDPQ->internal.searched = NIL;
        }
        json_assign((void **) &jbody, jdata[j], "body", JObject);
        json_assign((void **) &jvalue, jbody, "value", JArray);
@@ -1720,7 +1718,7 @@ graph_parse_mailbox_changes(MAILSTREAM *stream, JSON_S *json)
 	   if(msgid){
 	      for(i = stream->nmsgs; i > 0; i--){
 		  elt = mail_elt(stream, i);
-		  if(GDPP(elt) && !GDPP(elt)->internal.searched && !strcmp(GDPP(elt)->id, msgid)) break;
+		  if(GDPQ && !GDPQ->internal.searched && !strcmp(GDPQ->id, msgid)) break;
 	      }
 
 	      switch(j){
@@ -1758,8 +1756,7 @@ graph_parse_mailbox_changes(MAILSTREAM *stream, JSON_S *json)
 			   JSON_S *jx;
 			   json_assign((void **) &jx, (JSON_S *) jentry->value, "@removed", JObject);
 			   if(jx){
-			      msg = GDPP(elt);
-			      graph_message_free(&msg);
+			      graph_message_free(GDPQP);
 			      mail_expunged(stream, i);
 			   }
 			}
@@ -1886,7 +1883,6 @@ graph_update_message(GRAPH_MESSAGE **msgp, JSON_S *json)
 void
 graph_assign_msglist_messages(MAILSTREAM *stream, JSON_S *j, unsigned long *first)
 {
-   GRAPH_MESSAGE *msg;
    JSON_S *json;
    MESSAGECACHE *elt;
 
@@ -1897,16 +1893,15 @@ graph_assign_msglist_messages(MAILSTREAM *stream, JSON_S *j, unsigned long *firs
 
    for(; j != NULL; j = j->next,(*first)--){
       elt = mail_elt(stream, *first);
-      if(!GDPP(elt)) DPP(elt) = graph_message_new();
-      msg = GDPP(elt);
-      if(msg->valid & LOCAL->purpose) continue;
+      if(!GDPQ) DPP(elt) = graph_message_new();
+      if(GDPQ->valid & LOCAL->purpose) continue;
 
       json = (JSON_S *) j->value;
-      graph_update_message(&msg, json);
-      msg->internetMessageHeaders = graph_headers_parse(json);
-      msg->rfc822_size = graph_estimate_msg_size(msg);
+      graph_update_message(GDPQP, json);
+      GDPQ->internetMessageHeaders = graph_headers_parse(json);
+      GDPQ->rfc822_size = graph_estimate_msg_size(GDPQ);
       if(LOCAL->purpose & GPH_STATUS) graph_parse_flags(stream, elt);
-      msg->valid |= LOCAL->purpose;
+      GDPQ->valid |= LOCAL->purpose;
     }
 }
 

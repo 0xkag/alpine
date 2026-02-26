@@ -87,7 +87,7 @@ value of "always-send"
 Environment Variables:
 Some sites may take advantage of environment variables in their
 configurations, setting them via some program that gets executed
-before running PC-Pine.  There is a way to mimmick this behavior in
+before running PC-Pine.  There is a way to mimic this behavior in
 MAPI.  First you would need to create the following key:
   HKEY_CURRENT_USER\Software\University of Washington\Alpine\1.0\PmapiOpts\Env
 Say there is a variable that contains the string "${LOGNAME}".  To set

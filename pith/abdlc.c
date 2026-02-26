@@ -78,8 +78,8 @@ done_with_dlc_cache(void)
  *
  * The idea is that if you are going to flush one of these dlcs from the
  * cache you should also flush its partners. For example, if you flush one
- * Listent from a list you should flush the entire entry including all the
- * Listents and the ListHead. If you flush a DlcTitle, you should also
+ * Listens from a list you should flush the entire entry including all the
+ * Listens and the ListHead. If you flush a DlcTitle, you should also
  * flush the SubTitle and the TitleBlankTop.
  */
 int

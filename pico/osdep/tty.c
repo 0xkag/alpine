@@ -260,7 +260,7 @@ ttgetwinsz(int *row, int *col)
 
 #else /* _WINDOWS */
 
-#define	MARGIN			8	/* size of minimim margin and	*/
+#define	MARGIN			8	/* size of minimum margin and	*/
 #define	SCRSIZ			64	/* scroll size for extended lines */
 #define	MROW			2	/* rows in menu */
 

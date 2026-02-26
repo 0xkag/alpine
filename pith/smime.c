@@ -2210,14 +2210,14 @@ copy_container_to_dir(WhichCerts which)
 int
 copy_publiccert_container_to_keychain(void)
 {
-    /* NOT IMPLEMNTED */
+    /* NOT IMPLEMENTED */
     return -1;
 }
 
 int
 copy_publiccert_keychain_to_container(void)
 {
-    /* NOT IMPLEMNTED */
+    /* NOT IMPLEMENTED */
     return -1;
 }
 

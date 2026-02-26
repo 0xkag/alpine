@@ -4020,7 +4020,7 @@ m+4TJybNGNfAgOctSkEyY/OCb49fRRQTCBZVIhzLGGmpYmkO55HbIA==
           Sets the time in seconds that _Alpine_ will wait for a network
           read before warning you that things are moving slowly and
           possibly giving you the option to break the connection. The
-          default is 15 seconds. The minimum is 5 seconds and the maximumn
+          default is 15 seconds. The minimum is 5 seconds and the maximum
           is 1000 seconds.
    _tcp-write-warning-timeout_
           Sets the time in seconds that _Alpine_ will wait for a network
@@ -10594,7 +10594,7 @@ Server Name Syntax
           communication with the server must take place over a TLS
           connection. If the attempt to use TLS fails then this parameter
           will cause the connection to fail instead of falling back to an
-          unsecure connection.
+          insecure connection.
 
                                     /tls
 
@@ -10802,7 +10802,7 @@ Folder Namespaces
 
 What is a Mail Drop?
 
-   In some situaions it may make sense to have your mail delivered to one
+   In some situations it may make sense to have your mail delivered to one
    folder (the Mail Drop) and then when you want to read mail that has
    been delivered to the Mail Drop folder _Alpine_ will move it to another
    destination folder. Often the Mail Drop will be a remote folder and

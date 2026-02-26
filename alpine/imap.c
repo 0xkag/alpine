@@ -660,7 +660,7 @@ oauth2_get_access_code(unsigned char *url, char *method, OAUTH2_S *oauth2, NETMB
 try_wantto:
 	tmp_20k_buf[0] = '\0';
 	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf), 
-		_("Auhtorizing Alpine Access to %s Email Services\n\n"), oauth2->name);
+		_("Authorizing Alpine Access to %s Email Services\n\n"), oauth2->name);
 	tmp_20k_buf[SIZEOF_20KBUF-1] = '\0';
 
 	snprintf(tmp_20k_buf+strlen(tmp_20k_buf), SIZEOF_20KBUF-strlen(tmp_20k_buf),
@@ -3031,7 +3031,7 @@ oauth2_auth_answer(int cmd, MSGNO_S *msgmap, SCROLL_S *sparms)
 /*----------------------------------------------------------------------
   This can be used to prevent the flickering of the check_cue char
   caused by numerous (5000+) fetches by c-client.  Right now, the only
-  practical use found is newsgroup subsciption.
+  practical use found is newsgroup subscription.
 
   check_cue_display will check if this global is set, and won't clear
   the check_cue_char if set.

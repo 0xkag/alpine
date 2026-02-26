@@ -2153,7 +2153,7 @@ long mail_partial_text (MAILSTREAM *stream,unsigned long msgno,char *section,
     if (stream->dtb->msgdata)	/* driver will handle this */
       return (*stream->dtb->msgdata) (stream,msgno,tmp,first,last,NIL,flags);
     if (!(*stream->dtb->text) (stream,msgno,&bs,flags)) return NIL;
-    if (section && *section) {	/* nexted if more complex */
+    if (section && *section) {	/* nested if more complex */
       SETPOS (&bs,p->offset);	/* offset stringstruct to data */
       i = p->text.size;		/* maximum size of data */
     }
@@ -2215,7 +2215,7 @@ long mail_partial_body (MAILSTREAM *stream,unsigned long msgno,char *section,
       return (*stream->dtb->msgdata) (stream,msgno,section,first,last,NIL,
 				      flags);
     if (!(*stream->dtb->text) (stream,msgno,&bs,flags)) return NIL;
-    if (section && *section) {	/* nexted if more complex */
+    if (section && *section) {	/* nested if more complex */
       SETPOS (&bs,p->offset);	/* offset stringstruct to data */
       i = t->size;		/* maximum size of data */
     }
