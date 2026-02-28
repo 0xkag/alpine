@@ -280,7 +280,9 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
         json_assign ((void **) &oauth2->devicecode.device_code, json, "device_code", JString);
         json_assign ((void **) &oauth2->devicecode.user_code, json, "user_code", JString);
         json_assign ((void **) &oauth2->devicecode.verification_uri, json, "verification_uri", JString);
-	if((jx = json_body_value(json, "expires_in")) != NULL)
+	if((jx = json_body_value(json, "expires_in")) != NULL){
+	   char tmp[MAILTMPLEN];
+
 	   switch(jx->jtype){
 	      case JString: oauth2->devicecode.expires_in = atoi((char *) jx->value);
 			    break;
@@ -288,6 +290,9 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
 			    break;
 		default   : break;
 	   }
+	   sprintf(tmp, "Authorization code is valid for the next %lu minutes only", oauth2->devicecode.expires_in/60);
+	   mm_log(tmp, WARN);	   
+	}
 
 	if((jx = json_body_value(json, "interval")) != NULL)
 	   switch(jx->jtype){
