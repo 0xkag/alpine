@@ -3192,7 +3192,8 @@ long graph_search (MAILSTREAM *stream,char *charset,SEARCHPGM *pgm,long flags)
       return NIL;
   }
 
-  if(!LOCAL->sync){
+  if(stream && LOCAL && !LOCAL->sync){
+    int sync;
     unsigned long i;
     MESSAGECACHE *elt;
 
@@ -3201,7 +3202,11 @@ long graph_search (MAILSTREAM *stream,char *charset,SEARCHPGM *pgm,long flags)
 	elt = mail_elt(stream, i);
 	if(!GDPP(elt)) break;
     }
-    if(!GDPP(elt)) LOCAL->sync = graph_initial_sync(stream);
+    if(!GDPP(elt)){
+        sync = graph_initial_sync(stream);
+	if(stream && LOCAL) LOCAL->sync = sync;
+	else return NIL;
+    }
   }
 
   isand = isor = isnot = 0;
