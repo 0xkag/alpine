@@ -3027,6 +3027,7 @@ graph_msgdata (MAILSTREAM *stream, unsigned long msgno, char *section,
 	      mail_free_envelope(&elt->private.msg.env);
 	      rfc822_parse_msg_full(&elt->private.msg.env, NULL, elt->private.msg.header.text.data, elt->private.msg.header.text.size, &s, BADHOST, 0, 0);
 	   }
+	   msg->valid |= GPH_ALL_HEADERS;
 	}
      }
      else if(!compare_cstring(section, "TEXT") && !first && !last){
@@ -3918,7 +3919,9 @@ graph_parse_fast(MAILSTREAM *stream, unsigned long start, unsigned long end, int
 	 elt->rfc822_size = msg->rfc822_size;
 	 graph_parse_flags(stream, elt);
 
-	 if(msg->internetMessageHeaders && elt->private.msg.header.text.size == 0){
+	 if(!(msg->valid & GPH_ALL_HEADERS) 
+	    && msg->internetMessageHeaders
+	    && elt->private.msg.header.text.size == 0){
 	    STRING    s;
 	    GRAPH_PARAMETER *p;
 	    unsigned char *u;
@@ -3933,6 +3936,7 @@ graph_parse_fast(MAILSTREAM *stream, unsigned long start, unsigned long end, int
 	    }
 	    elt->private.msg.header.text.size = strlen(elt->private.msg.header.text.data);
 	    rfc822_parse_msg_full(&elt->private.msg.env, NULL, elt->private.msg.header.text.data, elt->private.msg.header.text.size, &s, BADHOST, 0, 0);
+	    msg->valid |= GPH_ALL_HEADERS;
 	 }
 	 else graph_parse_envelope(stream, &elt->private.msg.env, msg);
 	 if (elt->private.msg.env
