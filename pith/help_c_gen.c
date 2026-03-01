@@ -165,6 +165,7 @@ body(FILE *ifp, FILE *ofp)
 		; /* skip leading cruft */
 	    }
 	}
+	free((void *) line);
     }
 
     if(in_text)
