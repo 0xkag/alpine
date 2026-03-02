@@ -157,11 +157,6 @@ typedef struct graph_message_s {
   struct graph_message_s *next;
 } GRAPH_MESSAGE;
 
-typedef struct message_list_s {
-  ODATA_S odata;
-  GRAPH_MESSAGE *message;
-} GRAPH_MESSAGE_LIST;
-
 typedef struct graph_folder_s {
    unsigned char *id;
    unsigned char *displayName;
@@ -186,7 +181,6 @@ typedef struct graph_local {
   char *nextlink;		/* link given to us for next data. Short lived */
   GRAPH_USER_FOLDERS *folders;	/* users folders */
   unsigned long folderscount;	/* number of folders the user has */
-  GRAPH_MESSAGE_LIST *messages;	/* the list of messages */
   GraphOperation op;		/* Operation being performed */
   unsigned long countmessages;	/* count of the number of messages to be fetched */
   unsigned long topmsg;		/* msgno of last message fetched */
@@ -303,7 +297,7 @@ void graph_list_free (GRAPH_LIST_S **);
 void graph_assign_msglist_messages (MAILSTREAM *, JSON_S *, unsigned long *);
 GRAPH_MESSAGE *graph_message_new(void);
 void graph_message_free(GRAPH_MESSAGE **);
-
+void free_req_list(REQUEST_S **);
 
 
 DRIVER *graph_valid (char *name);
@@ -1095,6 +1089,7 @@ graph_open (MAILSTREAM *stream)
 				LOCAL->user);
       }
       strcat (tmp,"}");
+      if(stream->mailbox) fs_give((void **) &stream->mailbox);
       strcat (tmp,mb.mailbox);/* mailbox name */
       stream->mailbox = cpystr(tmp);
       stream->inbox = !compare_cstring (mb.mailbox,"INBOX");
@@ -1110,15 +1105,17 @@ graph_open (MAILSTREAM *stream)
 		   || !strcmp(mb.mailbox, gf->displayName))
 		break;
 	    }
-	 else
+	 else{
+	    graph_close(stream, NIL);
 	    return NIL;
+	 }
       }
       else
 	gf = graph_folder_and_base(stream, mb.mailbox, NULL);
 
       if(gf){
-	 LOCAL->folder.id = cpystr(gf->id);
-	 LOCAL->folder.displayName = cpystr(gf->displayName);
+	 if(!LOCAL->folder.id) LOCAL->folder.id = cpystr(gf->id);
+	 if(!LOCAL->folder.displayName) LOCAL->folder.displayName = cpystr(gf->displayName);
 	 stream->nmsgs = gf->totalItemCount;
 	 stream->unseen = gf->unreadItemCount;
 	 mail_exists(stream, stream->nmsgs);
@@ -1147,6 +1144,7 @@ graph_initial_sync (MAILSTREAM *stream)
   if(stream && LOCAL){
 		/* for the post request */
      LOCAL->op = GetInitialSync;
+     if(LOCAL->resource) fs_give((void **) &LOCAL->resource);
      LOCAL->resource = cpystr("$batch");
      LOCAL->urltail = cpystr("/v1.0");
 		/* for each get request in the batch */
@@ -1211,6 +1209,7 @@ graph_initial_sync (MAILSTREAM *stream)
 	   fs_give((void **) &s);
 	}
      }
+     if(resource) fs_give((void **) &resource);
   }
   if(stream && LOCAL && LOCAL->urltail) fs_give((void **) &LOCAL->urltail);
   if(stream && LOCAL) LOCAL->private = NIL;
@@ -1420,6 +1419,7 @@ graph_challenge (void *s, unsigned long *len)
   }
 
   if(json) json_free(&json);
+  if(ct) fs_give((void **) &ct);
 
   return ret;
 }
@@ -1517,6 +1517,7 @@ graph_parse_initial_sync(MAILSTREAM *stream, JSON_S *json)
 	    jy = (JSON_S *) jw->value;
 	    json_assign((void **) &idstring, jy, "id", JString);
 	    id = strtoul(idstring, NIL, 10);
+	    fs_give((void **) &idstring);
 	    if(id*GRAPHMAXCOUNTMSGS < stream->nmsgs)
 	       LOCAL->topmsg = stream->nmsgs - id*GRAPHMAXCOUNTMSGS;
 	    status = json_value_type(jy, "status", JLong);
@@ -1533,9 +1534,12 @@ graph_parse_initial_sync(MAILSTREAM *stream, JSON_S *json)
 		  return;
 	       }
 
-	       if(ctype && !compare_cstring(ctype, "application/json")){
-		  json_assign((void **) &jbody, jy, "body", JObject);
-		  graph_parse_message_list(stream, jbody, &LOCAL->topmsg);
+	       if(ctype){
+		  if(!compare_cstring(ctype, "application/json")){
+		     json_assign((void **) &jbody, jy, "body", JObject);
+		     graph_parse_message_list(stream, jbody, &LOCAL->topmsg);
+		  }
+		  fs_give((void **) &ctype);
 	       }
 	    }
 	}
@@ -1562,16 +1566,19 @@ graph_extract_next_link(JSON_S *json, unsigned char **nextlinkp, unsigned char *
 	 fs_give((void **) &ctype);
 	 return;
      }
-     if(ctype && !compare_cstring(ctype, "application/json")){
-	json_assign((void **) &jbody, json, "body", JObject);
-	if(nextlinkp){
-	   if(*nextlinkp) fs_give((void **) nextlinkp);
-	   json_assign((void **) nextlinkp, jbody, "@odata.nextlink", JString);
+     if(ctype){
+	if(!compare_cstring(ctype, "application/json")){
+	   json_assign((void **) &jbody, json, "body", JObject);
+	   if(nextlinkp){
+	      if(*nextlinkp) fs_give((void **) nextlinkp);
+	      json_assign((void **) nextlinkp, jbody, "@odata.nextlink", JString);
+	   }
+	   if(deltalinkp){
+	      if(*deltalinkp) fs_give((void **) deltalinkp);
+	      json_assign((void **) deltalinkp, jbody, "@odata.deltalink", JString);
+	   }
 	}
-	if(deltalinkp){
-	   if(*deltalinkp) fs_give((void **) deltalinkp);
-	   json_assign((void **) deltalinkp, jbody, "@odata.deltalink", JString);
-	}
+	fs_give((void **) &ctype);
      }
    }
 }
@@ -1602,6 +1609,7 @@ graph_parse_message_search(MAILSTREAM *stream, JSON_S *json)
 	       break;
 	    }
 	}
+	fs_give((void **) &msgid);
    }
 }
 
@@ -1697,6 +1705,7 @@ graph_parse_mailbox_changes(MAILSTREAM *stream, JSON_S *json)
 	  jy = (JSON_S *) jw->value;
 	  json_assign((void **) &idstr, jy, "id", JString);
 	  id = strtoul((char *) idstr, NULL, 10);
+	  fs_give((void **) &idstr);
 	  if(id >= 0 && id < 3) jdata[id] = jy;
 	  else fatal("Graph server sent unrecognized response");
       }
@@ -1720,7 +1729,7 @@ graph_parse_mailbox_changes(MAILSTREAM *stream, JSON_S *json)
 		  elt = mail_elt(stream, i);
 		  if(GDPQ && !GDPQ->internal.searched && !strcmp(GDPQ->id, msgid)) break;
 	      }
-
+	      fs_give((void **) &msgid);
 	      switch(j){
 		case GRAPH_NEWMSGS:
 			if(i == 0){	/* collect information, process later */
@@ -1784,7 +1793,9 @@ graph_parse_mailbox_changes(MAILSTREAM *stream, JSON_S *json)
 	      newmsgs = 0;
 	   }
        }
+       jdata[j] = NIL;
    }
+   fs_give((void **) &jdata);
 }
 
 /*
@@ -1974,17 +1985,6 @@ graph_estimate_msg_size(GRAPH_MESSAGE *msg)
 void
 graph_parse_message_list(MAILSTREAM *stream, JSON_S *json, unsigned long *topmsg)
 {
-   GRAPH_MESSAGE_LIST *msglist = stream && LOCAL ? LOCAL->messages : NIL;
-
-   if(!msglist){
-      msglist = fs_get(sizeof(GRAPH_MESSAGE_LIST));
-      memset((void *) msglist, 0, sizeof(GRAPH_MESSAGE_LIST));
-   }
-   if(msglist->odata.context) fs_give((void **) &msglist->odata.context);
-   if(msglist->odata.nextlink) fs_give((void **) &msglist->odata.nextlink);
-   json_assign ((void **) &msglist->odata.context, json, "@odata.context", JString);
-   json_assign ((void **) &msglist->odata.nextlink, json, "@odata.nextlink", JString);
-
    graph_assign_msglist_messages(stream, json, topmsg);
 }
 
@@ -2128,6 +2128,14 @@ graph_parse_attachment_list_work (JSON_S *json)
   return gatt;
 }
 
+void
+free_req_list(REQUEST_S **reqp)
+{
+    if(reqp == NULL || *reqp == NULL) return;
+    if((*reqp)->next) free_req_list(&(*reqp)->next);
+    fs_give((void **) reqp);
+}
+
 #define MAX_REQ (100)
 /* Direct traffic to the correct location based on operation */
 long
@@ -2136,6 +2144,13 @@ graph_response (void *s, char *base, char *response, unsigned long size)
    static REQUEST_S *req = NIL, *current;
    static int n = 0;
    MAILSTREAM *stream = (MAILSTREAM *) s;
+
+   /* special call to free memory */
+   if(s == NIL && base == NIL && response == NIL && size == 0L){
+      req = current->next; current->next = NIL; current = req;
+      free_req_list(&current);
+      return LONGT;
+   }
 
    /* create a circular list of MAX_REQ requests */
    if(!req){
@@ -2415,9 +2430,29 @@ graph_close (MAILSTREAM *stream,long options)
 				/* free up memory */
     if(LOCAL->folder.displayName) fs_give((void **) &LOCAL->folder.displayName);
     if(LOCAL->folder.id) fs_give((void **) &LOCAL->folder.id);
+    if(LOCAL->access_token) fs_give((void **) &LOCAL->access_token);
+    if(LOCAL->basename) fs_give((void **) &LOCAL->basename);
+    if(LOCAL->resource) fs_give((void **) &LOCAL->resource);
+    if(LOCAL->nextlink) fs_give((void **) &LOCAL->nextlink);
+    if(LOCAL->folders) graph_free_folders(&LOCAL->folders);
+    if(LOCAL->http_header) graph_free_params(&LOCAL->http_header);
+    if(LOCAL->params) http_param_free(&LOCAL->params);
+    if(LOCAL->eparam) http_param_free(&LOCAL->eparam);
+    if(LOCAL->urltail) fs_give((void **) &LOCAL->urltail);
+    if(LOCAL->private) fs_give((void **) &LOCAL->private);
+    if(LOCAL->user) fs_give((void **) &LOCAL->user);
+    if(LOCAL->created.nextlink) fs_give((void **) &LOCAL->created.nextlink);
+    if(LOCAL->created.deltalink) fs_give((void **) &LOCAL->created.deltalink);
+    if(LOCAL->updated.nextlink) fs_give((void **) &LOCAL->updated.nextlink);
+    if(LOCAL->updated.deltalink) fs_give((void **) &LOCAL->updated.deltalink);
+    if(LOCAL->deleted.nextlink) fs_give((void **) &LOCAL->deleted.nextlink);
+    if(LOCAL->deleted.deltalink) fs_give((void **) &LOCAL->deleted.deltalink);
+    if(LOCAL->srchnextlink) fs_give((void **) &LOCAL->srchnextlink);
+    graph_response (NIL, NIL, NIL, 0);	/* free list of requests */
+
     for(i = 1; i <= stream->nmsgs; i++){
-	msg = GDPP(mail_elt(stream, i));
-	graph_message_free(&msg);
+ 	msg = GDPP(mail_elt(stream, i));
+ 	graph_message_free(&msg);
     }
     fs_give ((void **) &stream->local);
   }
@@ -3127,6 +3162,7 @@ graph_msgdata (MAILSTREAM *stream, unsigned long msgno, char *section,
 	att_id = strrchr(b->id, '@');
 	*att_id = '\0';
 	LOCAL->op = GetAttachmentFile;
+	if(LOCAL->resource) fs_give((void **) &LOCAL->resource);
 	LOCAL->resource = fs_get(strlen("messages") + strlen(msg->id) + strlen("attachments") + strlen(b->id+1) + 3 + 1);
 	sprintf(LOCAL->resource, "messages/%s/attachments/%s", msg->id, b->id+1);
 	*att_id = '@';
@@ -3323,6 +3359,7 @@ long graph_expunge (MAILSTREAM *stream,char *sequence,long options)
    */
 		/* for the batch/post request */
    LOCAL->op = ExpungeMsg;
+   if(LOCAL->resource) fs_give((void **) &LOCAL->resource);
    LOCAL->resource = cpystr("$batch");
    LOCAL->urltail = cpystr("/v1.0");
    LOCAL->status = HTTP_OK;		/* fake some non-zero code that is not success */
@@ -3424,6 +3461,7 @@ long graph_copy (MAILSTREAM *stream,char *sequence,char *mailbox,long options)
    */
 		/* for the batch/post request */
    LOCAL->op = CopyMessage;
+   if(LOCAL->resource) fs_give((void **) &LOCAL->resource);
    LOCAL->resource = cpystr("$batch");
    LOCAL->urltail = cpystr("/v1.0");
    LOCAL->status = HTTP_OK;		/* fake non zero local->status */
@@ -4179,6 +4217,7 @@ void graph_flag (MAILSTREAM *stream, char *sequence, char *flag, long flags)
          */
 		/* set up the batch/post request */
 	LOCAL->op = FlagMsg;	/* since it is batch, it must be sent through a POST */
+	if(LOCAL->resource) fs_give((void **) &LOCAL->resource);
 	LOCAL->resource = cpystr("$batch");
 	LOCAL->urltail = cpystr("/v1.0");
 	LOCAL->status = HTTP_OK;
@@ -4278,6 +4317,7 @@ graph_check_mailbox_changes(MAILSTREAM *stream)
 
 	/* for the post request */
   LOCAL->op = GetMailboxChanges;
+  if(LOCAL->resource) fs_give((void **) &LOCAL->resource);
   LOCAL->resource = cpystr("$batch");
   LOCAL->urltail = cpystr("/v1.0");
   /* there are three requests: new message, updates, and deleted messages */
@@ -4393,7 +4433,7 @@ graph_check_mailbox_changes(MAILSTREAM *stream)
      LOCAL->private = (char *) s;	/* set up body for graph_response */
      graph_send_command(stream);
      fs_give((void **) &s);
-
+     if(resource) fs_give((void **) &resource);
   } while (stream && LOCAL && (LOCAL->created.nextlink || LOCAL->updated.nextlink || LOCAL->deleted.nextlink));
   if(stream && LOCAL && LOCAL->urltail) fs_give((void **) &LOCAL->urltail);
   if(stream && LOCAL) LOCAL->private = NIL;
@@ -4438,6 +4478,7 @@ graph_send_mail(MAILSTREAM *stream)
   unsigned long len;
 
   LOCAL->op = GraphSendMail;
+  if(LOCAL->resource) fs_give((void **) &LOCAL->resource);
   LOCAL->resource = cpystr("sendMail");
   s = rfc822_binary(LOCAL->private, strlen((char*) LOCAL->private), &len);
   if(s[len-2] < ' ') s[len-2] = '\0';
@@ -4462,13 +4503,7 @@ char *graph_header (MAILSTREAM *stream,unsigned long msgno,
   if (length) *length = 0;
   if (flags & FT_UID || !LOCAL) return "";      /* UID call "impossible" */
   elt = mail_elt (stream, msgno);
-  if(elt->private.msg.text.text.data){
-     STRING    s;
-     /* we get here when do not have a body structure, so we make it */
-     INIT(&s, mail_string, elt->private.msg.text.text.data, elt->private.msg.text.text.size);
-     rfc822_parse_msg_full(&elt->private.msg.env, &elt->private.msg.body,
-	elt->private.msg.text.text.data, elt->private.msg.text.text.size,
-	&s, BADHOST, 0, 0);
+  if(elt->private.msg.header.text.data){
      *length = elt->private.msg.header.text.size;
      return elt->private.msg.header.text.data;
   }
@@ -4488,13 +4523,12 @@ char *graph_header (MAILSTREAM *stream,unsigned long msgno,
      graph_send_command(stream);
   }
 
-  if(msg && msg->mimetext){
-     elt->private.msg.full.text.data = cpystr(msg->mimetext);
-     elt->private.msg.full.text.size = strlen(msg->mimetext);
-     elt->rfc822_size = elt->private.msg.full.text.size;
-     msg->valid |= GPH_RFC822_BODY;
-  }
-  else return NIL;
+  if(!(msg && msg->mimetext)) return NIL;
+  msg->valid |= GPH_MIME|GPH_RFC822_BODY|GPH_ALL_HEADERS;
+
+  elt->private.msg.full.text.data = cpystr(msg->mimetext);
+  elt->private.msg.full.text.size = strlen(msg->mimetext);
+  elt->rfc822_size = elt->private.msg.full.text.size;
 
   if(elt->private.msg.header.text.size == 0){
      char *h = strstr(msg->mimetext, "\r\n\r\n");
@@ -4502,18 +4536,17 @@ char *graph_header (MAILSTREAM *stream,unsigned long msgno,
      elt->private.msg.header.text.data = fs_get(elt->private.msg.header.text.size + 1);
      strncpy(elt->private.msg.header.text.data, msg->mimetext, elt->private.msg.header.text.size);
      elt->private.msg.header.text.data[elt->private.msg.header.text.size] = '\0';
-     elt->private.msg.text.offset = elt->private.msg.header.text.size;
-     msg->valid |= GPH_ALL_HEADERS;
   }
 
   *length = elt->private.msg.header.text.size;
   elt->private.msg.text.offset = elt->private.msg.header.text.size;
   elt->private.msg.text.text.data = cpystr(msg->mimetext + elt->private.msg.text.offset);
   elt->private.msg.text.text.size = strlen(elt->private.msg.text.text.data);
+  fs_give((void **) &msg->mimetext);
   return elt->private.msg.header.text.data;
 }
 
-long graph_text (MAILSTREAM *stream,unsigned long msgno,STRING *bs, long flags)
+long graph_text (MAILSTREAM *stream, unsigned long msgno, STRING *bs, long flags)
 {
   MESSAGECACHE *elt;
   char *s;
@@ -4528,16 +4561,6 @@ long graph_text (MAILSTREAM *stream,unsigned long msgno,STRING *bs, long flags)
     MM_FLAGS(stream, msgno);
   }
 
-  if(!elt->private.msg.text.text.data){
-     msg = GDPP(elt);
-     if(msg && msg->mimetext){
-	s = strstr(msg->mimetext, "\r\n\r\n");
-	elt->private.msg.text.text.data = cpystr(s + 4);
-	elt->private.msg.text.text.size = strlen(elt->private.msg.text.text.data);
-	elt->private.msg.header.text.size = s - (char *) msg->mimetext + 4;
-	elt->rfc822_size = strlen(msg->mimetext);
-     }
-  }
   INIT (bs, mail_string, elt->private.msg.text.text.data, elt->private.msg.text.text.size);
   return LONGT;
 }

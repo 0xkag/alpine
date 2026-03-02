@@ -90,7 +90,10 @@ void http_status_line_free(HTTP_STATUS_S **);
 void http_header_free(HTTP_HEADER_DATA_S **);
 unsigned char *hex_escape_url_part(unsigned char *, unsigned char *);
 unsigned char *encode_url_body_part(unsigned char *, unsigned char *);
-
+void http_header_component_param_free(HTTP_HEADER_S **);
+void http_param_list_free(HTTP_PARAM_LIST_S **);
+void http_val_param_free(HTTP_VAL_PARAM_S **);
+  
 /* HTTP function prototypes */
 long http_reply (HTTPSTREAM *);
 long http_fake (HTTPSTREAM *, unsigned char *);
@@ -112,6 +115,34 @@ HTTP_PARAM_LIST_S *http_parse_token_list(unsigned char *, int);
 PARAMETER *http_parse_parameter(unsigned char *, int);
 
 void http_parse_headers(HTTPSTREAM *);
+
+void
+http_val_param_free(HTTP_VAL_PARAM_S **vpp)
+{
+  if(vpp == NULL || *vpp == NULL) return;
+  if((*vpp)->value) fs_give((void **) &(*vpp)->value);
+  if((*vpp)->plist) mail_free_body_parameter(&(*vpp)->plist);
+  fs_give((void **) vpp);
+}
+
+void
+http_param_list_free(HTTP_PARAM_LIST_S **plp)
+{
+  if(plp == NULL || *plp == NULL) return;
+
+  if((*plp)->vp) http_val_param_free(&(*plp)->vp);
+  if((*plp)->next) http_param_list_free(&(*plp)->next);
+  fs_give((void **) plp);
+}
+
+void
+http_header_component_param_free(HTTP_HEADER_S **hcp)
+{
+  if(hcp == NULL || *hcp == NULL) return;
+  if((*hcp)->data) fs_give((void **) &(*hcp)->data);
+  if((*hcp)->p) http_param_list_free(&(*hcp)->p);
+  fs_give((void **) hcp);
+}
 
 void *
 http_parameters (long function,void *value)
@@ -405,7 +436,7 @@ http_add_data_to_header(HTTP_HEADER_S **headerp,  unsigned char *data)
 void
 http_add_header_data(HTTPSTREAM *stream, unsigned char *hdata)
 {
-  unsigned char *hname, *h;
+  unsigned char *hname = NIL, *h;
   int found = 1;
 
   if(!stream || !hdata || !*hdata) return;
@@ -415,15 +446,16 @@ http_add_header_data(HTTPSTREAM *stream, unsigned char *hdata)
      memset((void *) stream->header, 0, sizeof(HTTP_HEADER_DATA_S));
   }
 
-
   /* extract header name first */
   if((h = strchr(hdata, ':'))){
     *h = '\0';
     hname = fs_get((h-hdata+2)*sizeof(char));
     strncpy(hname, hdata, h-hdata);
     hname[h-hdata] = '\0';
-    if(!valid_token_name(hname))
+    if(!valid_token_name(hname)){
+       fs_give((void **) &hname);
        return;
+    }
     hname[h-hdata] = ':';
     hname[h-hdata+1] = '\0';
     *h++ = ':';
@@ -572,6 +604,7 @@ http_add_header_data(HTTPSTREAM *stream, unsigned char *hdata)
 
       default:  break;
   }
+  if(hname) fs_give((void **) &hname);
 }
 
 
@@ -1021,7 +1054,47 @@ http_header_free(HTTP_HEADER_DATA_S **hdata)
 {
    if(hdata == NULL || *hdata == NULL) return;
 
-   fs_give((void **) hdata);
+  if((*hdata)->accept) http_header_component_param_free(&(*hdata)->accept);
+  if((*hdata)->accept_charset) http_header_component_param_free(&(*hdata)->accept_charset);
+  if((*hdata)->accept_encoding) http_header_component_param_free(&(*hdata)->accept_encoding);
+  if((*hdata)->accept_language) http_header_component_param_free(&(*hdata)->accept_language);
+  if((*hdata)->accept_ranges) http_header_component_param_free(&(*hdata)->accept_ranges);
+  if((*hdata)->age) http_header_component_param_free(&(*hdata)->age);
+  if((*hdata)->allow) http_header_component_param_free(&(*hdata)->allow);
+  if((*hdata)->cache_control) http_header_component_param_free(&(*hdata)->cache_control);
+  if((*hdata)->connection) http_header_component_param_free(&(*hdata)->connection);
+  if((*hdata)->content_disposition) http_header_component_param_free(&(*hdata)->content_disposition);
+  if((*hdata)->content_encoding) http_header_component_param_free(&(*hdata)->content_encoding);
+  if((*hdata)->content_language) http_header_component_param_free(&(*hdata)->content_language);
+  if((*hdata)->content_length) http_header_component_param_free(&(*hdata)->content_length);
+  if((*hdata)->content_location) http_header_component_param_free(&(*hdata)->content_location);
+  if((*hdata)->content_type) http_header_component_param_free(&(*hdata)->content_type);
+  if((*hdata)->date) http_header_component_param_free(&(*hdata)->date);
+  if((*hdata)->etag) http_header_component_param_free(&(*hdata)->etag);
+  if((*hdata)->expect) http_header_component_param_free(&(*hdata)->expect);
+  if((*hdata)->expires) http_header_component_param_free(&(*hdata)->expires);
+  if((*hdata)->from) http_header_component_param_free(&(*hdata)->from);
+  if((*hdata)->host) http_header_component_param_free(&(*hdata)->host);
+  if((*hdata)->last_modified) http_header_component_param_free(&(*hdata)->last_modified);
+  if((*hdata)->location) http_header_component_param_free(&(*hdata)->location);
+  if((*hdata)->max_forwards) http_header_component_param_free(&(*hdata)->max_forwards);
+  if((*hdata)->mime_version) http_header_component_param_free(&(*hdata)->mime_version);
+  if((*hdata)->pragma) http_header_component_param_free(&(*hdata)->pragma);
+  if((*hdata)->proxy_authenticate) http_header_component_param_free(&(*hdata)->proxy_authenticate);
+  if((*hdata)->referer) http_header_component_param_free(&(*hdata)->referer);
+  if((*hdata)->retry_after) http_header_component_param_free(&(*hdata)->retry_after);
+  if((*hdata)->server) http_header_component_param_free(&(*hdata)->server);
+  if((*hdata)->user_agent) http_header_component_param_free(&(*hdata)->user_agent);
+  if((*hdata)->te) http_header_component_param_free(&(*hdata)->te);
+  if((*hdata)->trailer) http_header_component_param_free(&(*hdata)->trailer);
+  if((*hdata)->transfer_encoding) http_header_component_param_free(&(*hdata)->transfer_encoding);
+  if((*hdata)->upgrade) http_header_component_param_free(&(*hdata)->upgrade);
+  if((*hdata)->via) http_header_component_param_free(&(*hdata)->via);
+  if((*hdata)->vary) http_header_component_param_free(&(*hdata)->vary);
+  if((*hdata)->warning) http_header_component_param_free(&(*hdata)->warning);
+  if((*hdata)->www_authenticate) http_header_component_param_free(&(*hdata)->www_authenticate);
+
+  fs_give((void **) hdata);
 }
 
 void
@@ -1170,7 +1243,7 @@ http_reply (HTTPSTREAM *stream)
      if(p && p->vp->value){	/* chunked transfer */
 	unsigned char *s = NIL;
 	do {
-	  if (s) fs_give ((void **) &s);
+	  if(s) fs_give ((void **) &s);
 	  size = 0L;
 	  if((s = (unsigned char *) net_getline (stream->netstream)) != NIL){
 	     if(stream->debug) mm_log(s, HTTPDEBUG);
@@ -1184,6 +1257,7 @@ http_reply (HTTPSTREAM *stream)
 	     }
 	  }
 	} while (stream && stream->netstream && s && (size > 0 || !*s));
+	if(s) fs_give ((void **) &s);
      }
   }
 
