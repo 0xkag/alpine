@@ -1095,12 +1095,13 @@ graph_open (MAILSTREAM *stream)
       stream->inbox = !compare_cstring (mb.mailbox,"INBOX");
 
       if(folder_is_wellknown(mb.mailbox)){
+	 GRAPH_USER_FOLDERS *folders;
 	 LOCAL->folder.id = cpystr(mb.mailbox);
 	 LOCAL->folder.displayName = cpystr(mb.mailbox);
 	 if(LOCAL->folders) graph_free_folders(&LOCAL->folders);
-	 LOCAL->folders = graph_get_folder_list(stream, NULL);
+	 folders = graph_get_folder_list(stream, NULL);
 	 if(stream && LOCAL)
-	    for(gf = LOCAL->folders; gf; gf = gf->next){
+	    for(gf = LOCAL->folders = folders; gf; gf = gf->next){
 		if((stream->inbox && !compare_cstring(mb.mailbox, gf->displayName))
 		   || !strcmp(mb.mailbox, gf->displayName))
 		break;
@@ -2147,6 +2148,7 @@ graph_response (void *s, char *base, char *response, unsigned long size)
 
    /* special call to free memory */
    if(s == NIL && base == NIL && response == NIL && size == 0L){
+      if(!req) return LONGT;
       req = current->next; current->next = NIL; current = req;
       free_req_list(&current);
       return LONGT;
