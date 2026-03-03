@@ -1335,7 +1335,9 @@ manage_certs_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned flags)
 	   if(ctype == Password){
 	      EVP_PKEY *key = NULL;
 	      PERSONAL_CERT *pc =  (PERSONAL_CERT *) ps->pwdcert;
+#ifndef OPENSSL_3_0
 	      RSA *rsa = NULL;
+#endif /* OPENSSL_3_0 */
 	      const EVP_CIPHER *enc = NULL;
 	      BIO *out = NULL;
 	      BIO *in = NULL;
@@ -1358,10 +1360,18 @@ manage_certs_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned flags)
 		     if((in = BIO_new_file(filename, "r")) != NULL){
 			key = PEM_read_bio_PrivateKey(in, NULL, NULL, passwd);
 			if(key != NULL){
+#ifdef OPENSSL_3_0
+			  if(key != NULL
+#else
 			  if((rsa = EVP_PKEY_get1_RSA(key)) != NULL
+#endif /* OPENSSL_3_0 */
 			     && (out = BIO_new(BIO_s_file())) != NULL
 			     && BIO_write_filename(out, filename) > 0
+#ifdef OPENSSL_3_0
+			     && PEM_write_bio_PKCS8PrivateKey(out, key, enc, NULL, 0, NULL, passwd) > 0){
+#else
 			     && PEM_write_bio_RSAPrivateKey(out, rsa, enc, NULL, 0, NULL, passwd) > 0){
+#endif /* OPENSSL_3_0 */
 			     q_status_message(SM_ORDER, 1, 3, _("Password Removed from private key"));
 			     ps->keyemptypwd = 1;
 			  }
@@ -1382,8 +1392,10 @@ manage_certs_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned flags)
 		  rv += 10;		/* forces redraw */
 		  if(out != NULL)
 		    BIO_free_all(out);
+#ifndef OPENSSL_3_0
 		  if(rsa != NULL)
 		    RSA_free(rsa);
+#endif /* OPENSSL_3_0 */
 		  if(key != NULL)
 		    EVP_PKEY_free(key);
 	      }

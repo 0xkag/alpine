@@ -33,7 +33,7 @@
 #include <openssl/conf.h>
 #include <openssl/x509v3.h>
 
-#ifndef OPENSSL_1_1_0
+#if !defined(OPENSSL_1_1_0) && !defined(OPENSSL_3_0)
 #define X509_get0_notBefore(x) ((x) && (x)->cert_info                   \
                                 ? (x)->cert_info->validity->notBefore   \
                                 : NULL)

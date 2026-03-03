@@ -2151,6 +2151,7 @@ graph_response (void *s, char *base, char *response, unsigned long size)
       if(!req) return LONGT;
       req = current->next; current->next = NIL; current = req;
       free_req_list(&current);
+      req = NIL;
       return LONGT;
    }
 

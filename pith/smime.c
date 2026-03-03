@@ -2233,10 +2233,14 @@ openssl_error_string(void)
 {
     char	*errs;
     const char	*data = NULL;
-    long errn;
+    unsigned long errn;
 
+#ifdef OPENSSL_3_0
+    errn = ERR_peek_error_all(NULL, NULL, NULL, &data, NULL);
+#else
     errn = ERR_peek_error_line_data(NULL, NULL, &data, NULL);
-    errs = (char*) ERR_reason_error_string(errn);
+#endif /* OPENSSL_3_0 */
+    errs = (char *) ERR_reason_error_string(errn);
 
     if(errs)
       return errs;
@@ -2866,8 +2870,11 @@ do_signature_verify(PKCS7 *p7, BIO *in, BIO *out, int silent)
 	q_status_message(SM_ORDER, 1, 1, _("S/MIME signature verified ok"));
     }
     else{
+#ifdef OPENSSL_3_0
+	err = ERR_peek_error_all(NULL, NULL, NULL, &data, NULL);
+#else
 	err = ERR_peek_error_line_data(NULL, NULL, &data, NULL);
-
+#endif /* OPENSSL_3_0 */
 	if(out && err==ERR_PACK(ERR_LIB_PKCS7,PKCS7_F_PKCS7_VERIFY,PKCS7_R_CERTIFICATE_VERIFY_ERROR)){
 
 	    /* 

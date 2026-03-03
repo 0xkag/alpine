@@ -34,7 +34,7 @@
 #include <bio.h>
 #include <crypto.h>
 #include <rand.h>
-#ifdef OPENSSL_1_1_0
+#if defined(OPENSSL_1_1_0) || defined(OPENSSL_3_0)
 #include <rsa.h>
 #include <bn.h>
 #endif /* OPENSSL_1_1_0 */
@@ -85,13 +85,15 @@ static char *ssl_getline_work (SSLSTREAM *stream,unsigned long *size,
 			       long *contd);
 static long ssl_abort (SSLSTREAM *stream);
 
-#ifdef OPENSSL_1_1_0
+#if defined(OPENSSL_1_1_0) || defined(OPENSSL_3_0)
 #define SSL_CTX_TYPE SSL_CTX
 #else
 #define SSL_CTX_TYPE SSL
 #endif /* OPENSSL_1_1_0 */
 
+#if ! defined(OPENSSL_3_0)
 static RSA *ssl_genkey (SSL_CTX_TYPE *con,int export,int keylength);
+#endif
 
 typedef struct ssl_versions_s {
         char *name;
@@ -177,7 +179,7 @@ void ssl_onceonlyinit (void)
 				/* apply runtime linkage */
     mail_parameters (NIL,SET_SSLDRIVER,(void *) &ssldriver);
     mail_parameters (NIL,SET_SSLSTART,(void *) ssl_start);
-#ifdef OPENSSL_1_1_0
+#if defined(OPENSSL_1_1_0) || defined(OPENSSL_3_0)
     OPENSSL_init_ssl(0, NULL);
 #else
     SSL_library_init ();	/* add all algorithms */
@@ -288,7 +290,7 @@ const SSL_METHOD *ssl_connect_mthd(int flag, int *minv, int *maxv)
    * method has actually been compiled in into their openssl/libressl library.
    * Oh well...
    */
-#ifndef OPENSSL_1_1_0
+#if !(defined(OPENSSL_1_1_0) || defined(OPENSSL_3_0))
   if(client_request == SSL3_VERSION)
 #ifndef OPENSSL_NO_SSL3_METHOD
      return SSLv3_client_method();
@@ -530,7 +532,7 @@ static char *ssl_validate_cert (X509 *cert,char *host)
 				/* make sure have a certificate */
   if (!cert) return "No certificate from server";
 				/* Method 1: locate CN */
-#ifndef OPENSSL_1_1_0
+#if !(defined(OPENSSL_1_1_0) || defined(OPENSSL_3_0))
   if (cert->name == NIL)
      ret = "No name in certificate";
   else if ((s = strstr (cert->name,"/CN=")) != NIL) {
@@ -579,7 +581,7 @@ static char *ssl_validate_cert (X509 *cert,char *host)
   }
 
   if (ret == NIL
-#ifndef OPENSSL_1_1_0
+#if !(defined(OPENSSL_1_1_0) || defined(OPENSSL_3_0))
        && !cert->name
 #endif /* OPENSSL_1_1_0 */
        && !X509_get_subject_name(cert))
@@ -956,7 +958,7 @@ void ssl_server_init (char *server)
   SSLSTREAM *stream = (SSLSTREAM *) memset (fs_get (sizeof (SSLSTREAM)),0,
 					    sizeof (SSLSTREAM));
   ssl_onceonlyinit ();		/* make sure algorithms added */
-#ifdef OPENSSL_1_1_0
+#if defined(OPENSSL_1_1_0) || defined(OPENSSL_3_0)
   OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
   OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS|OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
 #else
@@ -974,7 +976,7 @@ void ssl_server_init (char *server)
     if (stat (key,&sbuf)) strcpy (key,cert);
   }
 				/* create context */
-#ifdef OPENSSL_1_1_0
+#if defined(OPENSSL_1_1_0) || defined(OPENSSL_3_0)
   if (!(stream->context = SSL_CTX_new (start_tls ?
 				       TLS_server_method () :
 				       SSLv23_server_method ())))
@@ -996,16 +998,21 @@ void ssl_server_init (char *server)
       syslog (LOG_ALERT,"Unable to load certificate from %.80s, host=%.80s",
 	      cert,tcp_clienthost ());
 				/* load key */
+#ifdef OPENSSL_3_0
+    else if (!(SSL_CTX_use_PrivateKey_file (stream->context,key,
+					       SSL_FILETYPE_PEM)))
+#else
     else if (!(SSL_CTX_use_RSAPrivateKey_file (stream->context,key,
 					       SSL_FILETYPE_PEM)))
+#endif /* OPENSSL_3_0 */
       syslog (LOG_ALERT,"Unable to load private key from %.80s, host=%.80s",
 	      key,tcp_clienthost ());
 
     else {			/* generate key if needed */
-#ifdef OPENSSL_1_1_0
+#if defined(OPENSSL_1_1_0)
       if (0)
 	ssl_genkey(stream->context, 0, 0);
-#else
+#elif ! defined(OPENSSL_3_0)
       if (SSL_CTX_need_tmp_RSA (stream->context))
 	SSL_CTX_set_tmp_rsa_callback (stream->context,ssl_genkey);
 #endif /* OPENSSL_1_1_0 */
@@ -1050,19 +1057,19 @@ void ssl_server_init (char *server)
  *	    keylength
  * Returns: generated key, always
  */
-
+#if ! defined(OPENSSL_3_0)
 static RSA *ssl_genkey (SSL_CTX_TYPE *con,int export,int keylength)
 {
   unsigned long i;
   static RSA *key = NIL;
   if (!key) {			/* if don't have a key already */
-				/* generate key */
+				/* generate key */ 
 #ifdef OPENSSL_1_1_0
     BIGNUM *e = BN_new();
     if (!RSA_generate_key_ex (key, export ? keylength : 1024, e,NIL)) {
 #else
     if (!(key = RSA_generate_key (export ? keylength : 1024,RSA_F4,NIL,NIL))) {
-#endif /* OPENSSL_1_1_0 */
+#endif /* OPENSSL_1_1_0 || OPENSSL_3_0 */
       syslog (LOG_ALERT,"Unable to generate temp key, host=%.80s",
 	      tcp_clienthost ());
       while ((i = ERR_get_error ()) != 0L)
@@ -1076,7 +1083,8 @@ static RSA *ssl_genkey (SSL_CTX_TYPE *con,int export,int keylength)
   }
   return key;
 }
-
+#endif /* ! defined(OPENSSL_3_0) */
+
 /* Wait for stdin input
  * Accepts: timeout in seconds
  * Returns: T if have input on stdin, else NIL

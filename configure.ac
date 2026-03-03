@@ -1529,15 +1529,15 @@ fi
 
 dnl Check Openssl/LibreSSL version first
 if test "x$alpine_SSLTYPE" != "xnone" -a "x$alpine_SSLPROVIDER" != "xlibressl" ; then
-  AC_MSG_CHECKING([Openssl library version >= 1.0.0c])
-  AC_TRY_COMPILE([
+ AC_MSG_CHECKING([Openssl library version >= 1.0.0c])
+ AC_TRY_COMPILE([
 #include <stdio.h>
 #include <stdlib.h>
 #if HAVE_STDINT_H
 #include <stdint.h>
 #endif /* HAVE_STDINT_H */
 #include <openssl/ssl.h>
-	],[
+],[
 #if OPENSSL_VERSION_NUMBER < 0x1000003fL
 #error
 #endif
@@ -1570,17 +1570,43 @@ if test "x$alpine_SSLTYPE" != "xnone" -a "x$alpine_SSLPROVIDER" != "xlibressl" ;
 #endif
 	],
 	[ AC_MSG_RESULT(yes)
-	  alpine_SSLVERSION="new"
-	  CFLAGS="$CFLAGS -DOPENSSL_1_1_0"
-	],
-	[ AC_MSG_RESULT(no)
-	  alpine_SSLVERSION="old" ],
-	[ AC_MSG_WARN([cross compiling: not checking])])
+ 	  alpine_SSLPROVIDER="openssl"
+	  AC_MSG_CHECKING([Openssl library version >= 3.0])
+	  AC_TRY_COMPILE([
+		#include <stdio.h>
+		#include <stdlib.h>
+		#if HAVE_STDINT_H
+		#include <stdint.h>
+		#endif /* HAVE_STDINT_H */
+		#include <openssl/ssl.h>
+	  ],[
+	        #if OPENSSL_VERSION_NUMBER < 0x30000000L
+		#error
+		#endif
+	  ],
+	  [ AC_MSG_RESULT(yes)
+	  alpine_SSLVERSION="3.0"
+	  CFLAGS="$CFLAGS -DOPENSSL_3_0"
+	  ],
+	  [ AC_MSG_RESULT(no)
+	    alpine_SSLVERSION="1.1.0"
+	    CFLAGS="$CFLAGS -DOPENSSL_1_1_0"
+	  ],
+	  [ AC_MSG_WARN([cross compiling: not checking])])
+        ],
+        [ AC_MSG_RESULT(no)
+          alpine_SSLVERSION="0.9.8" ],
+        [ AC_MSG_WARN([cross compiling: not checking])])
+
+	if test "x$alpine_SSLTYPE" = "xnone" ; then
+	AC_MSG_ERROR([Install development/header files for your current version of openssl (minimum required version is 1.0.0c)])
+	exit 1
+	fi
 fi
 
 dnl Crypto support is needed 
 if test "x$alpine_SSLTYPE" != "xnone" ; then
-  if test "x$alpine_SSLVERSION" = "xold" ; then
+  if test "x$alpine_SSLVERSION" = "x0.9.8" ; then
      AC_SEARCH_LIBS(SSLeay,crypto,, [ alpine_CRYPTO="none" ])
   else
      AC_SEARCH_LIBS(OpenSSL_version_num,crypto,, [ alpine_CRYPTO="none" ])
@@ -1603,7 +1629,7 @@ fi
 
 dnl provide SSL support?
 if test "x$alpine_SSLTYPE" != "xnone" ; then
-  if test "x$alpine_SSLVERSION" = "xold" ; then
+  if test "x$alpine_SSLVERSION" = "x0.9.8" ; then
      AC_SEARCH_LIBS(SSL_library_init,ssl,,[ alpine_SSLTYPE="none" ])
      if test "x$alpine_SSLTYPE" = "xnone" ; then
         AC_MSG_ERROR(No library containing SSL_library_init found in your path)

@@ -203,7 +203,11 @@ ALPINE_self_signed_certificate(char *template, int version, char *pathdir, char 
 		if(X509_set_version(pcert, version)
 		   && (b = BN_new()) != NULL	
 		   && BN_set_word(b, 65537)
+#ifdef OPENSSL_3_0
+		   && BN_rand(b, 256, 0, 0)
+#else
 		   && BN_pseudo_rand(b, 64, 0, 0)
+#endif /* OPENSSL_3_0 */
 		   && X509_get_serialNumber(pcert) 
 		   && BN_to_ASN1_INTEGER(b, X509_get_serialNumber(pcert)) /* set serial */
 		   && X509_set_issuer_name(pcert, X509_REQ_get_subject_name(req))
