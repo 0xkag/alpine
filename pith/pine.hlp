@@ -147,7 +147,7 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 705 2026-03-02 20:39:22
+Alpine Commit 706 2026-03-07 12:07:45
 ============= h_news =================
 <HTML>
 <HEAD>
@@ -212,6 +212,10 @@ new additions to Alpine, please check it periodically.
 
 <P> Bugs addressed include:
 <UL>
+<LI> In Microsoft a refresh token may expire because an updated refresh token
+was never saved. Reported by Paolo Ienne. There was a similar update by adding
+an option --print_new_refresh_token to the
+<A HREF="https://alpineapp.email/scripts/ooauth2.html">ooauth.py script</A>.
 <LI> Crash fix due to incorrect allocation of memory while drawing the
     index screen. Reported and fixed by Peter Tirsek.
 <LI> Crash when a calendar invitation is not properly encoded. Reported

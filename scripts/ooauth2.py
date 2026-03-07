@@ -40,13 +40,21 @@ IMAP or SMTP server.
    you need the tenant, the client-id, and a refresh-token. Then you would run this
    script as
 
-   ooauth2 [--tenant=common] --client_id=f21d... --refresh_token=MCRagxlHaZfUvV9kG0lnBk...
+   ooauth2 [--tenant=common] [--print_new_refresh_token] --client_id=f21d... --refresh_token=MCRagxlHaZfUvV9kG0lnBk... --generate_access_token
 
    as an advice copy and paste the refresh token that you were given into a file,
    and replace the command line option
       --refresh_token=MCRagxlHaZfUvV9kG0lnBk...
    by
       --refresh_token=`cat filename`
+
+   The optional flag --print_new_refresh_token allows the user to save a new
+   refresh token that is produced as the result of this command. If this option
+   is used, this script with print an additional line of output:
+
+   Refresh Token:MCRagxlbHlex...
+
+   which the user should save and replace the Refresh Token given in this command.
 
  * The last way to use this script is to use the previous commands, but add
    --encoded to any of the previous commands. This will produce a base64 string that
@@ -55,12 +63,12 @@ IMAP or SMTP server.
    the encoded base64 string. If you use this option, you must also provide
    the --user option. For example:
 
-    ooauth2  [--tenant=common] --client_id=f21d... --generate_refresh_and_access_token \
+    ooauth2  [--tenant=common] [--print_new_refresh_token] --client_id=f21d... --generate_refresh_and_access_token \
     --encoded --user=YourID@outlook.com
 
    or
 
-   ooauth2 [--tenant=common] --client_id=f21d... --refresh_token=MCRagxlHaZfUvV9kG0lnBk...
+   ooauth2 [--tenant=common] [--print_new_refresh_token] --client_id=f21d... --refresh_token=MCRagxlHaZfUvV9kG0lnBk... --generate_access_token
    --encoded --user=YourID@outlook.com
 """
 
@@ -94,6 +102,10 @@ def SetupOptionParser():
   parser.add_option('--user',
 		    default=None,
                     help='your username. Only needed if --encoded is needed')
+  parser.add_option('--print_new_refresh_token',
+		    action='store_true',
+		    default=False,
+                    help='Print the refresh token received from the server (so you can save it in case it changed)')
   parser.add_option('--encoded',
                     action='store_true',
                     default=False,
@@ -158,8 +170,8 @@ def GenerateAccessToken(tenant, client_id, refresh_token, scope=SCOPE):
   params['grant_type'] = scope
   params['grant_type'] = 'refresh_token'
   request_url = AccountsUrl(tenant, 'oauth2/v2.0/token')
-  response = urllib.request.urlopen(request_url, urllib.parse.urlencode(params)).read()
-  return json.loads(response)['access_token']
+  response = urllib.request.urlopen(request_url, urllib.parse.urlencode(params).encode('utf-8')).read()
+  return response
 
 def Oauth2EncodedString(user, access_token):
   rawstring = 'user=%s\1auth=Bearer %s\1\1' % (user, access_token)
@@ -176,12 +188,16 @@ def main(argv):
   (options, args) = options_parser.parse_args()
   if options.generate_access_token:
     RequireOptions(options, 'tenant', 'refresh_token')
-    access_token = GenerateAccessToken(options.tenant, options.client_id, options.refresh_token, options.scope)
+    response = GenerateAccessToken(options.tenant, options.client_id, options.refresh_token, options.scope)
+    access_token = json.loads(response)['access_token']
     if options.encoded:
         RequireOptions(options, 'user')
         print('%s' % Oauth2EncodedString(options.user, access_token))
     else:
         print('%s' % access_token)
+    if options.print_new_refresh_token:
+        r_token = json.loads(response)['refresh_token']
+        print('Refresh Token: %s' % r_token)
   elif options.generate_refresh_and_access_token:
     RequireOptions(options, 'tenant', 'client_id')
     response = GeneratePermissionUrl(options.tenant, options.client_id, options.scope)

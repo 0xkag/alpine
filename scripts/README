@@ -27,7 +27,8 @@ server.
    you need the tenant, the client-id, and a refresh-token. Then you would run this
    script as
 
-   ooauth2 [--tenant=common] --client_id=f21d... --refresh_token=MCRagxlHaZfUvV9kG0lnBk...
+   ooauth2 --generate_access_token [--tenant=common] --client_id=f21d... \
+   --refresh_token=MCRagxlHaZfUvV9kG0lnBk...
 
    as an advice copy and paste the refresh token that you were given into a file,
    and replace the command line option
@@ -47,8 +48,8 @@ server.
 
    or
 
-   ooauth2 [--tenant=common] --client_id=f21d... --refresh_token=MCRagxlHaZfUvV9kG0lnBk... \
-   --encoded --user=YourID@outlook.com
+   ooauth2 [--tenant=common] --generate_access_token  --client_id=f21d... \
+   --refresh_token=MCRagxlHaZfUvV9kG0lnBk... --encoded --user=YourID@outlook.com
 
 A complete set of instructions, with images showing this process, can be found at
 https://alpineapp.email/scripts/ooauth2.html

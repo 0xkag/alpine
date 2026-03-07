@@ -331,6 +331,7 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
 
      if(json != NULL){
 	JSON_S *jx;
+	char *refresh_token;
 
 	switch(status){
 	   case HTTP_UNAUTHORIZED:
@@ -349,7 +350,14 @@ mm_login_oauth2_c_client_method (NETMBX *mb, char *user, char *method,
 				default   : break;
 			 }
 			 oauth2->cancel_refresh_token = 0;	/* do not cancel this token. It is good */
-			 mm_log("Got new refresh token.", (long) NIL);
+			 mm_log("Got new access token.", (long) NIL);
+			 json_assign ((void **) &refresh_token, json, "refresh_token", JString);
+			 if(refresh_token){
+			    if(oauth2->param[OA2_RefreshToken].value)
+			       fs_give((void **) &oauth2->param[OA2_RefreshToken].value);
+			    oauth2->param[OA2_RefreshToken].value = refresh_token;
+			    mm_log("Got new refresh token.", (long) NIL);
+			 }
 			 break;
 
 	     default :  { char tmp[200];
