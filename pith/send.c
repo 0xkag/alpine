@@ -3673,8 +3673,10 @@ posting_characterset(void *data, char *preferred_charset, MsgPart mp)
 	    if(text)
 	      ucsp = ucs = utf8_to_ucs4_cpystr(text);
 
-	    if(!(ucs && *ucs))
+	    if(!(ucs && *ucs)){
+	      if(ucs) fs_give((void **) &ucs);
 	      return(ascii);
+	    }
 
 	    /*
 	     * After the while loop is done the validbitmap has

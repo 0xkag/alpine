@@ -134,7 +134,7 @@ long auth_oauthbearer_client (authchallenge_t challenger,authrespond_t responder
 
       sprintf(ports, "%lu", port);
       if(!compare_cstring(service, "graph")){
-        response = cpystr(oauth2.access_token);
+        response = oauth2.access_token;
         rlen = strlen(response);
       }
       else{
@@ -163,11 +163,11 @@ long auth_oauthbearer_client (authchallenge_t challenger,authrespond_t responder
 	     oauth2.expiration = 0L;
 	}
       }
-      fs_give ((void **) &response);
+      if(compare_cstring(service, "graph")) fs_give ((void **) &response);
       if (!ret)
 	 *trial = 65535; 	/* don't retry if bad protocol */
     }
   }
-  oauth2_free_extra_values(oauth2);
+  oauth2_free_extra_values(&oauth2);
   return ret;
 }

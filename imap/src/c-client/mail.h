@@ -2056,7 +2056,7 @@ XOAUTH2_INFO_S *copy_xoauth2_info(XOAUTH2_INFO_S *);
 int same_xoauth2_info(XOAUTH2_INFO_S, XOAUTH2_INFO_S);
 char *oauth2_generate_state(void);
 void oauth2_code_challenge(OAUTH2_S *);
-void oauth2_free_extra_values(OAUTH2_S);
+void oauth2_free_extra_values(OAUTH2_S *);
 void oauth2_login_hint(OAUTH2_S *, char *);
 void renew_accesstoken(MAILSTREAM *);
 XOAUTH2_INFO_S **parse_xoauth2_info_list(char **, int *);

@@ -754,7 +754,7 @@ void
 smime_config_init_display(struct pine *ps, CONF_S **ctmp, CONF_S **first_line)
 {
     char            tmp[200];
-    int		    i, ind, ln = 0;
+    int		    i, ind, ln = 0, final;
     struct	    variable  *vtmp;
     CONF_S         *ctmpb;
     FEATURE_S      *feature;
@@ -896,9 +896,10 @@ smime_config_init_display(struct pine *ps, CONF_S **ctmp, CONF_S **first_line)
     new_confline(ctmp);
     (*ctmp)->flags |= CF_NOSELECT | CF_B_LINE;
 
-    for(i = 0; i < sizeof(tmp) && i < (ps->ttyo ? ps->ttyo->screen_cols : sizeof(tmp)); i++)
-	tmp[i] = '-';
-    tmp[i] = '\0';
+    final = (ps->ttyo && (ps->ttyo->screen_cols < sizeof(tmp))) ? ps->ttyo->screen_cols : sizeof(tmp) - 1;
+    memset((void *) tmp, '-', final);
+    tmp[final] = '\0';
+
     new_confline(ctmp);
     (*ctmp)->flags |= CF_NOSELECT;
     (*ctmp)->value = cpystr(tmp);
@@ -1529,7 +1530,7 @@ smime_manage_password_file_certs_init(struct pine *ps, CONF_S **ctmp, CONF_S **f
 {
     char     tmp[200];
     CertList *cl;
-    int	  i;
+    int	  i, final;
     void  *pwdcert = NULL;	/* this is our current password file */
     char filename[MAXPATH+1];
     BIO *in = NULL;
@@ -1559,9 +1560,9 @@ smime_manage_password_file_certs_init(struct pine *ps, CONF_S **ctmp, CONF_S **f
 
     ps->pwdcertlist = cl = smime_X509_to_cert_info(X509_dup(pc->cert), pc->name);
 
-    for(i = 0; i < sizeof(tmp) && i < (ps->ttyo ? ps->ttyo->screen_cols : sizeof(tmp)); i++)
-	tmp[i] = '-';
-    tmp[i] = '\0';
+    final = (ps->ttyo && (ps->ttyo->screen_cols < sizeof(tmp))) ? ps->ttyo->screen_cols : sizeof(tmp) - 1;
+    memset((void *) tmp, '-', final);
+    tmp[final] = '\0';
 
     new_confline(ctmp);
     (*ctmp)->flags |= CF_NOSELECT;
@@ -1614,9 +1615,9 @@ smime_manage_password_file_certs_init(struct pine *ps, CONF_S **ctmp, CONF_S **f
       for(i = 0; i < s; i++) tmp[i] = ' ';
       tmp[i] = '\0';
       strncpy(tmp+s, _("Press \"RETURN\" to add new personal key"), sizeof(tmp)-s-1);
-      for(i = strlen(tmp); i < (ps->ttyo ? ps->ttyo->screen_cols : sizeof(tmp) - 1); i++)
+      for(i = strlen(tmp); i < final; i++)
          tmp[i] = ' ';
-      tmp[i] = '\0';
+      tmp[final] = '\0';
       (*ctmp)->value      = cpystr(tmp);
       *first_line = *ctmp;
 
@@ -1653,7 +1654,7 @@ smime_manage_certs_init(struct pine *ps, CONF_S **ctmp, CONF_S **first_line, Whi
 {
     char            tmp[200];
     CertList	   *data;
-    int		    i;
+    int		    i, final;
 
     smime_init();
 
@@ -1663,9 +1664,9 @@ smime_manage_certs_init(struct pine *ps, CONF_S **ctmp, CONF_S **first_line, Whi
     if(data == NULL || RENEWCERT(data))
       renew_cert_data(&data, ctype);
 
-    for(i = 0; i < sizeof(tmp) && i < (ps->ttyo ? ps->ttyo->screen_cols : sizeof(tmp)); i++)
-	tmp[i] = '-';
-    tmp[i] = '\0';
+    final = (ps->ttyo && (ps->ttyo->screen_cols < sizeof(tmp))) ? ps->ttyo->screen_cols : sizeof(tmp) - 1;
+    memset((void *) tmp, '-', final);
+    tmp[final] = '\0';
 
     new_confline(ctmp);
     (*ctmp)->flags |= CF_NOSELECT;
@@ -1680,9 +1681,9 @@ smime_manage_certs_init(struct pine *ps, CONF_S **ctmp, CONF_S **first_line, Whi
 		: (ctype == CACert ? _("certificate authority") : "unknown (?)")));
     (*ctmp)->value = cpystr(tmp);
 
-    for(i = 0; i < sizeof(tmp) && i < (ps->ttyo ? ps->ttyo->screen_cols : sizeof(tmp)); i++)
-       tmp[i] = '-';
-    tmp[i] = '\0';
+    final = (ps->ttyo && (ps->ttyo->screen_cols < sizeof(tmp))) ? ps->ttyo->screen_cols : sizeof(tmp) - 1;
+    memset((void *) tmp, '-', final);
+    tmp[final] = '\0';
 
     new_confline(ctmp);
     (*ctmp)->flags |= CF_NOSELECT;

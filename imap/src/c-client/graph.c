@@ -1997,6 +1997,7 @@ graph_free_params(GRAPH_PARAMETER **param)
   if((*param)->name) fs_give((void **) &(*param)->name);
   if((*param)->value) fs_give((void **) &(*param)->value);
   if((*param)->next) graph_free_params(&(*param)->next);
+  fs_give((void **) param);
 }
 
 

@@ -2994,21 +2994,29 @@ void
 convert_decimal_to_alpha (char *rn, size_t len, long n, char l)
 {
   int amo[16];
-  int i;
+  int i, total, j;
 
   rn[0] = '\0';
 
-  if(n < 0)
+  if(n <= 0)
     return;
 
-  for(i = 0; i < sizeof(amo) && n > 0; i++){
-     amo[i] = n % 26; 
-          n = (n - amo[i])/26;
+  total = sizeof(amo)/sizeof(amo[0]);
+  memset((void *) amo, -1, sizeof(amo));
+  for(i = 0; i < total && n > 0; i++){
+     amo[i] = (n - 1) % 26;
+          n = (n - 1 - amo[i])/26;
   }
   amo[i] = -1;
+  total = i;	/* reuse total to signify the total number of entries in amo */
+  for(i = 0; i < total - i; i++){
+     j = amo[i];
+    amo[i] = amo[total - 1 - i];
+    amo[total - 1 - i] = j;
+  }
 
   for(i = 0; i < len && amo[i] >= 0; i++)
-     rn[i] = l + amo[i] - 1;
+     rn[i] = l + amo[i];
   if(i < len) rn[i] = '\0';
   rn[len-1] = '\0';
 }

@@ -229,7 +229,7 @@ OAUTH2_S *
 oauth2_select_flow(char *host)
 {
    OAUTH2_S *oa2list, *oa2;
-   int i = 0, rv;
+   int i = 0, rv, final;
    char *method;
 
    dprint((2, "-- oauth2_select_flow()\n"));
@@ -245,9 +245,10 @@ oauth2_select_flow(char *host)
 
       memset(&screen, 0, sizeof(screen));
 
-      for(i = 0; i < sizeof(tmp) && i < ps_global->ttyo->screen_cols; i++)
-          tmp[i] = '-';
-      tmp[i] = '\0';
+
+      final = (ps_global->ttyo && (ps_global->ttyo->screen_cols < sizeof(tmp))) ? ps_global->ttyo->screen_cols : sizeof(tmp) - 1;
+      memset((void *) tmp, '-', final);
+      tmp[final] = '\0';
 
       new_confline(&ctmp);
       ctmp->flags |= CF_NOSELECT;
@@ -1070,7 +1071,7 @@ mm_login_oauth2(NETMBX *mb, char *user, char *method,
     if(OldRefreshToken != NULL 
 	&& (NewRefreshToken == NULL || strcmp(OldRefreshToken, NewRefreshToken))){
 	if(NewRefreshToken) fs_give((void **) &NewRefreshToken);
-	NewRefreshToken = cpystr(OldRefreshToken);
+	NewRefreshToken = OldRefreshToken;
 	ChangeRefreshToken++;
 	SaveRefreshToken = OldRefreshToken;
 	SaveAccessToken  = NewAccessToken;
@@ -1088,7 +1089,6 @@ mm_login_oauth2(NETMBX *mb, char *user, char *method,
     if(OldAccessToken != NULL 
 	&& (NewAccessToken == NULL || strcmp(OldAccessToken, NewAccessToken))){
 	if(NewAccessToken) fs_give((void **) &NewAccessToken);
-	NewAccessToken = cpystr(OldAccessToken);
 	NewAccessToken = OldAccessToken;
 	ChangeAccessToken++;
 	NewExpirationTime = OldExpirationTime;

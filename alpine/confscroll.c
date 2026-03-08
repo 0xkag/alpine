@@ -1412,7 +1412,7 @@ no_down:
 	    break;
 	}
     }
-
+    ps_global->redrawer = NULL;
     screen->current = first_confline(screen->current);
     free_conflines(&screen->current);
     return(retval);

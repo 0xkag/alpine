@@ -66,7 +66,7 @@ MMLOGIN_S  *cert_failure_list = NULL;
  * to zero this space out. We only store passwords here (char *) so we
  * don't need to worry about alignment.
  */
-static	volatile char private_store[1024];
+static	volatile char private_store[4096*16];
 
 static	int        critical_depth = 0;
 

@@ -244,14 +244,16 @@ xoauth_info_choice(XOAUTH2_INFO_S **xinfo, char *user)
       XOAUTH2_INFO_S *x_sel = NULL;
       OPT_SCREEN_S   screen;
       char tmp[1024];
+      int final;
 
       ps_global->next_screen = SCREEN_FUN_NULL;
 
       memset(&screen, 0, sizeof(screen));
 
-      for(i = 0; i < sizeof(tmp) && i < ps_global->ttyo->screen_cols; i++)
-	  tmp[i] = '-';
-      tmp[i] = '\0';
+
+      final = (ps_global->ttyo && (ps_global->ttyo->screen_cols < sizeof(tmp))) ? ps_global->ttyo->screen_cols : sizeof(tmp) - 1;
+      memset((void *) tmp, '-', final);
+      tmp[final] = '\0';
 
       new_confline(&ctmp);
       ctmp->flags |= CF_NOSELECT;

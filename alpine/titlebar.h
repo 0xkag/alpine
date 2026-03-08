@@ -51,6 +51,6 @@ void	    titlebar_stream_closing(MAILSTREAM *);
 int         update_titlebar_status(void);
 void        check_cue_display(char *);
 void	    free_titlebar_globals(void);
-
+void	    clear_titlebar_title(void);
 
 #endif /* PINE_TITLEBAR_INCLUDED */

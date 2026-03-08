@@ -181,6 +181,6 @@ long auth_oauth2_client (authchallenge_t challenger,authrespond_t responder, cha
 	*trial = 65535; 	/* don't retry if bad protocol */
     }
   }
-  oauth2_free_extra_values(oauth2);
+  oauth2_free_extra_values(&oauth2);
   return ret;
 }

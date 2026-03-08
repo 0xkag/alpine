@@ -2677,6 +2677,7 @@ setup_menu(struct pine *ps)
     so_give(&store);
 
     if(sargs.bar.title) fs_give((void**)&sargs.bar.title);
+    clear_titlebar_title();
     if(srv){
 	ret = srv->cmd;
 	fs_give((void **)&sargs.proc.data.p);

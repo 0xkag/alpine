@@ -2971,6 +2971,8 @@ typedef	struct _html_opts {
 			   }						\
 			   if(ED(X)->element)				\
 			     fs_give((void **) &ED(X)->element);	\
+			   if(ED(X)->buf)				\
+			     fs_give((void **) &ED(X)->buf);		\
 			   fs_give((void **) &ED(X));			\
 			   HD(X)->token = NULL;				\
 			 }
@@ -3701,7 +3703,7 @@ html_push(FILTER_S *fd, ELPROP_S *ep)
 void
 html_pop(FILTER_S *fd, ELPROP_S *ep)
 {
-    HANDLER_S *tp;
+    HANDLER_S *tp, *orig = NULL;
 
     for(tp = HANDLERS(fd); tp && ep != EL(tp); tp = tp->below){
 	HANDLER_S *tp2;
@@ -3716,6 +3718,7 @@ html_pop(FILTER_S *fd, ELPROP_S *ep)
 	    return;
 	}
 
+	orig = HANDLERS(fd);
 	(void) (*EL(tp)->handler)(tp, 0, GF_EOD);
 	HANDLERS(fd) = tp->below;
     }
@@ -3733,7 +3736,13 @@ html_pop(FILTER_S *fd, ELPROP_S *ep)
 	    /* BUG: else programming botch and we should die */
 	}
 	else
-	  HANDLERS(fd) = tp->below;	/* pop */
+	  HANDLERS(fd) = orig ? orig : tp->below;	/* pop */
+
+	if(orig){
+	   HANDLER_S *tp2;
+	   for(tp2 = orig; tp2->below != tp; tp2 = tp2->below);
+	   tp2->below = NULL;
+	}
 
 	fs_give((void **)&tp);
     }

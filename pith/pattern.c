@@ -1254,6 +1254,8 @@ parse_pat(char *str)
 		  free_list_array(&pat->action->cstm);
 		if(pat->action->smtp)
 		  free_list_array(&pat->action->smtp);
+		if(pat->action->send_server)
+		  fs_give((void **) &pat->action->send_server);
 		if(pat->action->nntp)
 		  free_list_array(&pat->action->nntp);
 		if(pat->action->inherit_nick)

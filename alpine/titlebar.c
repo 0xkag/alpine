@@ -93,6 +93,12 @@ char *as_fname;		/* folder name */
 char *as_cname;		/* context name */
 
 void
+clear_titlebar_title(void)
+{
+  as.title = "";
+}
+
+void
 push_titlebar_state(void)
 {
     as.pushed = 1;
@@ -437,6 +443,9 @@ format_titlebar(void)
 
     if(!as.context_name)
       as.context_name = cpystr("");
+
+    if(!as.stream)
+      as.msgmap = NULL;
 
     /*
      * Full blown title looks like:
