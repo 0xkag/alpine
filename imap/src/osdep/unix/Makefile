@@ -292,7 +292,7 @@ cvx:	# Convex
 
 cyg:	# Cygwin - note that most local file drivers don't work!!
 	$(BUILD) `$(CAT) SPECIALS` OS=$@ \
-	DEFAULTDRIVERS="imap nntp pop3 mbx unix phile" \
+	DEFAULTDRIVERS="graph graphloser imap nntp pop3 mbx unix phile" \
 	SIGTYPE=psx CHECKPW=cyg LOGINPW=cyg CRXTYPE=std \
 	SPOOLDIR=/var \
 	ACTIVEFILE=/usr/local/news/lib/active \
