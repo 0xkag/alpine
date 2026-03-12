@@ -138,6 +138,18 @@ static	char *details_cert, *details_host, *details_reason;
 extern XOAUTH2_INFO_S xoauth_default[];
 extern OAUTH2_S alpine_oauth2_list[];
 
+int
+ask_erase_password(void)
+{
+   int rv = 1;
+#ifdef	LOCAL_PASSWD_CACHE
+   char prompt[MAX_SCREEN_COLS+1];
+   strcpy(prompt, _("Authentication failed. Remove credential from cache"));
+   if(want_to(prompt, 'y', 0, NO_HELP, WT_NORM) == 'n') rv = 0;
+#endif /* LOCAL_PASSWD_CACHE */
+   return rv;
+}
+
 void
 cache_method_message(STORE_S  *in_store)
 {
@@ -1165,7 +1177,7 @@ set_alpine_id(char *pname, char *pversion)
 }
 
 void
-pine_delete_pwd(NETMBX *mb, char *user)
+pine_delete_pwd(NETMBX *mb, char *user, char *method)
 {
     char	hostlist0[MAILTMPLEN], hostlist1[MAILTMPLEN];
     char	port[20], non_def_port[20];
@@ -1217,7 +1229,7 @@ pine_delete_pwd(NETMBX *mb, char *user)
 	else
 	   hostlist[0].next = NULL;
     }
-    imap_delete_passwd(&mm_login_list, user, hostlist, mb->sslflag||mb->tlsflag);
+    imap_delete_passwd(&mm_login_list, user, hostlist, mb->sslflag||mb->tlsflag, method);
 #ifdef LOCAL_PASSWD_CACHE
     write_passfile(ps_global->pinerc, mm_login_list);
 #endif /* LOCAL_PASSWD_CACHE */

@@ -240,4 +240,10 @@ extern int (*pith_smime_enter_password)(char *, char *, size_t);
  */
 extern int (*pith_smime_confirm_save)(char *);
 
+/*
+ * Optional interface to ask the user if they wish to delete a failed
+ * password from the cache.
+ */
+extern int (*pith_opt_ask_erase_password)(void);
+
 #endif /* PITH_OPTIONS_INCLUDED */

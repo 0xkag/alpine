@@ -187,6 +187,7 @@ main(int argc, char **argv)
     pith_opt_pretty_feature_name   = pretty_feature_name;
     pith_opt_closing_stream        = titlebar_stream_closing;
     pith_opt_current_expunged	   = mm_expunged_current;
+    pith_opt_ask_erase_password    = ask_erase_password;
 #ifdef	SMIME
     pith_opt_smime_get_passphrase  = smime_get_passphrase;
     pith_smime_import_certificate  = smime_import_certificate;

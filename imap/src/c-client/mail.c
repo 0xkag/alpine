@@ -6259,10 +6259,10 @@ unsigned int mail_lookup_auth_name (char *mechanism,long flags)
   return 0;
 }
 /* Client side callback warning to delete wrong password */
-void delete_password(NETMBX *mb, char *user)
+void delete_password(NETMBX *mb, char *user, char *method)
 {
   deletepwd_t ep = mail_parameters(NULL, GET_ERASEPASSWORD, NULL);
-  if (ep) (ep)(mb, user);
+  if (ep) (ep)(mb, user, method);
 }
 /* Standard TCP/IP network driver */
 

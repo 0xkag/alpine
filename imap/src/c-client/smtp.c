@@ -301,7 +301,7 @@ long smtp_auth (SENDSTREAM *stream,NETMBX *mb,char *tmp)
       sprintf (tmp,"Retrying using %s authentication after %.80s",
 	       at->name,lsterr);
       mm_log (tmp,NIL);
-      delete_password(mb, usr);
+      delete_password(mb, usr, at->name);
       fs_give ((void **) &lsterr);
     }
     trial = 0;			/* initial trial count */
@@ -311,7 +311,7 @@ long smtp_auth (SENDSTREAM *stream,NETMBX *mb,char *tmp)
 	sprintf (tmp,"Retrying %s authentication after %.80s",at->name,lsterr);
 	mm_log (tmp,WARN);
 	fs_give ((void **) &lsterr);
-	delete_password(mb, usr);
+	delete_password(mb, usr, at->name);
       }
       if(at->flags & AU_SINGLE){
 	sprintf(tmp, "AUTH %s", at->name);
@@ -346,7 +346,7 @@ long smtp_auth (SENDSTREAM *stream,NETMBX *mb,char *tmp)
       mm_log (tmp,ERROR);
     }
     if(!ret && stream->netstream)
-       delete_password(mb, usr);
+       delete_password(mb, usr, NIL);
     fs_give ((void **) &lsterr);
   }
   if(mb && *mb->auth){

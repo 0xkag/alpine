@@ -147,11 +147,12 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 708 2026-03-08 21:09:12
+Alpine Commit 709 2026-03-11 20:07:26
 ============= h_news =================
 <HTML>
 <HEAD>
-<TITLE>RELEASE NOTES for Alpine</TITLE>
+<TITLE>
+RELEASE NOTES for Alpine</TITLE>
 </HEAD>
 <BODY>                 
 <H1>Alpine Release Notes</H1>
@@ -208,6 +209,8 @@ new additions to Alpine, please check it periodically.
      Contributed by Daniel Schwarz.
 <LI> When a message that is encoded in base64 is decoded, fix the text part
      if it is not encoded using network newline characters.
+<LI> If a cached password fails, Alpine will ask if the user wishes to remove
+     it from the cache or keep it.
 </UL>
 
 <P> Bugs addressed include:

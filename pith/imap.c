@@ -37,6 +37,7 @@
 #include "../pico/osdep/mswin.h"
 #endif
 
+int (*pith_opt_ask_erase_password)(void);
 
 /*
  * Internal prototypes
@@ -1149,11 +1150,12 @@ imap_flush_passwd_cache(int dumpcache)
 }
 
 void
-imap_delete_passwd(MMLOGIN_S **m_list, char *user, STRLIST_S *hostlist, int altflag)
+imap_delete_passwd(MMLOGIN_S **m_list, char *user, STRLIST_S *hostlist, int altflag, char *method)
 {
   if(m_list == NULL || *m_list == NULL) return;
   imap_delete_passwd_auth(m_list, user, hostlist, altflag,
-		strchr((*m_list)->user, PWDAUTHSEP) != NULL ? OA2NAME : NULL);
+     method && strucmp(method, OA2NAME) && strucmp(method,BEARERNAME)
+	? NULL : OA2NAME);
 }
 
 void
@@ -1187,8 +1189,10 @@ imap_delete_passwd_auth(MMLOGIN_S **m_list, char *user,
 
    if(!p) return;
 
-   p->ignore_this++;
-   dprint((9, "imap_delete_password: done with deletion."));
+   if(!pith_opt_ask_erase_password || pith_opt_ask_erase_password())
+      p->ignore_this++;
+
+   dprint((9, p->ignore_this ? "imap_delete_password: done with deletion." : "imap_delete_password: password not deleted!"));
 }
 
 /*

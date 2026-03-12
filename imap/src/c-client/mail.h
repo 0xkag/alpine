@@ -1430,7 +1430,7 @@ typedef ADDRESS *(*parsephrase_t) (char *phrase,char *end,char *host);
 typedef void *(*blocknotify_t) (int reason,void *data);
 typedef long (*kinit_t) (char *host,char *reason);
 typedef void (*sendcommand_t) (MAILSTREAM *stream,char *cmd,long flags);
-typedef void (*deletepwd_t) (NETMBX *mb,char *user);
+typedef void (*deletepwd_t) (NETMBX *mb,char *user, char *method);
 typedef char *(*newsrcquery_t) (MAILSTREAM *stream,char *mulname,char *name);
 typedef void (*getacl_t) (MAILSTREAM *stream,char *mailbox,ACLLIST *acl);
 typedef void (*listrights_t) (MAILSTREAM *stream,char *mailbox,char *id,
@@ -1713,7 +1713,7 @@ long mm_diskerror (MAILSTREAM *stream,long errcode,long serious);
 void mm_fatal (char *string);
 void *mm_cache (MAILSTREAM *stream,unsigned long msgno,long op);
 
-void delete_password (NETMBX *mb, char *user);
+void delete_password (NETMBX *mb, char *user, char *method);
 
 extern STRINGDRIVER mail_string;
 void mail_versioncheck (char *version);
