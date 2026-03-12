@@ -1123,6 +1123,9 @@ graph_open (MAILSTREAM *stream)
 	 for (i = 1; i <= stream->nmsgs;i++) mail_elt (stream, i)->private.uid = i;
       }
   }
+  else
+    graph_close(stream, NIL);
+
   return stream && LOCAL ? stream : NIL;
 }
 
