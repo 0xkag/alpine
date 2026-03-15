@@ -3091,7 +3091,7 @@ display_vevent_summary(long int msgno, ATTACH_S *a, int flags, int depth)
     gf_i_t     gc;
     gf_o_t     pc;
     char   *errstr = NULL;
-    int	   cmd, i, k;
+    int	   cmd, i, k, wrapflags;
 
     b = mail_body(ps_global->mail_stream, msgno, (unsigned char *) a->number);
     if(b->sparep == NULL){
@@ -3265,17 +3265,30 @@ display_vevent_summary(long int msgno, ATTACH_S *a, int flags, int depth)
 	init_handles(&handles);
 	gf_filter_init();
 
+	wrapflags = GFW_ONCOMMA;
+
 	if(F_ON(F_VIEW_SEL_URL, ps_global)
 	       || F_ON(F_VIEW_SEL_URL_HOST, ps_global)
-	       || F_ON(F_SCAN_ADDR, ps_global))
+	       || F_ON(F_SCAN_ADDR, ps_global)){
 	      gf_link_filter(gf_line_test,
 			     gf_line_test_opt(url_hilite,
-					      gf_url_hilite_opt(&uh,&handles,0)));
+					      gf_url_hilite_opt(&uh,&handles,2)));
+	   wrapflags |= GFW_HANDLES;
+	}
+
+	if(!(flags & FM_NOCOLOR)
+	   && pico_usingcolor()
+	   && ps_global->calendar_hdr_colors){
+		gf_link_filter(gf_line_test,
+                       gf_line_test_opt(color_calendar_headers, (void *) ps_global->calendar_hdr_colors));
+	   wrapflags |= (GFW_HANDLES | GFW_CALENDARCOLOR);
+	}
 
 	gf_link_filter(gf_wrap,
 			   gf_wrap_filter_opt(ps_global->ttyo->screen_cols - 4,
 					      ps_global->ttyo->screen_cols,
-					      NULL, 0, GFW_HANDLES));
+					      NULL, 0, wrapflags));
+
 	gf_link_filter(gf_nvtnl_local, NULL);
 
 	gf_set_so_readc(&gc, in_store);

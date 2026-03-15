@@ -25,9 +25,12 @@
 
 #define HEADER_WORD "Header "
 #define TOKEN_WORD "Index Token "
+#define CALENDAR_WORD "Calendar Header "
+#define CAL_COLORS_HDR "CALENDAR COLORS"
 #define KW_COLORS_HDR "KEYWORD COLORS"
 #define HDR_COLORS "HEADER COLORS"
 #define ADDHEADER_COMMENT N_("[ Use the AddHeader command to add colored headers in MESSAGE TEXT screen ]")
+#define CALHEADER_COMMENT N_("[ Use the AddHeader command to add colored calendar headers in MESSAGE TEXT screen ]")
 #define ADDINDEXTOKEN_COMMENT N_("[ Use the IndxHdr command to add colored tokens in MESSAGE INDEX screen ]")
 #define EQ_COL 37
 

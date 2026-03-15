@@ -46,11 +46,13 @@
 #define GFW_HDRCOLOR		0x040
 #define GFW_FORCOMPOSE          0x080
 #define GFW_SOFTHYPHEN          0x100	/* do something special with soft-hyphens */
+#define GFW_CALENDARCOLOR       0x200
 
 
 /* gf_url_hilite flags */
 #define	URH_NONE		0x00	/* no flags			    */
 #define	URH_HDRCOLOR		0x01	/* in header, use header base color */
+#define	URH_CALCOLOR		0x02	/* in calendar, use calendar base color */
 
 
 #define TAG_EMBED	'\377'	/* Announces embedded data in text string */

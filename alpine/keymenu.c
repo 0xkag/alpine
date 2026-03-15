@@ -2590,6 +2590,36 @@ struct key color_setting_keys[] =
 	ENDKEY_MENU};
 INST_KEY_MENU(color_setting_keymenu, color_setting_keys);
 
+struct key calendar_color_setting_keys[] =
+       {HELP_MENU,
+	OTHER_MENU,
+	EXIT_SETUP_MENU,
+	{"C", "[" N_("Change") "]", {MC_EDIT,3,{'c',ctrl('M'),ctrl('J')}}, KS_NONE},
+	PREV_MENU,
+	NEXT_MENU,
+	PREVPAGE_MENU,
+	NEXTPAGE_MENU,
+	{"A", N_("AddCalHdr"), {MC_ADDCALHEADER,1,{'a'}}, KS_NONE},
+	/* TRANSLATORS: restore defaults */
+	{"R", N_("RestoreDefs"), {MC_DEFAULT,1,{'r'}}, KS_NONE},
+	PRYNTTXT_MENU,
+	WHEREIS_MENU,
+
+	HELP_MENU,
+	OTHER_MENU,
+	{"I", N_("CalHdr"), {MC_ADDCALHEADER,1,{'i'}}, KS_NONE},
+	NULL_MENU,
+	{"D", N_("DeleteHdr"), {MC_DELETE,1,{'d'}}, KS_NONE},
+	/* TRANSLATORS: shuffle headers (change the order of headers) */
+	{"$", N_("ShuffleHdr"), {MC_SHUFFLE,1,{'$'}}, KS_NONE},
+	NULL_MENU,
+	NULL_MENU,
+	NULL_MENU,
+	NULL_MENU,
+	HOMEKEY_MENU,
+	ENDKEY_MENU};
+INST_KEY_MENU(calendar_color_setting_keymenu, calendar_color_setting_keys);
+
 
 struct key custom_color_setting_keys[] = 
        {HELP_MENU,

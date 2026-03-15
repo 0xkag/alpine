@@ -147,7 +147,7 @@ with help text for the config screen and the composer that didn't have any
 reasonable place to be called from.
 Dummy change to get revision in pine.hlp
 ============= h_revision =================
-Alpine Commit 710 2026-03-11 20:29:05
+Alpine Commit 711 2026-03-15 09:20:49
 ============= h_news =================
 <HTML>
 <HEAD>
@@ -194,6 +194,10 @@ new additions to Alpine, please check it periodically.
 <P> Changes in version <!--#echo var="ALPINE_VERSION"--> include:
 <UL>
 <LI> Alpine supports access to your Microsoft&reg; email as a <A href="h_graph">GRAPH</A> app.
+<LI> Support in the
+     <A HREF="h_config_calendar_header_general_color">setup colors screen</A> for
+     <A HREF="h_config_calendar_hdr_color">coloring headers</A> of calendar
+     events so that they can be more easily identified.
 <LI> Microsoft servers do not deal well with a message that is forwarded
      as an attachment by Alpine due to the way Alpine constructs the cookie
      to separate parts of the message due to the presence of a colon. To
@@ -5628,6 +5632,7 @@ There are also additional details on
 <li><a href="h_config_glob_addrbook">OPTION: <!--#echo var="VAR_global-address-book"--></a>
 <li><a href="h_config_goto_default">OPTION: <!--#echo var="VAR_goto-default-rule"--></a>
 <li><a href="h_config_header_general_color">OPTION: Header General Color</a>
+<li><a href="h_config_calendar_header_general_color">OPTION: Calendar Header General Color</a>
 <li><a href="h_config_image_viewer">OPTION: <!--#echo var="VAR_image-viewer"--></a>
 <li><a href="h_config_inbox_path">OPTION: <!--#echo var="VAR_inbox-path"--></a>
 <li><a href="h_config_other_sending_server">OPTION: <!--#echo var="VAR_other-sending-server"--></a>
@@ -5748,6 +5753,7 @@ There are also additional details on
 <li><a href="h_config_viewer_headers">OPTION: <!--#echo var="VAR_viewer-hdrs"--></a>
 <li><a href="h_config_customhdr_pattern">OPTION: Viewer Header Color Pattern</a>
 <li><a href="h_config_customhdr_color">OPTION: <!--#echo var="VAR_viewer-hdr-colors"--></a>
+<li><a href="h_config_calendar_hdr_color">OPTION: <!--#echo var="VAR_calendar-hdr-colors"--></a>
 <li><a href="h_config_viewer_margin_left">OPTION: <!--#echo var="VAR_viewer-margin-left"--></a>
 <li><a href="h_config_viewer_margin_right">OPTION: <!--#echo var="VAR_viewer-margin-right"--></a>
 <li><a href="h_config_viewer_overlap">OPTION: <!--#echo var="VAR_viewer-overlap"--></a>
@@ -34864,6 +34870,29 @@ to see the available Editing and Navigation commands.
 &lt;End of help on this topic&gt;
 </BODY>
 </HTML>
+====== h_config_calendar_header_general_color =====
+<HTML>
+<HEAD>
+<TITLE>OPTION: Calendar Header General Color</TITLE>
+</HEAD>
+<BODY>
+<H1>OPTION: Calendar Header General Color</H1>
+
+Sets the color Alpine uses for the headers of a calendar entry in the MESSAGE TEXT
+screen.
+The foreground color is the color of the actual character and the
+background color is the color of the area behind the character.
+By default, this is the same as the Normal Color.
+<P>
+It is also possible to set the colors for specific header fields, for
+example the Start Date, using
+<A HREF="h_config_calendar_hdr_color"><!--#echo var="VAR_calendar-hdr-colors"--></A>.
+If both a Calendar Header General Color and a specific Calendar Header Color are set
+the specific color will override the general color, as you would expect.
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
 ====== h_config_incol =====
 <HTML>
 <HEAD>
@@ -35077,6 +35106,38 @@ happens if any of those patterns matches.
 <P>
 Look <A HREF="h_edit_nav_cmds">here</A>
 to see the available Editing and Navigation commands.
+<P>
+&lt;End of help on this topic&gt;
+</BODY>
+</HTML>
+====== h_config_calendar_hdr_color =====
+<HTML>
+<HEAD>
+<TITLE>OPTION: <!--#echo var="VAR_calendar-hdr-colors"--></TITLE>
+</HEAD>
+<BODY>
+<H1>OPTION: <!--#echo var="VAR_calendar-hdr-colors"--></H1>
+
+Sets the colors Alpine uses for specific calendar header fields in the MESSAGE
+TEXT screen. For example, you may set the color of the Location header or the
+Start Date header. The foreground color is the color of the actual character and
+the background color is the color of the area behind the character.
+<P>
+Alpine uses the general color of your calendar headers as a default color to display
+these headers. However, this option overrides this default. You can
+select the color for any of the following headers: sent-by, organizer,
+location, start date, end date, duration, attendee, summary, created on,
+description, and priority.
+
+<P>
+Note that some of the above mentioned headers are only available when
+one selects the full details on the event, and not all headers are available in
+all events. In that screen, the color configuration for &quot;attendees&quot; is
+used to display the colors of the &quot;List of Attendess&quot;.
+
+<P>
+More information on this option is in the help for
+<A HREF="h_config_calendar_header_general_color">Calendar Header General Color</A>.
 <P>
 &lt;End of help on this topic&gt;
 </BODY>

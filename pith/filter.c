@@ -9488,6 +9488,7 @@ typedef struct wrap_col_s {
     unsigned	leave_flowed:1;
     unsigned    use_color:1;
     unsigned    hdr_color:1;
+    unsigned    cal_color:1;
     unsigned    for_compose:1;
     unsigned    handle_soft_hyphen:1;
     unsigned    saw_soft_hyphen:1;
@@ -9530,6 +9531,7 @@ typedef struct wrap_col_s {
 #define	WRAP_LV_FLD(F)	(((WRAP_S *)(F)->opt)->leave_flowed)
 #define	WRAP_USE_CLR(F)	(((WRAP_S *)(F)->opt)->use_color)
 #define	WRAP_HDR_CLR(F)	(((WRAP_S *)(F)->opt)->hdr_color)
+#define	WRAP_CAL_CLR(F)	(((WRAP_S *)(F)->opt)->cal_color)
 #define	WRAP_FOR_CMPS(F) (((WRAP_S *)(F)->opt)->for_compose)
 #define	WRAP_HANDLE_SOFT_HYPHEN(F) (((WRAP_S *)(F)->opt)->handle_soft_hyphen)
 #define	WRAP_SAW_SOFT_HYPHEN(F) (((WRAP_S *)(F)->opt)->saw_soft_hyphen)
@@ -10699,7 +10701,7 @@ wrap_bol(FILTER_S *f, int ivar, int q, unsigned char **ipp, unsigned char **eibp
 {
     int n = WRAP_MARG_L(f) + (ivar ? WRAP_INDENT(f) : 0);
 
-    if(WRAP_HDR_CLR(f)){
+    if(WRAP_HDR_CLR(f) || WRAP_CAL_CLR(f)){
 	char *p;
 	char cbuf[RGBLEN+1];
 	int k;
@@ -10713,8 +10715,13 @@ wrap_bol(FILTER_S *f, int ivar, int q, unsigned char **ipp, unsigned char **eibp
 
 	GF_PUTC_GLO(f->next, TAG_EMBED);
 	GF_PUTC_GLO(f->next, TAG_FGCOLOR);
-	strncpy(cbuf,
+	if(WRAP_HDR_CLR(f))
+	   strncpy(cbuf,
 		color_to_asciirgb(ps_global->VAR_HEADER_GENERAL_FORE_COLOR),
+		sizeof(cbuf));
+	else
+	   strncpy(cbuf,
+		color_to_asciirgb(ps_global->VAR_CALENDAR_HEADER_FORE_COLOR),
 		sizeof(cbuf));
 	cbuf[sizeof(cbuf)-1] = '\0';
 	p = cbuf;
@@ -10722,8 +10729,13 @@ wrap_bol(FILTER_S *f, int ivar, int q, unsigned char **ipp, unsigned char **eibp
 	  GF_PUTC_GLO(f->next, *p);
 	GF_PUTC_GLO(f->next, TAG_EMBED);
 	GF_PUTC_GLO(f->next, TAG_BGCOLOR);
-	strncpy(cbuf,
+	if(WRAP_HDR_CLR(f))
+	   strncpy(cbuf,
 		color_to_asciirgb(ps_global->VAR_HEADER_GENERAL_BACK_COLOR),
+		sizeof(cbuf));
+	else
+	   strncpy(cbuf,
+		color_to_asciirgb(ps_global->VAR_CALENDAR_HEADER_BACK_COLOR),
 		sizeof(cbuf));
 	cbuf[sizeof(cbuf)-1] = '\0';
 	p = cbuf;
@@ -10903,6 +10915,7 @@ gf_wrap_filter_opt(int width, int width_max, int *margin, int indent, int flags)
     wrap->delsp	       = (GFW_DELSP & flags) == GFW_DELSP;
     wrap->use_color    = (GFW_USECOLOR & flags) == GFW_USECOLOR;
     wrap->hdr_color    = (GFW_HDRCOLOR & flags) == GFW_HDRCOLOR;
+    wrap->cal_color    = (GFW_CALENDARCOLOR & flags) == GFW_CALENDARCOLOR;
     wrap->for_compose  = (GFW_FORCOMPOSE & flags) == GFW_FORCOMPOSE;
     wrap->handle_soft_hyphen = (GFW_SOFTHYPHEN & flags) == GFW_SOFTHYPHEN;
 
@@ -10916,7 +10929,8 @@ gf_url_hilite_opt(URL_HILITE_S *uh, HANDLE_S **handlesp, int flags)
     if(uh){
 	memset(uh, 0, sizeof(URL_HILITE_S));
 	uh->handlesp  = handlesp;
-	uh->hdr_color = (URH_HDRCOLOR & flags) == URH_HDRCOLOR;
+	uh->hdr_color = (URH_HDRCOLOR & flags) == URH_HDRCOLOR	? 2 :
+			((URH_CALCOLOR & flags) == URH_CALCOLOR ? 1 : 0);
     }
 
     return((void *) uh);

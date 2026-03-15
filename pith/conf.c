@@ -197,6 +197,8 @@ CONF_TXT_T cf_text_titlebar_color_style[] =	"Controls display of color for the t
 
 CONF_TXT_T cf_text_view_hdr_color[] =	"When viewing messages, these are the header colors";
 
+CONF_TXT_T cf_text_calendar_hdr_color[] =	"When viewing messages, these are the calendar header colors";
+
 CONF_TXT_T cf_text_index_token_color[] =	"Colors in which tokens will be displayed in the index screen";
 
 CONF_TXT_T cf_text_save_msg_name_rule[] =	"Determines default folder name for Saves...\n# Choices: default-folder, by-sender, by-from, by-recipient, last-folder-used.\n# Default: \"default-folder\", i.e. \"saved-messages\" (Unix) or \"SAVEMAIL\" (PC).";
@@ -872,6 +874,8 @@ static struct variable variables[] = {
 {"prompt-background-color",		0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
 {"header-general-foreground-color",	0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
 {"header-general-background-color",	0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
+{"calendar-header-general-foreground-color",	0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
+{"calendar-header-general-background-color",	0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
 {"index-to-me-foreground-color",	0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
 {"index-to-me-background-color",	0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
 {"index-important-foreground-color",	0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
@@ -906,6 +910,8 @@ static struct variable variables[] = {
 	"Viewer Header Colors",	cf_text_view_hdr_color},
 {"keyword-colors",			0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
 	NULL,			cf_text_kw_colors},
+{"calendar-hdr-colors",			0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0,
+	"Calendar Header Colors",	cf_text_calendar_hdr_color},
 #ifdef _WINDOWS
 {"font-name",				0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0,
 	NULL,			"name and size of font."},
@@ -6679,6 +6685,7 @@ set_current_color_vals(struct pine *ps)
     set_color_val(&vars[V_METAMSG_FORE_COLOR], 1);
     set_color_val(&vars[V_PROMPT_FORE_COLOR], 1);
     set_color_val(&vars[V_HEADER_GENERAL_FORE_COLOR], 1);
+    set_color_val(&vars[V_CALENDAR_HEADER_GENERAL_FORE_COLOR], 1);
     set_color_val(&vars[V_IND_PLUS_FORE_COLOR], 0);
     set_color_val(&vars[V_IND_IMP_FORE_COLOR], 0);
     set_color_val(&vars[V_IND_DEL_FORE_COLOR], 0);
@@ -6699,6 +6706,7 @@ set_current_color_vals(struct pine *ps)
     set_current_val(&ps->vars[V_INDEX_TOKEN_COLORS], TRUE, TRUE);
     set_current_val(&ps->vars[V_VIEW_HDR_COLORS], TRUE, TRUE);
     set_current_val(&ps->vars[V_KW_COLORS], TRUE, TRUE);
+    set_current_val(&ps->vars[V_CALENDAR_HDR_COLORS], TRUE, TRUE);
     set_custom_spec_colors(ps);
 
     /*
@@ -6858,6 +6866,11 @@ set_custom_spec_colors(struct pine *ps)
       free_spec_colors(&ps->hdr_colors);
 
     ps->hdr_colors = spec_colors_from_varlist(ps->VAR_VIEW_HDR_COLORS, 1);
+
+    if(ps->calendar_hdr_colors)
+      free_spec_colors(&ps->calendar_hdr_colors);
+
+    ps->calendar_hdr_colors = spec_colors_from_varlist(ps->VAR_CALENDAR_HDR_COLORS, 1);
 
     /* fit keyword colors into the same structures for code re-use */
     if(ps->kw_colors)
@@ -8137,6 +8150,9 @@ config_help(int var, int feature)
       case V_HEADER_GENERAL_FORE_COLOR :
       case V_HEADER_GENERAL_BACK_COLOR :
 	return(h_config_header_general_color);
+      case V_CALENDAR_HEADER_GENERAL_FORE_COLOR :
+      case V_CALENDAR_HEADER_GENERAL_BACK_COLOR :
+	return(h_config_calendar_header_general_color);
       case V_IND_PLUS_FORE_COLOR :
       case V_IND_IMP_FORE_COLOR :
       case V_IND_DEL_FORE_COLOR :
@@ -8182,6 +8198,8 @@ config_help(int var, int feature)
 	return(h_config_metamsg_color);
       case V_VIEW_HDR_COLORS :
 	return(h_config_customhdr_color);
+      case V_CALENDAR_HDR_COLORS :
+	return(h_config_calendar_hdr_color);
       case V_INDEX_TOKEN_COLORS :
 	return(h_config_indextoken_color);
       case V_PRINTER :

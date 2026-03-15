@@ -220,6 +220,7 @@ struct key_menu {
 #define MC_XSADD	807
 #define MC_XSDELETE	808
 #define MC_XSHELP	809
+#define MC_ADDCALHEADER	810
 
 /* Commands for S/MIME screens */
 #define MC_TRUST	900
@@ -663,6 +664,7 @@ extern struct key_menu	cancel_keymenu,
 			custom_rgb_keymenu,
 			kw_rgb_keymenu,
 			color_setting_keymenu,
+			calendar_color_setting_keymenu,
 			custom_color_setting_keymenu,
 			role_color_setting_keymenu,
 			kw_color_setting_keymenu,

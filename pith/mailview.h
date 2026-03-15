@@ -126,7 +126,7 @@ typedef struct header_s {
 int	 format_message(long, ENVELOPE *, BODY *, HANDLE_S **, int, gf_o_t);
 int	 format_attachment_list(long int, BODY *, HANDLE_S **, int, int, gf_o_t);
 char	*format_body(long int, BODY *, HANDLE_S **, HEADER_S *, int, int, gf_o_t);
-int	 format_calendar(long int, BODY *, HANDLE_S **, int, int, gf_o_t);
+int	 format_calendar(long int, ENVELOPE *, BODY *, HANDLE_S **, int, int, gf_o_t);
 int	 url_hilite(long, char *, LT_INS_S **, void *);
 int	 handle_start_color(char *, size_t, int *, int);
 int	 handle_end_color(char *, size_t, int *);
@@ -149,6 +149,7 @@ int         color_signature(long, char *, LT_INS_S **, void *);
 int	    scroll_handle_start_color(char *, size_t, int *);
 int	    scroll_handle_end_color(char *, size_t, int *, int);
 int         width_at_this_position(unsigned char *, unsigned long);
+int	    color_calendar_headers(long, char *, LT_INS_S **, void *);
 
 /* currently mandatory to implement stubs */
 

@@ -140,7 +140,7 @@ sample_text(struct pine *ps, struct variable *v)
     if((v && v->name &&
         srchstr(v->name, "-foreground-color") &&
 	pvalfg && pvalfg[0] && pvalbg && pvalbg[0]) ||
-       (v == &ps->vars[V_INDEX_TOKEN_COLORS] ||
+       (v == &ps->vars[V_INDEX_TOKEN_COLORS] || v == &ps->vars[V_CALENDAR_HDR_COLORS] ||
         v == &ps->vars[V_VIEW_HDR_COLORS] || v == &ps->vars[V_KW_COLORS]))
       ret = SAMP1;
 
@@ -359,7 +359,7 @@ color_config_init_display(struct pine *ps, CONF_S **ctmp, CONF_S **first_line)
     char	  **lval;
     int		    i, saw_first_index = 0;
     struct	    variable  *vtmp;
-    char           *dashes = "--------------";
+    char           *dashes = "---------------";
 
 #ifndef	_WINDOWS
     vtmp = &ps->vars[V_COLOR_STYLE];
@@ -445,6 +445,9 @@ color_config_init_display(struct pine *ps, CONF_S **ctmp, CONF_S **first_line)
 
 	/* skip this for now and include it with HEADER COLORS */
 	if(vtmp == &ps->vars[V_HEADER_GENERAL_FORE_COLOR])
+	  continue;
+
+	if(vtmp == &ps->vars[V_CALENDAR_HEADER_GENERAL_FORE_COLOR])
 	  continue;
 
 	if(!saw_first_index && !struncmp(vtmp->name, "index-", 6)){
@@ -558,6 +561,58 @@ color_config_init_display(struct pine *ps, CONF_S **ctmp, CONF_S **first_line)
 	(*ctmp)->valoffset		 = COLOR_INDENT;
     }
 
+    /*
+     * custom Calendar header colors
+     */
+    new_confline(ctmp);		/* Blank line */
+    (*ctmp)->flags |= CF_NOSELECT | CF_B_LINE;
+    new_confline(ctmp);
+    (*ctmp)->help			 = NO_HELP;
+    (*ctmp)->flags			|= CF_NOSELECT;
+    (*ctmp)->value                       = cpystr(dashes);
+    new_confline(ctmp);
+    (*ctmp)->help			 = NO_HELP;
+    (*ctmp)->flags			|= CF_NOSELECT;
+    (*ctmp)->value = cpystr(_(CAL_COLORS_HDR));
+    new_confline(ctmp);
+    (*ctmp)->help			 = NO_HELP;
+    (*ctmp)->flags			|= CF_NOSELECT;
+    (*ctmp)->value                       = cpystr(dashes);
+
+    vtmp = &ps->vars[V_CALENDAR_HEADER_GENERAL_FORE_COLOR];
+    new_confline(ctmp);
+    /* Blank line */
+    (*ctmp)->flags |= CF_NOSELECT | CF_B_LINE;
+
+    new_confline(ctmp)->var = vtmp;
+
+    (*ctmp)->varnamep		 = *ctmp;
+    (*ctmp)->keymenu		 = &calendar_color_setting_keymenu;
+    (*ctmp)->help		 = config_help(vtmp - ps->vars, 0);
+    (*ctmp)->tool		 = color_setting_tool;
+    (*ctmp)->flags |= (CF_STARTITEM | CF_COLORSAMPLE | CF_POT_SLCTBL);
+    if(!pico_usingcolor())
+      (*ctmp)->flags |= CF_NOSELECT;
+
+    (*ctmp)->value		 = pretty_value(ps, *ctmp);
+    (*ctmp)->valoffset		 = COLOR_INDENT;
+
+    vtmp = &ps->vars[V_CALENDAR_HDR_COLORS];
+    lval = LVAL(vtmp, ew);
+
+    if(lval && lval[0] && lval[0][0]){
+	for(i = 0; lval && lval[i]; i++)
+	  add_header_color_line(ps, ctmp, lval[i], i, V_CALENDAR_HDR_COLORS);
+    }
+    else{
+	new_confline(ctmp);		/* Blank line */
+	(*ctmp)->flags |= CF_NOSELECT | CF_B_LINE;
+	new_confline(ctmp);
+	(*ctmp)->help			 = NO_HELP;
+	(*ctmp)->flags			|= CF_NOSELECT;
+	(*ctmp)->value = cpystr(_(CALHEADER_COMMENT));
+	(*ctmp)->valoffset		 = COLOR_INDENT;
+    }
 
     /*
      * custom keyword colors
@@ -716,6 +771,7 @@ color_parenthetical(struct variable *var)
     char **lval, *ret = "";
 
     if(var == &ps_global->vars[V_VIEW_HDR_COLORS]
+       || var == &ps_global->vars[V_CALENDAR_HDR_COLORS]
        || var == &ps_global->vars[V_INDEX_TOKEN_COLORS]
        || var == &ps_global->vars[V_KW_COLORS]){
 	norm    = (LVAL(var, Main) != NULL);
@@ -757,7 +813,7 @@ add_header_color_line(struct pine *ps, CONF_S **ctmp, char *val, int which, int 
 	return;
     }
     vtmp = &ps->vars[varnum];
-    l = strlen(varnum == V_VIEW_HDR_COLORS ? HEADER_WORD : TOKEN_WORD);
+    l = strlen(varnum == V_VIEW_HDR_COLORS ? HEADER_WORD : (varnum == V_CALENDAR_HDR_COLORS ? CALENDAR_WORD : TOKEN_WORD));
 
     /* Blank line */
     new_confline(ctmp);
@@ -765,7 +821,8 @@ add_header_color_line(struct pine *ps, CONF_S **ctmp, char *val, int which, int 
 
     new_confline(ctmp)->var	 = vtmp;
     (*ctmp)->varnamep		 = *ctmp;
-    (*ctmp)->keymenu		 = &custom_color_setting_keymenu;
+    (*ctmp)->keymenu		 = varnum == V_CALENDAR_HDR_COLORS ? &calendar_color_setting_keymenu
+					: &custom_color_setting_keymenu;
     (*ctmp)->help		 = config_help(vtmp - ps->vars, 0);
     (*ctmp)->tool		 = color_setting_tool;
     (*ctmp)->flags |= (CF_STARTITEM | CF_COLORSAMPLE | CF_POT_SLCTBL);
@@ -785,7 +842,7 @@ add_header_color_line(struct pine *ps, CONF_S **ctmp, char *val, int which, int 
 	 * with all this. It probably doesn't happen in real life.
 	 */
 	utf8_snprintf(tmp, sizeof(tmp), "%s%c%.*w Color%*w %s%s",
-		(varnum == V_VIEW_HDR_COLORS ? HEADER_WORD : TOKEN_WORD),
+		(varnum == V_VIEW_HDR_COLORS ? HEADER_WORD : (varnum == V_CALENDAR_HDR_COLORS ? CALENDAR_WORD : TOKEN_WORD)),
 		(hc && hc->spec) ? (islower((unsigned char)hc->spec[0])
 					    ? toupper((unsigned char)hc->spec[0])
 					    : hc->spec[0]) : '?',
@@ -1167,6 +1224,7 @@ color_holding_var(struct pine *ps, struct variable *var)
 	      srchstr(var->name, "-background-color") ||
 	      var == &ps->vars[V_INDEX_TOKEN_COLORS] ||
 	      var == &ps->vars[V_VIEW_HDR_COLORS] ||
+	      var == &ps->vars[V_CALENDAR_HDR_COLORS] ||
 	      var == &ps->vars[V_KW_COLORS]));
 }
 
@@ -1241,7 +1299,7 @@ colorindexrule(char *s)
 int
 color_setting_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 {
-    int	             rv = 0, i, cancel = 0, deefault;
+    int	             rv = 0, i, cancel = 0, deefault, which;
     int              curcolor, prevcolor, nextcolor, another;
     CONF_S          *ctmp, *first_line, *beg = NULL, *end = NULL,
 		    *cur_beg, *cur_end, *prev_beg, *prev_end,
@@ -1860,6 +1918,7 @@ color_setting_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 	    if(!color_holding_var(ps, v)
 	       || v == &ps->vars[V_INDEX_TOKEN_COLORS]
 	       || v == &ps->vars[V_VIEW_HDR_COLORS]
+	       || v == &ps->vars[V_CALENDAR_HDR_COLORS]
 	       || v == &ps->vars[V_KW_COLORS])
 	      continue;
 
@@ -1880,6 +1939,46 @@ color_setting_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 	    SPEC_COLOR_S *global_hcolors = NULL, *hcg;
 
 	    v = &ps->vars[V_VIEW_HDR_COLORS];
+	    if(v->global_val.l && v->global_val.l[0])
+	      global_hcolors = spec_colors_from_varlist(v->global_val.l, 0);
+
+	    hcolors = spec_colors_from_varlist(*alval, 0);
+	    for(hc = hcolors; hc; hc = hc->next){
+		if(hc->fg)
+		  fs_give((void **)&hc->fg);
+		if(hc->bg)
+		  fs_give((void **)&hc->bg);
+
+		for(hcg = global_hcolors; hcg; hcg = hcg->next){
+		    if(hc->spec && hcg->spec && !strucmp(hc->spec, hcg->spec)){
+			hc->fg = hcg->fg;
+			hcg->fg = NULL;
+			hc->bg = hcg->bg;
+			hcg->bg = NULL;
+			if(hc->val && !hcg->val)
+			  fs_give((void **) &hc->val);
+		    }
+		}
+
+		if(global_hcolors)
+		  free_spec_colors(&global_hcolors);
+	    }
+
+	    free_list_array(alval);
+	    *alval = varlist_from_spec_colors(hcolors);
+
+	    if(hcolors)
+	      free_spec_colors(&hcolors);
+	}
+
+	/*
+	 * same for calendar header colors
+	 */
+	alval = ALVAL(&ps->vars[V_CALENDAR_HDR_COLORS], ew);
+	if(alval && *alval){
+	    SPEC_COLOR_S *global_hcolors = NULL, *hcg;
+
+	    v = &ps->vars[V_CALENDAR_HDR_COLORS];
 	    if(v->global_val.l && v->global_val.l[0])
 	      global_hcolors = spec_colors_from_varlist(v->global_val.l, 0);
 
@@ -1994,12 +2093,15 @@ color_setting_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 
       case MC_ADDHEADER:			/* add custom index token color */
       case MC_ADD :				/* add custom header color */
+      case MC_ADDCALHEADER:			/* add custom calendar header color */
 	/* get header field name */
 	help = NO_HELP;
 	while(1){
 	    i = optionally_enter(sval, -FOOTER_ROWS(ps), 0, sizeof(sval),
 		(cmd == MC_ADD ? _("Enter the name of the header field to be added: ")
-			       : _("Enter the name of the index token to be added: ")),
+			: (cmd == MC_ADDHEADER
+			? _("Enter the name of the index token to be added: ")
+			: _("Enter the name of the calendar header to be added: "))),
 				 NULL, help, NULL);
 	    if(i == 0){
 	      if(cmd == MC_ADDHEADER){
@@ -2045,7 +2147,7 @@ color_setting_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 	confline = var_from_spec_color(new_hcolor);
 
 	/* add it to end of list */
-	alval = ALVAL(&ps->vars[(cmd == MC_ADD ? V_VIEW_HDR_COLORS : V_INDEX_TOKEN_COLORS)], ew);
+	alval = ALVAL(&ps->vars[(cmd == MC_ADD ? V_VIEW_HDR_COLORS : (cmd == MC_ADDHEADER ? V_INDEX_TOKEN_COLORS : V_CALENDAR_HDR_COLORS))], ew);
 	if(alval){
 	    /* get rid of possible empty value first */
 	    if((t = *alval) && t[0] && !t[0][0] && !(t+1)[0])
@@ -2070,7 +2172,10 @@ color_setting_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 	  ;
 
 	/* back up to the KEYWORD COLORS title line */
-	for(; ctmp && (!ctmp->value || strcmp(ctmp->value, (cmd == MC_ADD ? KW_COLORS_HDR : HDR_COLORS)))
+	for(; ctmp && (!ctmp->value
+		|| strcmp(ctmp->value, cmd == MC_ADD
+			? CAL_COLORS_HDR :  (cmd == MC_ADDCALHEADER
+			? KW_COLORS_HDR : HDR_COLORS)))
 	      && ctmp->prev;
 	    ctmp = prev_confline(ctmp))
 	  ;
@@ -2109,7 +2214,8 @@ color_setting_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 	}
 
 	add_header_color_line(ps, cl, confline, i, cmd == MC_ADD 
-					? V_VIEW_HDR_COLORS : V_INDEX_TOKEN_COLORS);
+		? V_VIEW_HDR_COLORS : (cmd == MC_ADDHEADER
+				    ? V_INDEX_TOKEN_COLORS : V_CALENDAR_HDR_COLORS));
 
 	/* be sure current is on selectable line */
 	for(; *cl && ((*cl)->flags & CF_NOSELECT); *cl = next_confline(*cl))
@@ -2122,6 +2228,7 @@ color_setting_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 
       case MC_DELETE :				/* delete custom header color */
 	if((*cl)->var != &ps->vars[V_VIEW_HDR_COLORS]
+		&& (*cl)->var != &ps->vars[V_CALENDAR_HDR_COLORS]
 		&& (*cl)->var != &ps->vars[V_INDEX_TOKEN_COLORS]){
 	    q_status_message(SM_ORDER, 0, 2,
 			     _("Can't delete this color setting"));
@@ -2130,7 +2237,9 @@ color_setting_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 
 	if(want_to(((*cl)->var == &ps->vars[V_VIEW_HDR_COLORS]
 		? _("Really delete header color from config")
-		: _("Really delete index token color from config")),
+		: ((*cl)->var == &ps->vars[V_CALENDAR_HDR_COLORS]
+		   ? _("Really delete calendar header color from config")
+		   : _("Really delete index token color from config"))),
 		   'y', 'n', NO_HELP, WT_NORM) != 'y'){
 	    cmd_cancelled("Delete");
 	    return(rv);
@@ -2164,24 +2273,25 @@ color_setting_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 	end = *cl;
 
 	another = 0;
+	which = (*cl)->var == &ps->vars[V_VIEW_HDR_COLORS]
+		? V_VIEW_HDR_COLORS
+		: ((*cl)->var == &ps->vars[V_CALENDAR_HDR_COLORS]
+		  ? V_CALENDAR_HDR_COLORS : V_INDEX_TOKEN_COLORS);
 	/* reset current line */
 	if(end && end->next && end->next->next && 
-	   end->next->next->var == &ps->vars[(*cl)->var == &ps->vars[V_VIEW_HDR_COLORS] 
-					? V_VIEW_HDR_COLORS : V_INDEX_TOKEN_COLORS]){
+	   end->next->next->var == &ps->vars[which]){
 	    *cl = end->next->next;		/* next Header Color */
 	    another++;
 	}
 	else if(beg && beg->prev &&
-	   beg->prev->var == &ps->vars[(*cl)->var == &ps->vars[V_VIEW_HDR_COLORS]
-					? V_VIEW_HDR_COLORS : V_INDEX_TOKEN_COLORS]){
+	   beg->prev->var == &ps->vars[which]){
 	    *cl = beg->prev;			/* prev Header Color */
 	    another++;
 	}
 
 	/* adjust SPEC_COLOR_S index (varmem) values */
 	for(ctmp = end; ctmp; ctmp = next_confline(ctmp))
-	  if(ctmp->var == &ps->vars[(*cl)->var == &ps->vars[V_VIEW_HDR_COLORS] 
-				? V_VIEW_HDR_COLORS : V_INDEX_TOKEN_COLORS])
+	  if(ctmp->var == &ps->vars[which])
 	    ctmp->varmem = CFC_ICUST_DEC(ctmp);
 	
 	/*
@@ -2214,7 +2324,10 @@ color_setting_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 	    end->flags     = CF_NOSELECT;
 	    end->help      = NO_HELP;
 	    end->value     = cpystr((*cl)->var == &ps->vars[V_VIEW_HDR_COLORS] 
-				? _(ADDHEADER_COMMENT) : _(ADDINDEXTOKEN_COMMENT));
+				? _(ADDHEADER_COMMENT)
+				: ((*cl)->var == &ps->vars[V_CALENDAR_HDR_COLORS]
+					? _(CALHEADER_COMMENT)
+					: _(ADDINDEXTOKEN_COMMENT)));
 	    end->valoffset = COLOR_INDENT;
 	    end->varnamep  = NULL;
 	    end->varmem    = 0;
@@ -2234,7 +2347,8 @@ color_setting_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 	break;
 
       case MC_SHUFFLE :  /* shuffle order of custom headers */
-	if((*cl)->var != &ps->vars[V_VIEW_HDR_COLORS]){
+	if((*cl)->var != &ps->vars[V_VIEW_HDR_COLORS]
+	    && (*cl)->var != &ps->vars[V_CALENDAR_HDR_COLORS]){
 	    q_status_message(SM_ORDER, 0, 2,
 			     _("Can't shuffle this color setting"));
 	    break;
@@ -2375,7 +2489,10 @@ color_setting_tool(struct pine *ps, int cmd, CONF_S **cl, unsigned int flags)
 	}
 
 	rv = ps->mangled_body = 1;
-	q_status_message(SM_ORDER, 0, 3, _("Header Colors shuffled"));
+	if((*cl)->var == &ps->vars[V_VIEW_HDR_COLORS])
+	   q_status_message(SM_ORDER, 0, 3, _("Header Colors shuffled"));
+	else
+	   q_status_message(SM_ORDER, 0, 3, _("Calendar Header Colors shuffled"));
 	break;
 
       case MC_EDIT:
@@ -2681,7 +2798,7 @@ color_edit_screen(struct pine *ps, CONF_S **cl)
     KEYWORD_S       *kw;
 
     vtmp = (*cl)->var;
-    if(vtmp == &ps->vars[V_VIEW_HDR_COLORS])
+    if(vtmp == &ps->vars[V_VIEW_HDR_COLORS] || vtmp == &ps->vars[V_CALENDAR_HDR_COLORS])
       is_hdrcolor++;
     else if(vtmp == &ps->vars[V_INDEX_TOKEN_COLORS])
       is_idxtokcol++;
@@ -2727,13 +2844,11 @@ color_edit_screen(struct pine *ps, CONF_S **cl)
 	for(hc = hcolors, i = 0; hc; hc = hc->next, i++)
 	  if(CFC_ICUST(*cl) == i)
 	    break;
-	
+
 	if(hc){
-	    snprintf(name, sizeof(name), "%s%s", HEADER_WORD, hc->spec);
+	    char *word = (vtmp == &ps->vars[V_VIEW_HDR_COLORS]) ? HEADER_WORD : CALENDAR_WORD;
+	    snprintf(name, sizeof(name), "%s%s", word, hc->spec);
 	    name[sizeof(name)-1] = '\0';
-	    i = sizeof(HEADER_WORD) - 1;
-	    if(islower((unsigned char) name[i]))
-	      name[i] = toupper((unsigned char) name[i]);
 	}
     }
     else if(is_idxtokcol){

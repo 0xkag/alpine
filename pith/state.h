@@ -263,6 +263,7 @@ struct pine {
 
     SPEC_COLOR_S *hdr_colors;		/* list of configured colors for view */
     SPEC_COLOR_S *index_token_colors;	/* list of configured colors for index */
+    SPEC_COLOR_S *calendar_hdr_colors;	/* list of configured colors for calendar view */
 
     short	 init_context;
 

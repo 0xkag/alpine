@@ -2357,7 +2357,7 @@ ical_vevent_summary(VCALENDAR_S *vcal)
 	  if(!struncmp(address, "MAILTO:", 7))
 	     address += 7;
 	  utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s<%s>",
-		cn ? cn :  "", cn ? " " : "", 
+		cn ? cn : "", cn ? " " : "",
 		address ? address : _("Unknown address"));
 	  rv->organizer = cpystr(tmp_20k_buf);
 	}

@@ -225,6 +225,9 @@ free_pine_struct(struct pine **pps)
     if((*pps)->index_token_colors)
       free_spec_colors(&(*pps)->index_token_colors);
 
+    if((*pps)->calendar_hdr_colors)
+      free_spec_colors(&(*pps)->calendar_hdr_colors);
+
     if((*pps)->keywords)
       free_keyword_list(&(*pps)->keywords);
 

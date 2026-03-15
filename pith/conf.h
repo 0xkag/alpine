@@ -413,6 +413,8 @@
 #define VAR_STATUS_BACK_COLOR	     vars[V_STATUS_BACK_COLOR].current_val.p
 #define VAR_HEADER_GENERAL_FORE_COLOR vars[V_HEADER_GENERAL_FORE_COLOR].current_val.p
 #define VAR_HEADER_GENERAL_BACK_COLOR vars[V_HEADER_GENERAL_BACK_COLOR].current_val.p
+#define VAR_CALENDAR_HEADER_FORE_COLOR vars[V_CALENDAR_HEADER_GENERAL_FORE_COLOR].current_val.p
+#define VAR_CALENDAR_HEADER_BACK_COLOR vars[V_CALENDAR_HEADER_GENERAL_BACK_COLOR].current_val.p
 #define VAR_IND_PLUS_FORE_COLOR	     vars[V_IND_PLUS_FORE_COLOR].current_val.p
 #define GLO_IND_PLUS_FORE_COLOR	     vars[V_IND_PLUS_FORE_COLOR].global_val.p
 #define VAR_IND_PLUS_BACK_COLOR	     vars[V_IND_PLUS_BACK_COLOR].current_val.p
@@ -482,6 +484,7 @@
 #define VAR_PROMPT_FORE_COLOR	     vars[V_PROMPT_FORE_COLOR].current_val.p
 #define VAR_PROMPT_BACK_COLOR	     vars[V_PROMPT_BACK_COLOR].current_val.p
 #define VAR_VIEW_HDR_COLORS	     vars[V_VIEW_HDR_COLORS].current_val.l
+#define VAR_CALENDAR_HDR_COLORS	     vars[V_CALENDAR_HDR_COLORS].current_val.l
 #define VAR_INDEX_TOKEN_COLORS	     vars[V_INDEX_TOKEN_COLORS].current_val.l
 #define VAR_HTML_DIRECTORY	     vars[V_HTML_DIRECTORY].current_val.p
 #define GLO_HTML_DIRECTORY	     vars[V_HTML_DIRECTORY].global_val.p

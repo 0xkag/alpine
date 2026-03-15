@@ -3410,6 +3410,7 @@ update_option_screen(struct pine *ps, OPT_SCREEN_S *screen, Pos *cursor_pos)
 
 			    /* then the color sample */
 			    if(ctmp->var == &ps->vars[V_VIEW_HDR_COLORS]
+				|| ctmp->var == &ps->vars[V_CALENDAR_HDR_COLORS]
 				|| ctmp->var == &ps->vars[V_INDEX_TOKEN_COLORS]){
 				SPEC_COLOR_S *hc, *hcolors;
 

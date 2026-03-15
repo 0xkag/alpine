@@ -100,6 +100,7 @@ int  (*pith_opt_rfc2369_editorial)(long, HANDLE_S **, int, int, gf_o_t);
 int	    format_blip_seen(long);
 int	    is_an_env_hdr(char *);
 int         is_an_addr_hdr(char *);
+int         is_calendar_hdr(char *);
 void	    format_env_hdr(MAILSTREAM *, long, char *, ENVELOPE *,
 			   fmt_env_t, gf_o_t, char *, char *, int);
 int	    delineate_this_header(char *, char *, char **, char **);
@@ -111,6 +112,7 @@ int	    url_bogus_imap(char **, char *, char *);
 int	    format_raw_header(MAILSTREAM *, long, char *, gf_o_t);
 void	    format_envelope(MAILSTREAM *, long, char *, ENVELOPE *,
 			    gf_o_t, long, char *, int);
+int         any_calendar_hdr_color(char *);
 int         any_hdr_color(char *);
 void	    format_addr_string(MAILSTREAM *, long, char *, char *,
 			       ADDRESS *, int, char *, gf_o_t);
@@ -122,7 +124,7 @@ int	    find_field(char **, char *, size_t);
 int	    embed_color(COLOR_PAIR *, gf_o_t);
 COLOR_PAIR *get_cur_embedded_color(void);
 void        clear_cur_embedded_color(void);
-void	    format_calendar_vevent(VCALENDAR_S *, ATTACH_S *, HANDLE_S **, int, int, gf_o_t, int);
+void	    format_calendar_vevent(VCALENDAR_S *, ATTACH_S *, HANDLE_S **, int, int, gf_o_t, int, ENVELOPE *);
 
 
 
@@ -193,7 +195,7 @@ format_message(long int msgno, ENVELOPE *env, struct mail_bodystruct *body,
 	 || (ps_global->full_header == 2
 	     && F_ON(F_ENABLE_FULL_HDR_AND_TEXT, ps_global)))){
       format_attachment_list(msgno, body, handlesp, flgs, width, pc);
-      format_calendar(msgno, body, handlesp, flgs, width, pc);
+      format_calendar(msgno, env, body, handlesp, flgs, width, pc);
     }
 
     /* write delimiter and body */
@@ -217,13 +219,23 @@ format_message(long int msgno, ENVELOPE *env, struct mail_bodystruct *body,
 }
 
 void
-format_calendar_vevent(VCALENDAR_S *vcal, ATTACH_S *a, HANDLE_S **handlesp, int flgs, int width, gf_o_t pc, int cflags)
+format_calendar_vevent(VCALENDAR_S *vcal, ATTACH_S *a, HANDLE_S **handlesp, int flgs, int width, gf_o_t pc, int cflags, ENVELOPE *env)
 {
+#define MAXDASHES 41
   int avail, m1, m2, hwid, i, partwid, padwid;
-  int s1, s2, dwid, minkey;
-  int *margin;
+  int s1, s2, dwid;
+  static int minkey;
+  char dashes[MAXDASHES+1];
   char padding[1024];
   VEVENT_SUMMARY_S *vesy, *vesummary; /* vevent summary */
+  STORE_S *tmp_store;
+  URL_HILITE_S uh;
+  gf_o_t  tmp_pc;
+  gf_i_t  tmp_gc;
+  struct variable *vars = ps_global->vars;
+  int	 column;
+  char	*errstr, *display_filter = NULL, trigger[MAILTMPLEN];
+  int *margin, wrapflags;
 
   vesummary = vesy = ical_vevent_summary(vcal);
 
@@ -232,142 +244,153 @@ format_calendar_vevent(VCALENDAR_S *vcal, ATTACH_S *a, HANDLE_S **handlesp, int 
   if((cflags & FC_SUMMARY) && (cflags & FC_FULL))
      cflags |= ~FC_FULL;
 
-  minkey = -1;	/* initialize to something negative */
-
-  for(; vesy != NULL ; vesy = vesy->next){
-    avail = width;
-    margin = (cflags & FC_FULL) ? NULL
+  /* set up dashes */
+  avail = width;
+  margin = (cflags & FC_FULL) ? NULL
 		: (flgs & FM_NOINDENT) ? NULL : format_view_margin();
 
-    m1 = MAX(MIN(margin ? margin[0] : 0, avail), 0);
-    avail -= m1;
+  m1 = MAX(MIN(margin ? margin[0] : 0, avail), 0);
+  avail -= m1;
 
-    m2 = MAX(MIN(margin ? margin[1] : 0, avail), 0);
-    avail -= m2;
+  m2 = MAX(MIN(margin ? margin[1] : 0, avail), 0);
+  avail -= m2;
 
-    hwid = MAX(avail, 0);
-    padwid = 0;
+  hwid = MAX(avail, 0);
+  padwid = 0;
 
-    if(ps_global->atmts[1].description == NULL){
-      avail = width - m1 -2;
+  avail = width - m1 -2;
 
-      dwid = MAX(MIN(40, avail), 0);
+  dwid = MAX(MIN(MAXDASHES, avail), 0);
 
-      snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%*.*s%s", m1, m1, "",
-		repeat_char(dwid, '-'));
+  snprintf(dashes, MAXDASHES, "%*.*s%s", m1, m1, "", repeat_char(dwid, '-'));
 
-      if(!gf_puts(tmp_20k_buf, pc) || !gf_puts(NEWLINE, pc))
-       return;
-    }
+  /* set up prefix (padding) */
+  avail = width - m1 - m2;
+
+  s1 = MAX(MIN(1, avail), 0);
+  avail -= s1;
+
+  dwid = MAX(MIN(1, avail), 0);
+  avail -= dwid;
+
+  s2 = MAX(MIN(1, avail), 0);
+  avail -= s2;
+
+  if(cflags & FC_SUMMARY)
+     utf8_snprintf(padding, sizeof(padding), "%*.*s%*.*w%*.*s",
+		s1, s1, "", dwid, dwid, "", s2, s2, "");
+  else
+     padding[0] = '\0';
 
 
-    if(cflags & FC_SUMMARY){
-      i = utf8_width(_("Calendar Entry:"));
-      partwid = MIN(i, hwid);
-      if(m1 > 0){
-       snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%*.*s", m1, m1, "");
-       if(!gf_puts(tmp_20k_buf, pc))
+  minkey = 0;
+
+  for(; vesy != NULL ; vesy = vesy->next){
+	/*
+	 * We write to a temporary store, which we then filter an send to
+	 * the final "pc".
+	 */
+      if((tmp_store = so_get(CharStar, NULL, EDIT_ACCESS)) != NULL)
+	  gf_set_so_writec(&tmp_pc, tmp_store);
+      else return;
+
+      if(ps_global->atmts[1].description == NULL){
+        if(!gf_puts(dashes, tmp_pc) || !gf_puts(NEWLINE, tmp_pc))
          return;
       }
 
-      utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%-*.*w%*.*s",
-       partwid, partwid, _("Calendar Entry:"),
-       padwid, padwid, "");
+      if(cflags & FC_SUMMARY){
+	 i = utf8_width(_("Calendar Entry:"));
+	 partwid = MIN(i, hwid);
+	 if(m1 > 0){
+	    snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%*.*s", m1, m1, "");
+	    if(!gf_puts(tmp_20k_buf, tmp_pc))
+	        return;
+	 }
 
-     if(!gf_puts(tmp_20k_buf, pc) || !gf_puts(NEWLINE, pc))
-       return;
-    }
-    else 
-      partwid = 0;
+	 utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%-*.*w%*.*s",
+	 partwid, partwid, _("Calendar Entry:"), padwid, padwid, "");
 
-    if(m1 > 0){
-      snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%*.*s", m1, m1, "");
-      if(!gf_puts(tmp_20k_buf, pc))
-        return;
-    }
-
-    avail = width - m1 - m2;
-
-    s1 = MAX(MIN(1, avail), 0);
-    avail -= s1;
-
-    dwid = MAX(MIN(1, avail), 0);
-    avail -= dwid;
-
-    s2 = MAX(MIN(1, avail), 0);
-    avail -= s2;
-
-    if(cflags & FC_SUMMARY)
-      utf8_snprintf(padding, sizeof(padding), "%*.*s%*.*w%*.*s", 
-		s1, s1, "", dwid, dwid, "", s2, s2, "");
-    else
-      padding[0] = '\0';
-
-    if(vesy->cancel){
-     utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s",
-			 padding, _("This event was cancelled!"));
-     if((*pc)(TAG_EMBED) && (*pc)(TAG_BOLDON)){
-	gf_puts(tmp_20k_buf, pc);
-	gf_puts(NEWLINE, pc);
-	(*pc)(TAG_EMBED);
-	(*pc)(TAG_BOLDOFF);
-     }
-    }
-
-    if(vesy->organizer){
-       if(vesy->sender != NULL){
-	 utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
-		padding, _("Sent-by: "), vesy->sender);
-	 gf_puts(tmp_20k_buf, pc);
-	 gf_puts(NEWLINE, pc);
-       }
-
-       utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
-	  padding, _("Organizer: "), vesy->organizer);
-       gf_puts(tmp_20k_buf, pc);
-       gf_puts(NEWLINE, pc);
-    } /* end of if(organizer) */
-
-    if(vesy->location){
-      utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
-		padding, _("Location: "), vesy->location);
-      gf_puts(tmp_20k_buf, pc);
-      gf_puts(NEWLINE, pc);
-    } /* end of if location */
-
-    if(vesy->evstart){
-      utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
-		padding, _("Start Date: "), vesy->evstart);
-      gf_puts(tmp_20k_buf, pc);
-      gf_puts(NEWLINE, pc);
-    } /* end of if dtstart */
-
-    if(vesy->duration){
-      int i;
-
-      for(i = 0; vesy->duration[i] != NULL; i++){
-	utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
-		padding, _("Duration: "), vesy->duration[i]);
-	gf_puts(tmp_20k_buf, pc);
-	gf_puts(NEWLINE, pc);
+	 if(!gf_puts(tmp_20k_buf, tmp_pc) || !gf_puts(NEWLINE, tmp_pc))
+	    return;
       }
-    } /* end of DURATION */
-    else if(vesy->evend){
-      utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
+      else
+	 partwid = 0;
+
+     if(m1 > 0){
+	snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%*.*s", m1, m1, "");
+	if(!gf_puts(tmp_20k_buf, tmp_pc))
+	   return;
+     }
+
+     if(vesy->cancel){
+	utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s",
+			 padding, _("This event was cancelled!"));
+	if((*tmp_pc)(TAG_EMBED) && (*tmp_pc)(TAG_BOLDON)){
+	   gf_puts(tmp_20k_buf, tmp_pc);
+	   gf_puts(NEWLINE, tmp_pc);
+	   (*tmp_pc)(TAG_EMBED);
+	   (*tmp_pc)(TAG_BOLDOFF);
+	}
+     }
+
+     if(vesy->summary && (!env || !env->subject || strcmp(vesy->summary, env->subject))){
+	utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
+		padding, _("Summary: "), vesy->summary);
+	gf_puts(tmp_20k_buf, tmp_pc);
+	gf_puts(NEWLINE, tmp_pc);
+     }
+
+     if(vesy->organizer){
+	if(vesy->sender != NULL){
+	   utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
+		padding, _("Sent-by: "), vesy->sender);
+	   gf_puts(tmp_20k_buf, tmp_pc);
+	   gf_puts(NEWLINE, tmp_pc);
+        }
+
+        utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
+	  padding, _("Organizer: "), vesy->organizer);
+        gf_puts(tmp_20k_buf, tmp_pc);
+        gf_puts(NEWLINE, tmp_pc);
+     } /* end of if(organizer) */
+
+     if(vesy->location){
+	utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
+		padding, _("Location: "), vesy->location);
+        gf_puts(tmp_20k_buf, tmp_pc);
+        gf_puts(NEWLINE, tmp_pc);
+     } /* end of if location */
+
+     if(vesy->evstart){
+	utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
+		padding, _("Start Date: "), vesy->evstart);
+	gf_puts(tmp_20k_buf, tmp_pc);
+	gf_puts(NEWLINE, tmp_pc);
+     } /* end of if dtstart */
+
+     if(vesy->duration){
+	for(i = 0; vesy->duration[i] != NULL; i++){
+	    utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
+		padding, _("Duration: "), vesy->duration[i]);
+	    gf_puts(tmp_20k_buf, tmp_pc);
+	    gf_puts(NEWLINE, tmp_pc);
+        }
+     } /* end of DURATION */
+     else if(vesy->evend){
+	utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
 		padding, _("End Date: "), vesy->evend);
-      gf_puts(tmp_20k_buf, pc);
-      gf_puts(NEWLINE, pc);
-    } else {	/* end of if dtend */
-      utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s",
+	gf_puts(tmp_20k_buf, tmp_pc);
+	gf_puts(NEWLINE, tmp_pc);
+     } else {	/* end of if dtend */
+	utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s",
 		padding, _("No duration nor end time found for this event"));
-      gf_puts(tmp_20k_buf, pc);
-      gf_puts(NEWLINE, pc);
-    } /* end of else for if (duration) and if (dtend) */
+	gf_puts(tmp_20k_buf, tmp_pc);
+	gf_puts(NEWLINE, tmp_pc);
+     } /* end of else for if (duration) and if (dtend) */
 
-    if(vesy->attendee){
+     if(vesy->attendee){
 #define MAX_DISPLAYED  3
-	int i;
-
 	for(i = 0; vesy->attendee[i] != NULL; i++){
 	   if((cflags & FC_SUMMARY) && i >= MAX_DISPLAYED)
 	      break;
@@ -375,119 +398,191 @@ format_calendar_vevent(VCALENDAR_S *vcal, ATTACH_S *a, HANDLE_S **handlesp, int 
 	   utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%s%s%s",
 		padding, 
 		_("Attendee: "), vesy->attendee[i]);
-	   gf_puts(tmp_20k_buf, pc);
-	   gf_puts(NEWLINE, pc);
+	   gf_puts(tmp_20k_buf, tmp_pc);
+	   gf_puts(NEWLINE, tmp_pc);
 	}
-      } /* end of ATTENDEES */
+     } /* end of ATTENDEES */
 
+     so_seek(tmp_store, 0L, 0);
+     gf_set_so_readc(&tmp_gc, tmp_store);
 
-      if(cflags & FC_SUMMARY){
+     column = (flgs & FM_DISPLAY) ? ps_global->ttyo->screen_cols : 80;
+
+     wrapflags = GFW_ONCOMMA;
+
+     gf_filter_init();
+     gf_link_filter(gf_local_nvtnl, NULL);
+
+     if((F_ON(F_VIEW_SEL_URL, ps_global)
+	|| F_ON(F_VIEW_SEL_URL_HOST, ps_global)
+	|| F_ON(F_SCAN_ADDR, ps_global))
+       && handlesp){
+	gf_link_filter(gf_line_test,
+		       gf_line_test_opt(url_hilite_hdr,
+				        gf_url_hilite_opt(&uh,handlesp,2)));
+	wrapflags |= GFW_HANDLES;
+     }
+
+     if((flgs & FM_DISPLAY)
+       && !(flgs & FM_NOCOLOR)
+       && pico_usingcolor()
+       && ((VAR_NORM_FORE_COLOR
+	    && VAR_CALENDAR_HEADER_FORE_COLOR
+	    && colorcmp(VAR_NORM_FORE_COLOR, VAR_CALENDAR_HEADER_FORE_COLOR))
+          ||
+           (VAR_NORM_BACK_COLOR
+	    && VAR_CALENDAR_HEADER_BACK_COLOR
+	    && colorcmp(VAR_NORM_BACK_COLOR, VAR_CALENDAR_HEADER_BACK_COLOR))))
+      wrapflags |= GFW_CALENDARCOLOR;
+
+     if((flgs & FM_DISPLAY)
+       && !(flgs & FM_NOCOLOR)
+       && pico_usingcolor()
+       && ps_global->calendar_hdr_colors){
+	gf_link_filter(gf_line_test,
+		       gf_line_test_opt(color_calendar_headers, (void *) ps_global->calendar_hdr_colors));
+	wrapflags |= (GFW_HANDLES | GFW_CALENDARCOLOR);
+     }
+
+     if((flgs & FM_DISPLAY)
+       && !(flgs & FM_NOCOLOR)
+       && pico_usingcolor()
+       && ((VAR_NORM_FORE_COLOR
+	    && VAR_CALENDAR_HEADER_FORE_COLOR
+	    && colorcmp(VAR_NORM_FORE_COLOR, VAR_CALENDAR_HEADER_FORE_COLOR))
+          ||
+           (VAR_NORM_BACK_COLOR
+	    && VAR_CALENDAR_HEADER_BACK_COLOR
+	    && colorcmp(VAR_NORM_BACK_COLOR, VAR_CALENDAR_HEADER_BACK_COLOR)))){
+	int right_margin;
+	int total_wid;
+
+	right_margin = margin ? margin[1] : 0;
+	total_wid = column - right_margin;
+
+	gf_link_filter(gf_line_test,
+		       gf_line_test_opt(pad_to_right_edge, (void *) &total_wid));
+	wrapflags |= (GFW_HANDLES | GFW_CALENDARCOLOR);
+     }
+
+     column = MAX(column, 50);
+
+     margin = format_view_margin();
+
+     if(!(flgs & FM_NOWRAP))
+	gf_link_filter(gf_wrap,
+		     gf_wrap_filter_opt(column, column,
+				        (flgs & FM_NOINDENT) ? NULL : margin,
+					4, wrapflags));
+
+     gf_link_filter(gf_nvtnl_local, NULL);
+
+     if((errstr = gf_pipe(tmp_gc, pc)) != NULL)
+	q_status_message1(SM_ORDER | SM_DING, 3, 3,
+				  "Can't build header : %.200s", errstr);
+
+     if(cflags & FC_SUMMARY){
 	COLOR_PAIR *lastc = NULL;
 	COLOR_PAIR *hdrcolor = NULL;
 
 	if((flgs & FM_DISPLAY)
 	   && !(flgs & FM_NOCOLOR)
 	   && pico_usingcolor()
-	   && ps_global->VAR_HEADER_GENERAL_FORE_COLOR
-	   && ps_global->VAR_HEADER_GENERAL_BACK_COLOR
+	   && ps_global->VAR_CALENDAR_HEADER_FORE_COLOR
+	   && ps_global->VAR_CALENDAR_HEADER_BACK_COLOR
 	   && ps_global->VAR_NORM_FORE_COLOR
 	   && ps_global->VAR_NORM_BACK_COLOR
-	   && (colorcmp(ps_global->VAR_HEADER_GENERAL_FORE_COLOR,
+	   && (colorcmp(ps_global->VAR_CALENDAR_HEADER_FORE_COLOR,
 		        ps_global->VAR_NORM_FORE_COLOR)
-		       || colorcmp(ps_global->VAR_HEADER_GENERAL_BACK_COLOR,
-	    ps_global->VAR_NORM_BACK_COLOR))){
+	       || colorcmp(ps_global->VAR_CALENDAR_HEADER_BACK_COLOR,
+		   ps_global->VAR_NORM_BACK_COLOR))){
 
-	    if((hdrcolor = new_color_pair(ps_global->VAR_HEADER_GENERAL_FORE_COLOR,
-					  ps_global->VAR_HEADER_GENERAL_BACK_COLOR)) != NULL){
-		if(!pico_is_good_colorpair(hdrcolor))
-		  free_color_pair(&hdrcolor);
-	    }
-	}
-
-	if(!(!hdrcolor || embed_color(hdrcolor, pc)))
-	   return;
-
-	gf_puts(padding, pc);
-	utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "[%s]", _("More Details"));
-
-	if(handlesp){
-	   char buf[16], color[64];
-	   int	  l;
-	   HANDLE_S *h; 
-
-	   h	            = new_handle(handlesp);
-	   if(minkey < 0)   minkey = h->key;
-	   h->type          = iCal;
-	   h->h.ical.attach = a;
-	   h->h.ical.depth  = h->key - minkey;
-
-	   snprintf(buf, sizeof(buf), "%d", h->key);
-	   buf[sizeof(buf)-1] = '\0';
-
-	   if(!(flgs & FM_NOCOLOR)
-	      && handle_start_color(color, sizeof(color), &l, 1)){
-	      lastc = get_cur_embedded_color();
-	      if(!gf_nputs(color, (long) l, pc))
-		 return;
+	      if((hdrcolor = new_color_pair(ps_global->VAR_CALENDAR_HEADER_FORE_COLOR,
+					  ps_global->VAR_CALENDAR_HEADER_BACK_COLOR)) != NULL){
+		 if(!pico_is_good_colorpair(hdrcolor))
+		    free_color_pair(&hdrcolor);
+	      }
 	   }
-	   else if(F_OFF(F_SLCTBL_ITEM_NOBOLD, ps_global)
+
+	   if(!(!hdrcolor || embed_color(hdrcolor, pc)))
+	      return;
+
+	   gf_puts(padding, pc);
+	   utf8_snprintf(tmp_20k_buf, SIZEOF_20KBUF, "[%s]", _("More Details"));
+
+	   if(handlesp){
+	      char buf[16], color[64];
+	      int	  l;
+	      HANDLE_S *h;
+
+	      h	            = new_handle(handlesp);
+	      h->type          = iCal;
+	      h->h.ical.attach = a;
+	      h->h.ical.depth  = minkey++;
+
+	      snprintf(buf, sizeof(buf), "%d", h->key);
+	      buf[sizeof(buf)-1] = '\0';
+
+	      if(!(flgs & FM_NOCOLOR)
+	         && handle_start_color(color, sizeof(color), &l, 1)){
+	         lastc = get_cur_embedded_color();
+	         if(!gf_nputs(color, (long) l, pc))
+		    return;
+	      }
+	      else if(F_OFF(F_SLCTBL_ITEM_NOBOLD, ps_global)
 			&& (!((*pc)(TAG_EMBED) && (*pc)(TAG_BOLDON))))
 		  return;
 
-	   if(!((*pc)(TAG_EMBED) && (*pc)(TAG_HANDLE)
+	      if(!((*pc)(TAG_EMBED) && (*pc)(TAG_HANDLE)
 		     && (*pc)(strlen(buf)) && gf_puts(buf, pc)))
 		  return;
-	} else
-	    tmp_20k_buf[0] = '\0';
+	   } else
+	       tmp_20k_buf[0] = '\0';
 
-	if(!format_env_puts(tmp_20k_buf, pc))
-	   return;
+	   if(!format_env_puts(tmp_20k_buf, pc))
+	      return;
 
-	if(handlesp){
-	   if(lastc){
-	      if(F_OFF(F_SLCTBL_ITEM_NOBOLD, ps_global)){
-		if(!((*pc)(TAG_EMBED) && (*pc)(TAG_BOLDOFF)))
-		   return;
+	   if(handlesp){
+	      if(lastc){
+	         if(F_OFF(F_SLCTBL_ITEM_NOBOLD, ps_global)){
+		    if(!((*pc)(TAG_EMBED) && (*pc)(TAG_BOLDOFF)))
+		       return;
+	         }
+
+		 if(!embed_color(lastc, pc))
+		    return;
+
+		 free_color_pair(&lastc);
 	      }
+	      else if(!((*pc)(TAG_EMBED) && (*pc)(TAG_BOLDOFF)))
+			return;
 
-	      if(!embed_color(lastc, pc))
-		 return;
-
-	      free_color_pair(&lastc);
+	      if(!((*pc)(TAG_EMBED) && (*pc)(TAG_INVOFF)))
+	         return;
 	   }
-	   else if(!((*pc)(TAG_EMBED) && (*pc)(TAG_BOLDOFF)))
-		  return;
 
-	   if(!((*pc)(TAG_EMBED) && (*pc)(TAG_INVOFF)))
+	   if(padwid > 0){
+	      snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%*.*s", padwid, padwid, "");
+	      if(!gf_puts(tmp_20k_buf, pc))
+	         return;
+	   }
+
+	   if(!gf_puts(NEWLINE, pc))
 	      return;
-	}
+     }
+     gf_clear_so_writec(tmp_store);
 
-	if(padwid > 0){
-	   snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%*.*s", padwid, padwid, "");
-	   if(!gf_puts(tmp_20k_buf, pc))
-	      return;
-	}
-
-	if(!gf_puts(NEWLINE, pc))
-	   return;
-      }
-      avail = width - m1 -2;
-
-      dwid = MAX(MIN(40, avail), 0);
-      avail -= dwid;
-
-      snprintf(tmp_20k_buf, SIZEOF_20KBUF, "%*.*s%s", m1, m1, "",
-		repeat_char(dwid, '-'));
-
-      gf_puts(tmp_20k_buf, pc);
-      if(vesy->next)
-        gf_puts(NEWLINE, pc);
+     gf_puts(dashes, pc);
+     if(vesy->next)
+          gf_puts(NEWLINE, pc);
+     gf_clear_so_readc(tmp_store);
+     so_give(&tmp_store);
   }
   free_vevent_summary(&vesummary);
 }
 
 int
-format_calendar(long int msgno, BODY *body, HANDLE_S **handlesp, int flgs, int width, gf_o_t pc)
+format_calendar(long int msgno, ENVELOPE *env, BODY *body, HANDLE_S **handlesp, int flgs, int width, gf_o_t pc)
 {
   char *rawtext, *caltext;
   unsigned long callen;
@@ -550,12 +645,13 @@ format_calendar(long int msgno, BODY *body, HANDLE_S **handlesp, int flgs, int w
 	   vcal = (VCALENDAR_S *) get_body_sparep_data(b->sparep);
         if(vcal != NULL && vcal->comp != NULL){
 	   if(vcal->comp[VEvent] != NULL){
-	      format_calendar_vevent(vcal, a,  handlesp, flgs, width, pc, FC_SUMMARY);
+	      format_calendar_vevent(vcal, a,  handlesp, flgs, width, pc, FC_SUMMARY, env);
 	   } /* else  another type of entry in the calendar */
 	}
 	gf_puts(NEWLINE, pc);
      }
   }
+
   return 0;
 }
 
@@ -1275,6 +1371,51 @@ is_an_addr_hdr(char *fieldname)
     return((*p) ? 1 : 0);
 }
 
+/*
+ * is_calendar_hdr - is this a calendar header?
+ *
+ *             name - the header name to check
+ */
+int
+is_calendar_hdr(char *fieldname)
+{
+    char   fbuf[FBUF_LEN+1];
+    char  *colon, *fname;
+    static char *cal_headers[] = {
+	"sent-by",
+	"organizer",
+	"location",
+	"start date",
+	"end date",
+	"duration",
+	"attendee",
+	"summary",
+	"created on",
+	"description",
+	"priority",
+	NULL
+    };
+
+    /* so it is pointing to NULL */
+    char **p = cal_headers + sizeof(cal_headers)/sizeof(*cal_headers) - 1;
+
+    if((colon = strindex(fieldname, ':')) != NULL){
+	strncpy(fbuf, fieldname, MIN(colon-fieldname,sizeof(fbuf)));
+	fbuf[MIN(colon-fieldname,sizeof(fbuf)-1)] = '\0';
+	fname = fbuf;
+    }
+    else
+      fname = fieldname;
+
+    if(fname && *fname){
+	for(p = cal_headers; *p; p++)
+	  if(!strucmp(fname, *p))
+	    break;
+    }
+
+    return((*p) ? 1 : 0);
+}
+
 
 /*
  * Format a single field from the envelope
@@ -1375,10 +1516,14 @@ handle_start_color(char *colorstring, size_t buflen, int *len, int use_hdr_color
 	char *fg = NULL, *bg = NULL, *s;
 	char *basefg = NULL, *basebg = NULL;
 
-	basefg = use_hdr_color	? ps_global->VAR_HEADER_GENERAL_FORE_COLOR
-				: ps_global->VAR_NORM_FORE_COLOR;
-	basebg = use_hdr_color	? ps_global->VAR_HEADER_GENERAL_BACK_COLOR
-				: ps_global->VAR_NORM_BACK_COLOR;
+	basefg = use_hdr_color == 2
+		 ? ps_global->VAR_HEADER_GENERAL_FORE_COLOR
+		 : (use_hdr_color == 1 ? ps_global->VAR_CALENDAR_HEADER_FORE_COLOR
+				       : ps_global->VAR_NORM_FORE_COLOR);
+	basebg = use_hdr_color == 2
+		 ? ps_global->VAR_HEADER_GENERAL_BACK_COLOR
+		 : (use_hdr_color == 1 ? ps_global->VAR_CALENDAR_HEADER_BACK_COLOR
+				       : ps_global->VAR_NORM_BACK_COLOR);
 
 	if(ps_global->VAR_SLCTBL_FORE_COLOR
 	   && colorcmp(ps_global->VAR_SLCTBL_FORE_COLOR, basefg))
@@ -1676,7 +1821,7 @@ color_headers(long int linenum, char *line, LT_INS_S **ins, void *local)
 
 	      case ',':
 		if(!(in_quote || in_comment)){
-		    /* we reached the end of this address */   
+		    /* we reached the end of this address */
 		    *p = '\0';
 		    if(color)
 		      free_color_pair(&color);
@@ -1690,7 +1835,7 @@ color_headers(long int linenum, char *line, LT_INS_S **ins, void *local)
 								   color->bg),
 						       (2 * RGBLEN) + 4);
 			    *p = ',';
-			    for(q = p; q > beg && 
+			    for(q = p; q > beg &&
 				  isspace((unsigned char)*(q-1)); q--)
 			      ;
 
@@ -1703,17 +1848,17 @@ color_headers(long int linenum, char *line, LT_INS_S **ins, void *local)
 		    }
 		    else
 		      *p = ',';
-		    
+
 		    for(p++; isspace((unsigned char)*p); p++)
 		      ;
-		    
+
 		    beg = p;
 		}
 		else
 		  p++;
 
 		break;
-	    
+
 	      case TAG_EMBED:
 		switch(*(++p)){
 		  case TAG_HANDLE:
@@ -1726,7 +1871,7 @@ color_headers(long int linenum, char *line, LT_INS_S **ins, void *local)
 		    snprintf(rgbbuf, sizeof(rgbbuf), "%.*s", RGBLEN, p);
 		    rgbbuf[sizeof(rgbbuf)-1] = '\0';
 		    p += RGBLEN;	/* advance past color value */
-		  
+
 		    if(!colorcmp(rgbbuf, VAR_HEADER_GENERAL_FORE_COLOR))
 		      ins = gf_line_test_new_ins(ins, p,
 					         color_embed(color->fg,NULL),
@@ -1738,7 +1883,7 @@ color_headers(long int linenum, char *line, LT_INS_S **ins, void *local)
 		    snprintf(rgbbuf, sizeof(rgbbuf), "%.*s", RGBLEN, p);
 		    rgbbuf[sizeof(rgbbuf)-1] = '\0';
 		    p += RGBLEN;	/* advance past color value */
-		  
+
 		    if(!colorcmp(rgbbuf, VAR_HEADER_GENERAL_BACK_COLOR))
 		      ins = gf_line_test_new_ins(ins, p,
 					         color_embed(NULL,color->bg),
@@ -1762,7 +1907,7 @@ color_headers(long int linenum, char *line, LT_INS_S **ins, void *local)
 	  ;
 
 	if(*q && !(in_quote || in_comment)){
-	    /* we reached the end of this address */   
+	    /* we reached the end of this address */
 	    if(color)
 	      free_color_pair(&color);
 
@@ -1822,7 +1967,7 @@ color_headers(long int linenum, char *line, LT_INS_S **ins, void *local)
 			  snprintf(rgbbuf, sizeof(rgbbuf), "%.*s", RGBLEN, p);
 			  rgbbuf[sizeof(rgbbuf)-1] = '\0';
 			  p += RGBLEN;	/* advance past color value */
-			  
+
 			  if(!colorcmp(rgbbuf, VAR_HEADER_GENERAL_FORE_COLOR)
 			     && !colorcmp(bg, VAR_HEADER_GENERAL_BACK_COLOR))
 			    ins = gf_line_test_new_ins(ins, p,
@@ -1834,7 +1979,7 @@ color_headers(long int linenum, char *line, LT_INS_S **ins, void *local)
 			  snprintf(rgbbuf, sizeof(rgbbuf), "%.*s", RGBLEN, p);
 			  rgbbuf[sizeof(rgbbuf)-1] = '\0';
 			  p += RGBLEN;	/* advance past color value */
-			  
+
 			  if(!colorcmp(rgbbuf, VAR_HEADER_GENERAL_BACK_COLOR)
 			     && !colorcmp(fg, VAR_HEADER_GENERAL_FORE_COLOR))
 			    ins = gf_line_test_new_ins(ins, p,
@@ -1851,6 +1996,241 @@ color_headers(long int linenum, char *line, LT_INS_S **ins, void *local)
 		ins = gf_line_test_new_ins(ins, line + strlen(line),
 					   color_embed(VAR_HEADER_GENERAL_FORE_COLOR,
 						       VAR_HEADER_GENERAL_BACK_COLOR),
+					   (2 * RGBLEN) + 4);
+	    }
+
+	    free_color_pair(&color);
+	}
+    }
+
+    return(0);
+}
+
+/*
+ * Line filter to add color to displayed headers.
+ */
+int
+color_calendar_headers(long int linenum, char *line, LT_INS_S **ins, void *local)
+{
+    char *lp;
+    static char field[FBUF_LEN + 1];
+    static int in_description = 0;
+    static int in_attendees = 0;
+    char possible_field[FBUF_LEN + 1];
+    char        fg[RGBLEN + 1], bg[RGBLEN + 1], rgbbuf[RGBLEN + 1];
+    char       *p, *q, *value, *beg;
+    COLOR_PAIR *color;
+    int         in_quote = 0, in_comment = 0, did_color = 0;
+    struct variable *vars = ps_global->vars;
+
+    field[FBUF_LEN] = '\0';
+    for(lp = line; isspace((unsigned char)*lp); lp++);
+    if(in_attendees && strlen(line) == 0) in_attendees = 0;
+    if((in_attendees || in_description) && strstr(line, "This event was tagged as a")){
+	 in_attendees = in_description = 0;
+    }
+    if(!(value = strindex(lp, ':'))){
+	if(!in_description && !in_attendees)
+	   return(0);
+	else{	/* we are inside a description or list of attendees */
+	   value = lp;
+	   for(value; isspace((unsigned char)*value); value++);
+	}
+    }
+    else{
+       memset(possible_field, 0, sizeof(field));
+       strncpy(possible_field, lp, MIN(value-lp, sizeof(field)-1));
+       if(!is_calendar_hdr(possible_field)){	/* we are inside description or attendees */
+	  if(!strucmp(possible_field, "List of Attendees")){
+	     strcpy(field, "Attendee");
+	     for(value++; isspace((unsigned char)*value); value++);
+	  }
+	  else if(in_description){
+	     strcpy(field, "Description");
+	     value = lp;
+	  }
+	  else if(in_attendees){
+	     strcpy(field, "Attendee");
+	     value = lp;
+	  }
+	  else
+	     for(value++; isspace((unsigned char)*value); value++);
+       }
+       else{
+	  for(value++; isspace((unsigned char)*value); value++);
+	  strcpy(field, possible_field);
+       }
+    }
+
+    strncpy(fg, color_to_asciirgb(VAR_CALENDAR_HEADER_FORE_COLOR), sizeof(fg));
+    fg[sizeof(fg)-1] = '\0';
+    strncpy(bg, color_to_asciirgb(VAR_CALENDAR_HEADER_BACK_COLOR), sizeof(bg));
+    bg[sizeof(bg)-1] = '\0';
+
+    if(is_calendar_hdr(field)){
+	in_description = strucmp(field, "Description") ? 0 : 1;
+	in_attendees = strucmp(field, "Attendee") ? 0 : 1;
+	if((color = hdr_color(field, NULL, ps_global->calendar_hdr_colors)) != NULL){
+	    if(pico_is_good_colorpair(color)){
+		ins = gf_line_test_new_ins(ins, value,
+					   color_embed(color->fg, color->bg),
+					   (2 * RGBLEN) + 4);
+		did_color++;
+	    }
+	    else
+	      free_color_pair(&color);
+	}
+	else{
+	    color = new_color_pair(fg, bg);
+	    if(pico_is_good_colorpair(color)){
+	       ins = gf_line_test_new_ins(ins, value,
+					   color_embed(color->fg, color->bg),
+					   (2 * RGBLEN) + 4);
+	       did_color++;
+	    }
+	    else
+	      free_color_pair(&color);
+	}
+
+	beg = p = value;
+	while(*p){
+	    switch(*p){
+	      case TAG_EMBED:
+		switch(*(++p)){
+		  case TAG_HANDLE:
+		    p++;
+		    p += *p + 1;	/* skip handle key */
+		    break;
+
+		  case TAG_FGCOLOR:
+		    p++;
+		    snprintf(rgbbuf, sizeof(rgbbuf), "%.*s", RGBLEN, p);
+		    rgbbuf[sizeof(rgbbuf)-1] = '\0';
+		    p += RGBLEN;	/* advance past color value */
+
+		    if(!colorcmp(rgbbuf, VAR_CALENDAR_HEADER_FORE_COLOR))
+		      ins = gf_line_test_new_ins(ins, p,
+					         color_embed(color->fg,NULL),
+					         RGBLEN + 2);
+		    break;
+
+		  case TAG_BGCOLOR:
+		    p++;
+		    snprintf(rgbbuf, sizeof(rgbbuf), "%.*s", RGBLEN, p);
+		    rgbbuf[sizeof(rgbbuf)-1] = '\0';
+		    p += RGBLEN;	/* advance past color value */
+
+		    if(!colorcmp(rgbbuf, VAR_CALENDAR_HEADER_BACK_COLOR))
+		      ins = gf_line_test_new_ins(ins, p,
+					         color_embed(NULL,color->bg),
+					         RGBLEN + 2);
+
+		    break;
+
+		  default:
+		    break;
+	        }
+
+		break;
+
+	      default:
+		p++;
+		break;
+	    }
+	}
+
+	for(q = beg; *q && isspace((unsigned char)*q); q++)
+	  ;
+
+	if(*q){
+	    /* we reached the end of this address */
+	    if(color)
+	      free_color_pair(&color);
+
+	    if((color = hdr_color(field, beg, ps_global->calendar_hdr_colors)) != NULL){
+		if(pico_is_good_colorpair(color)){
+		    did_color++;
+		    ins = gf_line_test_new_ins(ins, beg,
+					       color_embed(color->fg,
+							   color->bg),
+					       (2 * RGBLEN) + 4);
+		    for(q = p; q > beg && isspace((unsigned char)*(q-1)); q--)
+		      ;
+
+		    ins = gf_line_test_new_ins(ins, q,
+					       color_embed(fg, bg),
+					       (2 * RGBLEN) + 4);
+		}
+		else
+		  free_color_pair(&color);
+	    }
+	}
+
+	if(color)
+	  free_color_pair(&color);
+
+	if(did_color)
+	  ins = gf_line_test_new_ins(ins, line + strlen(line),
+				     color_embed(VAR_CALENDAR_HEADER_FORE_COLOR,
+					         VAR_CALENDAR_HEADER_BACK_COLOR),
+				     (2 * RGBLEN) + 4);
+    }
+    else{
+	color = hdr_color(field, value, ps_global->calendar_hdr_colors);
+
+	if(color){
+	    if(pico_is_good_colorpair(color)){
+		ins = gf_line_test_new_ins(ins, value,
+					   color_embed(color->fg, color->bg),
+					   (2 * RGBLEN) + 4);
+
+		/*
+		 * Loop watching colors, and override with header
+		 * color whenever the normal foreground and background
+		 * colors are in force.
+		 */
+		p = value;
+		while(*p)
+		  if(*p++ == TAG_EMBED){
+
+		      switch(*p++){
+			case TAG_HANDLE:
+			  p += *p + 1;	/* skip handle key */
+			  break;
+
+			case TAG_FGCOLOR:
+			  snprintf(rgbbuf, sizeof(rgbbuf), "%.*s", RGBLEN, p);
+			  rgbbuf[sizeof(rgbbuf)-1] = '\0';
+			  p += RGBLEN;	/* advance past color value */
+
+			  if(!colorcmp(rgbbuf, VAR_CALENDAR_HEADER_FORE_COLOR)
+			     && !colorcmp(bg, VAR_CALENDAR_HEADER_BACK_COLOR))
+			    ins = gf_line_test_new_ins(ins, p,
+						       color_embed(color->fg,NULL),
+						       RGBLEN + 2);
+			  break;
+
+			case TAG_BGCOLOR:
+			  snprintf(rgbbuf, sizeof(rgbbuf), "%.*s", RGBLEN, p);
+			  rgbbuf[sizeof(rgbbuf)-1] = '\0';
+			  p += RGBLEN;	/* advance past color value */
+
+			  if(!colorcmp(rgbbuf, VAR_CALENDAR_HEADER_BACK_COLOR)
+			     && !colorcmp(fg, VAR_CALENDAR_HEADER_FORE_COLOR))
+			    ins = gf_line_test_new_ins(ins, p,
+						       color_embed(NULL,color->bg),
+						       RGBLEN + 2);
+
+			  break;
+
+			default:
+			  break;
+		      }
+		  }
+
+		ins = gf_line_test_new_ins(ins, line + strlen(line),
+					   color_embed(VAR_CALENDAR_HEADER_FORE_COLOR,
+						       VAR_CALENDAR_HEADER_BACK_COLOR),
 					   (2 * RGBLEN) + 4);
 	    }
 
@@ -2913,6 +3293,35 @@ any_hdr_color(char *fieldname)
     return(hc ? 1 : 0);
 }
 
+/*
+ * The argument fieldname is something like "Location:..." or "Location".
+ * Look through the specs in calendar_hdr_colors for a match of the fieldname,
+ * and return 1 if that fieldname is in one of the patterns, 0 otherwise.
+ */
+int
+any_calendar_hdr_color(char *fieldname)
+{
+    SPEC_COLOR_S *hc = NULL;
+    char         *colon, *fname;
+    char          fbuf[FBUF_LEN+1];
+
+    colon = strindex(fieldname, ':');
+    if(colon){
+	strncpy(fbuf, fieldname, MIN(colon-fieldname,FBUF_LEN));
+	fbuf[MIN(colon-fieldname,FBUF_LEN)] = '\0';
+	fname = fbuf;
+    }
+    else
+      fname = fieldname;
+
+    if(fname && *fname)
+      for(hc = ps_global->calendar_hdr_colors; hc; hc = hc->next)
+	if(hc->spec && !strucmp(fname, hc->spec))
+	  break;
+
+    return(hc ? 1 : 0);
+}
+
 
 /*----------------------------------------------------------------------
      Format an address field, wrapping lines nicely at commas
@@ -3583,10 +3992,12 @@ scroll_handle_end_color(char *colorstring, size_t buflen, int *len, int use_hdr_
 	char *fg = NULL, *bg = NULL, *s;
 	char *basefg = NULL, *basebg = NULL;
 
-	basefg = use_hdr_color	? ps_global->VAR_HEADER_GENERAL_FORE_COLOR
-				: ps_global->VAR_NORM_FORE_COLOR;
-	basebg = use_hdr_color	? ps_global->VAR_HEADER_GENERAL_BACK_COLOR
-				: ps_global->VAR_NORM_BACK_COLOR;
+	basefg = use_hdr_color == 2 ? ps_global->VAR_HEADER_GENERAL_FORE_COLOR
+		 : (use_hdr_color == 1 ? ps_global->VAR_CALENDAR_HEADER_FORE_COLOR
+				       : ps_global->VAR_NORM_FORE_COLOR);
+	basebg = use_hdr_color == 2 ? ps_global->VAR_HEADER_GENERAL_BACK_COLOR
+		 : (use_hdr_color == 1 ? ps_global->VAR_CALENDAR_HEADER_BACK_COLOR
+				       : ps_global->VAR_NORM_BACK_COLOR);
 
 	/*
 	 * We need to change the fg and bg colors back even if they
