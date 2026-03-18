@@ -4195,12 +4195,13 @@ void graph_flag (MAILSTREAM *stream, char *sequence, char *flag, long flags)
 
      nf = (flags & ST_SET) ? T : NIL;
       /* Step 1 */
-     for (i = 1; i <= stream->nmsgs; i++)
-       if (((elt = mail_elt (stream,i))->sequence) && elt->seen != nf){
-	   aseen++;
-	   last_seen = i;	/* record the number in case it is unique */
-       }
-
+     if(f & fSEEN){
+       for (i = 1; i <= stream->nmsgs; i++)
+           if (((elt = mail_elt (stream,i))->sequence) && elt->seen != nf){
+	      aseen++;
+	      last_seen = i;	/* record the number in case it is unique */
+           }
+     }
      /* Step 1a */
      if(aseen == 1) graph_mark_msg_seen(stream, last_seen, nf);
      /* Step 1b */
