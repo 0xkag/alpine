@@ -1621,6 +1621,12 @@ folder_list_text(struct pine *ps, FPROC_S *fp, gf_o_t pc, HANDLE_S **handlesp, i
 		if(c_list->prev)
 		  gf_puts("\n", pc);		/* blank line */
 
+		/* reset color to normal before setting it to specific
+		 * in case CLR_FLDRLT is not set by the user. This causes
+		 * color_embed() to reset its static variable before writing
+		 * again.
+		 */
+		color_write_for_folder(pc, CLR_NORMAL);
 		color_write_for_folder(pc, CLR_FLDRLT);
 		gf_puts(repeat_char(cols, '-'), pc);
 		gf_puts("\n", pc);
