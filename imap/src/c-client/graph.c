@@ -4440,7 +4440,7 @@ graph_check_mailbox_changes(MAILSTREAM *stream)
      buffer_add(&s, "}");		/* end main json object */
      LOCAL->private = (char *) s;	/* set up body for graph_response */
      graph_send_command(stream);
-     fs_give((void **) &s);
+     if(stream && LOCAL && s) fs_give((void **) &s);
      if(resource) fs_give((void **) &resource);
   } while (stream && LOCAL && (LOCAL->created.nextlink || LOCAL->updated.nextlink || LOCAL->deleted.nextlink));
   if(stream && LOCAL && LOCAL->urltail) fs_give((void **) &LOCAL->urltail);
