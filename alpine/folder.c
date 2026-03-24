@@ -1639,6 +1639,7 @@ folder_list_text(struct pine *ps, FPROC_S *fp, gf_o_t pc, HANDLE_S **handlesp, i
 		   || F_ON(F_CMBND_SUBDIR_DISP, ps_global))){
 		char buf[6*MAX_SCREEN_COLS + 1];
 
+		color_write_for_folder(pc, CLR_NORMAL);
 		color_write_for_folder(pc, CLR_FLDRLT);
 		if(cols < 40){
 		  snprintf(buf, sizeof(buf), "%.*s", cols,
@@ -1676,6 +1677,7 @@ folder_list_text(struct pine *ps, FPROC_S *fp, gf_o_t pc, HANDLE_S **handlesp, i
 
 		lbuf[sizeof(lbuf)-1] = '\0';
 
+		color_write_for_folder(pc, CLR_NORMAL);
 		color_write_for_folder(pc, CLR_FLDRLT);
 		gf_puts(folder_list_center_space(lbuf, cols), pc);
 		gf_puts(lbuf, pc);
@@ -1691,6 +1693,7 @@ folder_list_text(struct pine *ps, FPROC_S *fp, gf_o_t pc, HANDLE_S **handlesp, i
 
 		lbuf[sizeof(lbuf)-1] = '\0';
 
+		color_write_for_folder(pc, CLR_NORMAL);
 		color_write_for_folder(pc, CLR_FLDRLT);
 		gf_puts(folder_list_center_space(lbuf, cols), pc);
 		gf_puts(lbuf, pc);
@@ -1704,6 +1707,7 @@ folder_list_text(struct pine *ps, FPROC_S *fp, gf_o_t pc, HANDLE_S **handlesp, i
 		strncpy(buf, strsquish(tmp_20k_buf,SIZEOF_20KBUF,c_list->dir->desc,cols),
 			sizeof(buf)-1);
 		buf[sizeof(buf)-1] = '\0';
+		color_write_for_folder(pc, CLR_NORMAL);
 		color_write_for_folder(pc, CLR_FLDRLT);
 		gf_puts(folder_list_center_space(buf, cols), pc);
 		gf_puts(buf, pc);
@@ -1725,6 +1729,7 @@ folder_list_text(struct pine *ps, FPROC_S *fp, gf_o_t pc, HANDLE_S **handlesp, i
 
 		lbuf[sizeof(lbuf)-1] = '\0';
 
+		color_write_for_folder(pc, CLR_NORMAL);
 		color_write_for_folder(pc, CLR_FLDRLT);
 		gf_puts(folder_list_center_space(lbuf, cols), pc);
 		gf_puts(lbuf, pc);
@@ -1732,6 +1737,7 @@ folder_list_text(struct pine *ps, FPROC_S *fp, gf_o_t pc, HANDLE_S **handlesp, i
 		color_write_for_folder(pc, CLR_NORMAL);
 	    }
 
+	    color_write_for_folder(pc, CLR_NORMAL);
 	    color_write_for_folder(pc, CLR_FLDRLT);
 	    gf_puts(repeat_char(cols, '-'), pc);
 	    gf_puts("\n\n", pc);
@@ -1901,6 +1907,7 @@ folder_list_text(struct pine *ps, FPROC_S *fp, gf_o_t pc, HANDLE_S **handlesp, i
 
 		lbuf[sizeof(lbuf)-1] = '\0';
 
+		color_write_for_folder(pc, CLR_NORMAL);
 		color_write_for_folder(pc, CLR_FLDRLT);
 		gf_puts(folder_list_center_space(lbuf, cols), pc);
 		(void) folder_list_write(pc, handlesp, c_list, -1, lbuf,
@@ -1920,6 +1927,7 @@ folder_list_text(struct pine *ps, FPROC_S *fp, gf_o_t pc, HANDLE_S **handlesp, i
 
 	    lbuf[sizeof(lbuf)-1] = '\0';
 
+	    color_write_for_folder(pc, CLR_NORMAL);
 	    color_write_for_folder(pc, CLR_FLDRLT);
 	    gf_puts(folder_list_center_space(lbuf, cols), pc);
 	    (void) folder_list_write(pc, handlesp, c_list, -1, lbuf,
