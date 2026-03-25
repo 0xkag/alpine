@@ -3211,10 +3211,10 @@ graph_msgdata (MAILSTREAM *stream, unsigned long msgno, char *section,
 	  addquotes = 0;						\
 	  buffer_add(&(X), (Z));					\
 	  if(strchr((Y)->text.data, ' ')) addquotes++;			\
-	  if (addquotes) buffer_add(&(X), "\"");			\
+	  if (addquotes) buffer_add(&(X), "\\\"");			\
 	  buffer_add(&(X), q = graph_quoted((Y)->text.data));		\
 	  if(q) fs_give((void **) &q);					\
-	  if(addquotes) buffer_add(&(X), "\"");				\
+	  if(addquotes) buffer_add(&(X), "\\\"");				\
 	  if(sl->next) buffer_add(&(X), " ");				\
        }								\
        buffer_add(&(X), "\" ");						\
