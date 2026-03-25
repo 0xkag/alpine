@@ -671,7 +671,7 @@ long pop3_auth (MAILSTREAM *stream,NETMBX *mb,char *pwd,char *usr)
       fs_give ((void **) &t);
     }
     if(mb && *mb->auth){
-      if(!authsaved) sprintf (pwd,"Client does not support AUTH=%.80s authenticator",mb->auth);
+      if(!authsaved) sprintf (pwd,"Failed to login using %.80s authenticator",mb->auth);
       else if (!atsaved) sprintf (pwd,"POP server does not support AUTH=%.80s authenticator",mb->auth);
       if (!authsaved || !atsaved) mm_log (pwd,ERROR);
   }

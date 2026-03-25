@@ -350,7 +350,7 @@ long smtp_auth (SENDSTREAM *stream,NETMBX *mb,char *tmp)
     fs_give ((void **) &lsterr);
   }
   if(mb && *mb->auth){
-      if(!authsaved) sprintf (tmp, "Client does not support AUTH=%.80s authenticator",mb->auth);
+      if(!authsaved) sprintf (tmp, "Failed to login using %.80s authenticator",mb->auth);
       else if (!atsaved) sprintf (tmp,"SMTP server does not support AUTH=%.80s authenticator",mb->auth);
       if (!authsaved || !atsaved) mm_log (tmp,ERROR);
   }

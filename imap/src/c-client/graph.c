@@ -1287,7 +1287,7 @@ graph_auth (MAILSTREAM *stream,NETMBX *mb)
     fs_give ((void **) &lsterr);
   }
   if(mb && *mb->auth){
-     if(!uasaved) sprintf (tmp,"Client does not support AUTH=%.80s authenticator",mb->auth);
+     if(!uasaved) sprintf (tmp,"Failed to login using %.80s authenticator",mb->auth);
      else if (!atsaved) sprintf (tmp,"GRAPH server does not support AUTH=%.80s authenticator",mb->auth);
      if (!uasaved || !atsaved) mm_log (tmp,ERROR);
   }
@@ -2446,7 +2446,6 @@ graph_close (MAILSTREAM *stream,long options)
     if(LOCAL->params) http_param_free(&LOCAL->params);
     if(LOCAL->eparam) http_param_free(&LOCAL->eparam);
     if(LOCAL->urltail) fs_give((void **) &LOCAL->urltail);
-    if(LOCAL->private) fs_give((void **) &LOCAL->private);
     if(LOCAL->user) fs_give((void **) &LOCAL->user);
     if(LOCAL->created.nextlink) fs_give((void **) &LOCAL->created.nextlink);
     if(LOCAL->created.deltalink) fs_give((void **) &LOCAL->created.deltalink);
@@ -2642,7 +2641,7 @@ graph_get_attachment_list(MAILSTREAM *stream, GRAPH_MESSAGE *msg)
      LOCAL->params[0].value = cpystr(GRAPHATTACHMENT);
 		/* now send the command */
      graph_send_command(stream);
-     LOCAL->private = NIL;
+     if(stream && LOCAL) LOCAL->private = NIL;
 		/* free resource. Always check that LOCAL is valid after a send_command */
      if(stream && LOCAL && LOCAL->resource) fs_give((void **) &LOCAL->resource);
   }
@@ -2784,7 +2783,8 @@ graph_structure (MAILSTREAM *stream, unsigned long msgno, BODY **body, long flag
 	if(!*b){
 	  BODY *tb; 		   /* text body */
 
-	  msg = graph_fetch_msg (stream, msgno);
+	  if(stream && LOCAL) msg = graph_fetch_msg (stream, msgno);
+	  else return NIL;
 	  if(stream && LOCAL && msg && !msg->body.content && msg->id){
 	     graph_get_message_body_text(stream, msgno);
 	     msg->valid |= GPH_BODY;
@@ -3046,7 +3046,7 @@ graph_msgdata (MAILSTREAM *stream, unsigned long msgno, char *section,
   MESSAGECACHE *elt = mail_elt(stream, msgno);
   GRAPH_MESSAGE *msg;
 
-  if(!LOCAL->loser){
+  if(stream && LOCAL && !LOCAL->loser){
      if(!compare_cstring(section, "HEADER") && !first && !last){
 	long eo = (long) mail_parameters(NIL, GET_GRAPHENVELOPEONLY, NIL);
 	msg = GDPP(elt);

@@ -1272,7 +1272,7 @@ long imap_auth (MAILSTREAM *stream,NETMBX *mb,char *tmp,char *usr)
     fs_give ((void **) &lsterr);
   }
   if(mb && *mb->auth){
-     if(!uasaved) sprintf (tmp,"Client does not support AUTH=%.80s authenticator",mb->auth);
+     if(!uasaved) sprintf (tmp,"Failed to login using %.80s authenticator",mb->auth);
      else if (!atsaved) sprintf (tmp,"IMAP server does not support AUTH=%.80s authenticator",mb->auth);
      if (!uasaved || !atsaved) mm_log (tmp,ERROR);
   }
