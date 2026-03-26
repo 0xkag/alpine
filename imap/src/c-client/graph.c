@@ -1906,7 +1906,7 @@ graph_assign_msglist_messages(MAILSTREAM *stream, JSON_S *j, unsigned long *firs
    if(!j) return;
    j = (JSON_S *) j->value;	/* this is the first object of the array */
 
-   for(; j != NULL; j = j->next,(*first)--){
+   for(; j && j->value; j = j->next,(*first)--){
       elt = mail_elt(stream, *first);
       if(!GDPQ) DPP(elt) = graph_message_new();
       if(GDPQ->valid & LOCAL->purpose) continue;
@@ -4138,7 +4138,7 @@ graph_fetch_range (MAILSTREAM *stream, unsigned long *top, unsigned long bottom,
 
      /* remove from our index all messages for which we received no data */
      silent = stream->silent;
-     stream->silent = T;
+     stream->silent = NIL;	/* inform upper levels */
      for(; stream && LOCAL && LOCAL->topmsg >= bottom; (*top)--)
 	mail_expunged(stream, LOCAL->topmsg--);
      stream->silent = silent;
