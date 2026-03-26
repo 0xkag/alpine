@@ -2,7 +2,7 @@
  * Copyright 2021-2026 Eduardo Chappa
  *
  * Created: June 24, 2021.
- * Last Edited: February 24, 2026
+ * Last Edited: March 25, 2026
  * Consider add: Prefer: IdType="ImmutableId" to every request.
  * Consider dealing with "@odata.type":"#microsoft.graph.eventMessageRequest",
  * "@odata.type":"#microsoft.graph.eventMessageResponse", "@odata.type":"#microsoft.graph.eventMessage",
@@ -342,7 +342,7 @@ long graph_copy (MAILSTREAM *stream,char *sequence,char *mailbox,long options);
 long graph_append (MAILSTREAM *stream,char *mailbox,append_t af,void *data);
 void graph_gc (MAILSTREAM *stream,long gcflags);
 void graph_gc_body (BODY *body);
-long graph_fetch_range (MAILSTREAM *stream, unsigned long, unsigned long, int);
+long graph_fetch_range (MAILSTREAM *stream, unsigned long *, unsigned long, int);
 GRAPH_PARAMETER *graph_text_preference(void);
 
 /* Driver dispatch used by MAIL */
@@ -2496,7 +2496,7 @@ void graph_fast (MAILSTREAM *stream,char *sequence,long flags)
 	 if(!elt->sequence) break;
      }
      first++;
-     graph_fetch_range(stream, last, first, GPH_ID | GPH_STATUS);
+     graph_fetch_range(stream, &last, first, GPH_ID | GPH_STATUS);
   }
 }
 
@@ -2535,7 +2535,7 @@ long graph_overview (MAILSTREAM *stream,overview_t ofn)
 
      flag = (LOCAL->loser ? 0 : (eo ? GPH_ENVELOPE : GPH_ALL_HEADERS)) | GPH_STATUS;
 
-     if(graph_fetch_range(stream, top, bottom, flag)){
+     if(graph_fetch_range(stream, &top, bottom, flag)){
          ENVELOPE *env;
 
          ov.optional.lines = 0;        /* now overview each message */   
@@ -3012,7 +3012,7 @@ graph_mark_msg_seen(MAILSTREAM *stream, unsigned long msgno, int status)
      elt = mail_elt(stream, msgno);
      if(((msg = GDPP(elt)) == NULL) || (msg->id == NULL)){
 	LOCAL->purpose = 0;
-	graph_fetch_range(stream, msgno, msgno, GPH_ID);
+	graph_fetch_range(stream, &msgno, msgno, GPH_ID);
 	msg = GDPP(elt);
      }
 
@@ -3051,7 +3051,7 @@ graph_msgdata (MAILSTREAM *stream, unsigned long msgno, char *section,
 	long eo = (long) mail_parameters(NIL, GET_GRAPHENVELOPEONLY, NIL);
 	msg = GDPP(elt);
 	if(!(msg->valid & GPH_ALL_HEADERS) && eo && !lines){
-	   graph_fetch_range (stream, msgno, msgno, GPH_ALL_HEADERS);
+	   graph_fetch_range (stream, &msgno, msgno, GPH_ALL_HEADERS);
 	   if(msg && msg->internetMessageHeaders){
 	      STRING s;
 	      GRAPH_PARAMETER *p;
@@ -3961,6 +3961,7 @@ graph_parse_fast(MAILSTREAM *stream, unsigned long start, unsigned long end, int
       elt = mail_elt (stream, msgno);
       if(elt){
 	 msg = GDPP(elt);
+	 if(!msg) continue;
 	 if ((msg->valid & GPH_ALL_HEADERS) && !(msg->valid & GPH_ENVELOPE)
 	    && (flag & GPH_ENVELOPE)){
 	     msg->valid |= GPH_ENVELOPE;
@@ -4011,7 +4012,7 @@ graph_fetch_msg (MAILSTREAM *stream, unsigned long msgno)
   elt = mail_elt(stream, msgno);
   if(((msg = GDPP(elt)) == NULL) || (msg->id == NULL)){
      LOCAL->purpose = 0;
-     graph_fetch_range(stream, msgno, msgno, GPH_ID);
+     graph_fetch_range(stream, &msgno, msgno, GPH_ID);
      msg = GDPP(elt);
   }
 
@@ -4021,7 +4022,7 @@ graph_fetch_msg (MAILSTREAM *stream, unsigned long msgno)
   }
 
   if (!eo && !(msg->valid & GPH_ALL_HEADERS)){
-     graph_fetch_range (stream, msgno, msgno, GPH_ALL_HEADERS);
+     graph_fetch_range (stream, &msgno, msgno, GPH_ALL_HEADERS);
      graph_parse_fast(stream, msgno, msgno, GPH_ALL_HEADERS);
   }
 
@@ -4030,23 +4031,24 @@ graph_fetch_msg (MAILSTREAM *stream, unsigned long msgno)
 
 /* fetch message information */
 long
-graph_fetch_range (MAILSTREAM *stream, unsigned long top, unsigned long bottom, int flag)
+graph_fetch_range (MAILSTREAM *stream, unsigned long *top, unsigned long bottom, int flag)
 {
   int i, j;
   GRAPH_USER_FOLDERS *gfolders = NIL;
   char string[MAILTMPLEN];
   unsigned char *s = NIL;
+  int silent;
 
   if (stream->debug){
-      sprintf(string, "graph_fetch_range(stream, %lu, %lu, %d)", top, bottom, flag);
+      sprintf(string, "graph_fetch_range(stream, %lu, %lu, %d)", *top, bottom, flag);
       mm_dlog (string);
   }
   LOCAL->purpose = flag;
-  LOCAL->topmsg = top;	/* for graph_challenge */
-  LOCAL->countmessages = top - bottom + 1;
+  LOCAL->topmsg = *top;	/* for graph_challenge */
+  LOCAL->countmessages = *top - bottom + 1;
   if (LOCAL->countmessages > GRAPHMAXCOUNTMSGS){
       LOCAL->countmessages = GRAPHMAXCOUNTMSGS;
-      bottom = top - GRAPHMAXCOUNTMSGS + 1;
+      bottom = *top - GRAPHMAXCOUNTMSGS + 1;
   }
 
   if (LOCAL->resource) fs_give((void **) &LOCAL->resource);
@@ -4054,14 +4056,14 @@ graph_fetch_range (MAILSTREAM *stream, unsigned long top, unsigned long bottom, 
      LOCAL->resource = cpystr(LOCAL->nextlink + GRAPHBASELEN);
      graph_send_command(stream);
      if(stream && LOCAL && (LOCAL->purpose & (GPH_ENVELOPE|GPH_ALL_HEADERS)))
-	graph_parse_fast(stream, top, bottom, LOCAL->purpose);
+	graph_parse_fast(stream, *top, bottom, LOCAL->purpose);
   }
   else{
      LOCAL->resource = fs_get(11 + 8 + strlen(LOCAL->folder.id) + 2 + 1);
      sprintf(LOCAL->resource, "mailFolders/%s/messages", LOCAL->folder.id);
 				/* count the number of parameters */
      i = 2; j = 0;		 	/* add $top */
-     if(top < stream->nmsgs) i++;	/* add $skip */
+     if(*top < stream->nmsgs) i++;	/* add $skip */
      if(flag & GPH_ATTACHMENTS) j++;	/* Op = GetAttachmentList */
      if(flag & (GPH_ENVELOPE|GPH_ID|GPH_STATUS|GPH_ALL_HEADERS)) j++; /* Op = GetFolderMessages */
      if(j > 1)
@@ -4075,9 +4077,9 @@ graph_fetch_range (MAILSTREAM *stream, unsigned long top, unsigned long bottom, 
      sprintf(LOCAL->tmp, "%lu", LOCAL->countmessages);
      LOCAL->params[i++].value = cpystr(LOCAL->tmp);
 			/* parameter 2, $skip */
-     if (top < stream->nmsgs){
+     if (*top < stream->nmsgs){
 	LOCAL->params[i].name = cpystr("$skip");
-	sprintf(LOCAL->tmp, "%ld", stream->nmsgs - top);
+	sprintf(LOCAL->tmp, "%ld", stream->nmsgs - *top);
 	LOCAL->params[i++].value = cpystr(LOCAL->tmp);
      }
 			/* parameter 3, $select */
@@ -4128,15 +4130,22 @@ graph_fetch_range (MAILSTREAM *stream, unsigned long top, unsigned long bottom, 
      }
 
      if(stream->debug){
-	sprintf(string, "graph_fetch: $top=%lu$skip=%lu", LOCAL->countmessages, stream->nmsgs - top);
+	sprintf(string, "graph_fetch: $top=%lu$skip=%lu", LOCAL->countmessages, stream->nmsgs - *top);
 	mm_dlog (string);
      }
 
      graph_send_command(stream);
 
+     /* remove from our index all messages for which we received no data */
+     silent = stream->silent;
+     stream->silent = T;
+     for(; stream && LOCAL && LOCAL->topmsg >= bottom; (*top)--)
+	mail_expunged(stream, LOCAL->topmsg--);
+     stream->silent = silent;
+
      if (j == 0) LOCAL->purpose = GPH_ENVELOPE;
      if(stream && LOCAL && (LOCAL->purpose & (GPH_ENVELOPE|GPH_ALL_HEADERS)))
-	graph_parse_fast(stream, top, bottom, LOCAL->purpose);
+	graph_parse_fast(stream, *top, bottom, LOCAL->purpose);
   }
 
   return stream && LOCAL ? LONGT : NIL;
@@ -4518,7 +4527,7 @@ char *graph_header (MAILSTREAM *stream,unsigned long msgno,
 
   if((msg = GDPP(elt)) == NULL){
      LOCAL->purpose = 0;
-     graph_fetch_range(stream, msgno, msgno, GPH_ID);
+     graph_fetch_range(stream, &msgno, msgno, GPH_ID);
      msg = GDPP(elt);
   }
 
