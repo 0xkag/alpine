@@ -4006,13 +4006,16 @@ graph_fetch_msg (MAILSTREAM *stream, unsigned long msgno)
   GRAPH_MESSAGE *msg;
   MESSAGECACHE *elt;
   long eo = (long) mail_parameters(NIL, GET_GRAPHENVELOPEONLY, NIL);
+  unsigned long top, bottom;
 
   if(!stream || !LOCAL) return NIL;
 
   elt = mail_elt(stream, msgno);
   if(((msg = GDPP(elt)) == NULL) || (msg->id == NULL)){
+     top = bottom = msgno;
      LOCAL->purpose = 0;
-     graph_fetch_range(stream, &msgno, msgno, GPH_ID);
+     graph_fetch_range(stream, &top, bottom, GPH_ID);
+     if(top != bottom) return NIL;
      msg = GDPP(elt);
   }
 
